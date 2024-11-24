@@ -1,0 +1,79 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Programming\\Projects\\EmberaEngine\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8C75CBAD-5C7E-44E1-B516-46CB801A0E00}|EngineStarter\\EngineStarter.csproj|c:\\programming\\projects\\emberaengine\\enginestarter\\enginestarter.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{8C75CBAD-5C7E-44E1-B516-46CB801A0E00}|EngineStarter\\EngineStarter.csproj|solutionrelative:enginestarter\\enginestarter.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8C75CBAD-5C7E-44E1-B516-46CB801A0E00}|EngineStarter\\EngineStarter.csproj|c:\\programming\\projects\\emberaengine\\enginestarter\\sprite.png||{58961B49-13E0-48C0-9258-13CBC4D40279}",
+      "RelativeMoniker": "D:0:0:{8C75CBAD-5C7E-44E1-B516-46CB801A0E00}|EngineStarter\\EngineStarter.csproj|solutionrelative:enginestarter\\sprite.png||{58961B49-13E0-48C0-9258-13CBC4D40279}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8C75CBAD-5C7E-44E1-B516-46CB801A0E00}|EngineStarter\\EngineStarter.csproj|c:\\programming\\projects\\emberaengine\\enginestarter\\untitled.png||{58961B49-13E0-48C0-9258-13CBC4D40279}",
+      "RelativeMoniker": "D:0:0:{8C75CBAD-5C7E-44E1-B516-46CB801A0E00}|EngineStarter\\EngineStarter.csproj|solutionrelative:enginestarter\\untitled.png||{58961B49-13E0-48C0-9258-13CBC4D40279}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "sprite.png",
+              "DocumentMoniker": "C:\\Programming\\Projects\\EmberaEngine\\EngineStarter\\sprite.png",
+              "RelativeDocumentMoniker": "EngineStarter\\sprite.png",
+              "ToolTip": "C:\\Programming\\Projects\\EmberaEngine\\EngineStarter\\sprite.png",
+              "RelativeToolTip": "EngineStarter\\sprite.png",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001533|",
+              "WhenOpened": "2024-11-24T16:14:42.355Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "untitled.png",
+              "DocumentMoniker": "C:\\Programming\\Projects\\EmberaEngine\\EngineStarter\\untitled.png",
+              "RelativeDocumentMoniker": "EngineStarter\\untitled.png",
+              "ToolTip": "C:\\Programming\\Projects\\EmberaEngine\\EngineStarter\\untitled.png",
+              "RelativeToolTip": "EngineStarter\\untitled.png",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001533|",
+              "WhenOpened": "2024-11-24T16:14:39.479Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "EngineStarter.csproj",
+              "DocumentMoniker": "C:\\Programming\\Projects\\EmberaEngine\\EngineStarter\\EngineStarter.csproj",
+              "RelativeDocumentMoniker": "EngineStarter\\EngineStarter.csproj",
+              "ToolTip": "C:\\Programming\\Projects\\EmberaEngine\\EngineStarter\\EngineStarter.csproj",
+              "RelativeToolTip": "EngineStarter\\EngineStarter.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-11-24T16:14:11.172Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
