@@ -1,5 +1,0 @@
-C:\Programming\Projects\EmberaEngine\EngineStarter\obj\Release\net8.0\EngineStarter.csproj.AssemblyReference.cache
-C:\Programming\Projects\EmberaEngine\EngineStarter\obj\Release\net8.0\EngineStarter.GeneratedMSBuildEditorConfig.editorconfig
-C:\Programming\Projects\EmberaEngine\EngineStarter\obj\Release\net8.0\EngineStarter.AssemblyInfoInputs.cache
-C:\Programming\Projects\EmberaEngine\EngineStarter\obj\Release\net8.0\EngineStarter.AssemblyInfo.cs
-C:\Programming\Projects\EmberaEngine\EngineStarter\obj\Release\net8.0\EngineStarter.csproj.CoreCompileInputs.cache

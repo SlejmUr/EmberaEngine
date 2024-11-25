@@ -1,5 +1,0 @@
-C:\Programming\Projects\EmberaEngine\ElementalEditor\obj\Release\net8.0\ElementalEditor.csproj.AssemblyReference.cache
-C:\Programming\Projects\EmberaEngine\ElementalEditor\obj\Release\net8.0\ElementalEditor.GeneratedMSBuildEditorConfig.editorconfig
-C:\Programming\Projects\EmberaEngine\ElementalEditor\obj\Release\net8.0\ElementalEditor.AssemblyInfoInputs.cache
-C:\Programming\Projects\EmberaEngine\ElementalEditor\obj\Release\net8.0\ElementalEditor.AssemblyInfo.cs
-C:\Programming\Projects\EmberaEngine\ElementalEditor\obj\Release\net8.0\ElementalEditor.csproj.CoreCompileInputs.cache
