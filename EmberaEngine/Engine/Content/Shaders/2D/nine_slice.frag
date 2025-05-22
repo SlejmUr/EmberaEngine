@@ -46,6 +46,8 @@ void main()
     vec2 newUV = uv9slice(v_TexCoord, s, b);
 
     vec4 tex = texture(u_Texture, newUV);
-	color = tex + u_Color;
+	color = tex;// + u_Color;
     //color = vec4(newUV.x, newUV.y, 1, 1);
+
+    //color = texture(u_Texture, v_TexCoord);
 }

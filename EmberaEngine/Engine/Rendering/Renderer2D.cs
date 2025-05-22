@@ -80,11 +80,11 @@ namespace EmberaEngine.Engine.Rendering
         public static void BeginRender()
         {
             CompositeBuffer2D.Bind();
-            GraphicsState.ClearColor(0, 0, 1, 1);
+            GraphicsState.ClearColor(0, 0, 0, 1);
             GraphicsState.Clear(true, true);
             GraphicsState.SetViewport(0, 0, Renderer.Width, Renderer.Height);
-            GraphicsState.SetCulling(false);
-            GraphicsState.SetDepthTest(false);
+            GraphicsState.SetCulling(true);
+            GraphicsState.SetDepthTest(true);
             GraphicsState.SetBlending(true);
             GraphicsState.SetBlendingFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
@@ -124,6 +124,7 @@ namespace EmberaEngine.Engine.Rendering
 
 
                 elem.mesh.Draw();
+                //elem.shader.Clear();
             }
 
             RenderQueue.Clear();

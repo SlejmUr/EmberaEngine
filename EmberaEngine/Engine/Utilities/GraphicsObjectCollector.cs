@@ -15,6 +15,8 @@ namespace EmberaEngine.Engine.Utilities
 
         static List<int> d_Textures = new List<int>();
 
+        static List<int> d_BufferObjects = new List<int>();
+
         public static void AddVAOToDispose(int VAO)
         {
 #if DEBUG
@@ -47,6 +49,14 @@ namespace EmberaEngine.Engine.Utilities
             d_Textures.Add(TO);
         }
 
+        public static void AddBufferToDispose(int BO)
+        {
+#if DEBUG
+            //Console.WriteLine("DISPOSING TEX OBJ");
+#endif
+            d_BufferObjects.Add(BO);
+        }
+
         public static void Dispose()
         {
             for (int i = 0; i < d_VertexArrays.Count; i++)
@@ -66,10 +76,15 @@ namespace EmberaEngine.Engine.Utilities
             {
                 GL.DeleteTexture(d_Textures[i]);
             }
+            for (int i = 0; i < d_BufferObjects.Count; i++)
+            {
+                GL.DeleteBuffer(d_BufferObjects[i]);
+            }
             d_VertexArrays.Clear();
             d_VertexBuffers.Clear();
             d_FrameBuffers.Clear();
             d_Textures.Clear();
+            d_BufferObjects.Clear();
         }
     }
 }

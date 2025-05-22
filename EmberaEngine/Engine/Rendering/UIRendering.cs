@@ -46,6 +46,9 @@ namespace EmberaEngine.Engine.Rendering
         public static Texture nullTexture;
         public static Texture border;
 
+        public static Texture button_idle;
+        public static Texture button_pressed;
+
         public static Shader NineSliceShader;
 
         static UIConstants()
@@ -57,6 +60,8 @@ namespace EmberaEngine.Engine.Rendering
 
             nullTexture = Helper.loadImageAsTex("./Engine/Content/Textures/Placeholders/null.png");
             border = Helper.loadImageAsTex("./Engine/Content/Textures/UI/border.png");
+            button_idle = Helper.loadImageAsTex("./Engine/Content/Textures/UI/button_idle.png", TextureMagFilter.Nearest);
+            button_pressed = Helper.loadImageAsTex("./Engine/Content/Textures/UI/button_pressed.png", TextureMagFilter.Nearest);
 
             NineSliceShader = new Shader("./Engine/Content/Shaders/2D/sprite2d.vert", "./Engine/Content/Shaders/2D/nine_slice.frag", "");
         }
@@ -151,20 +156,42 @@ namespace EmberaEngine.Engine.Rendering
 
 public class UIButton : UIElement
     {
+        public Texture pressedTexture = UIConstants.button_pressed;
+        public Texture defaultTexture = UIConstants.button_idle;
+
+        private Texture currentTexture;
+
+        public override void Start()
+        {
+
+        }
 
         public override void Render()
         {
-            
+
+            UIConstants.NineSliceShader.Set("u_dimensions", this.dimensions.Zw);
+            UIConstants.NineSliceShader.Set("borders", new Vector4(20f));
+
+            Renderer2D.RenderCustomShaderRect(currentTexture, this.dimensions, UIConstants.NineSliceShader);
         }
 
         public override void Update()
         {
             if (this.isMouseOver)
             {
-                if (Input.GetMouseDown(MouseButton.Left))
+
+
+
+                if (Input.IsPressed(MouseButton.Left))
                 {
-                    Console.WriteLine("BUTTON CLICKED");
+                    currentTexture = pressedTexture;
+                } else
+                {
+                    currentTexture = defaultTexture;
                 }
+            } else
+            {
+                currentTexture = defaultTexture;
             }
         }
     }

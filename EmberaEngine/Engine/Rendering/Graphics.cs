@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 
 using OpenTK.Mathematics;
+using EmberaEngine.Engine.Utilities;
 
 namespace EmberaEngine.Engine.Rendering
 {
@@ -31,6 +32,21 @@ namespace EmberaEngine.Engine.Rendering
                     depthNear,
                     depthFar
             );
+        }
+
+
+        public static Mesh GetCube()
+        {
+            VertexArray CubeVAO;
+            Vertex[] vertices1 = Primitives.GetCubeVertex();
+            VertexBuffer CubeVBO = new VertexBuffer(Vertex.VertexInfo, vertices1.Length, true);
+            CubeVBO.SetData(vertices1, vertices1.Length);
+            CubeVAO = new VertexArray(CubeVBO);
+
+            Mesh Cube = new();
+            Cube.SetVertexArrayObject(CubeVAO);
+
+            return Cube;
         }
 
     }

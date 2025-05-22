@@ -42,7 +42,7 @@ namespace ElementalEditor.Editor.Panels
 
         public override void OnAttach()
         {
-            compositeBuffer = Renderer2D.GetComposite2D();
+            compositeBuffer = Renderer3D.GetComposite();
 
             viewportBufferTexture = new Texture(TextureTarget2d.Texture2D);
             viewportBufferTexture.TexImage2D(viewportWidth, viewportHeight, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
@@ -64,7 +64,19 @@ namespace ElementalEditor.Editor.Panels
                 });
             }
 
-            selectedResolution = SupportedResolutions[0];
+            for (int i = 0; i < monitorInfoList.SupportedVideoModes.Count; i++)
+            {
+                if (SupportedResolutions[i].width == monitorInfoList.HorizontalResolution && SupportedResolutions[i].height == monitorInfoList.VerticalResolution)
+                {
+                    selectedResolution = SupportedResolutions[i];
+                    selectedResolution.width = 1920;
+                    selectedResolution.height = 1080;
+                    Renderer.Resize(selectedResolution.width, selectedResolution.height);
+                    Screen.Size.X = selectedResolution.width;
+                    Screen.Size.Y = selectedResolution.height;
+                    break;
+                }
+            }
         }
 
         public override void OnGUI()
@@ -99,7 +111,7 @@ namespace ElementalEditor.Editor.Panels
 
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(0, 0));
             ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
-            ImGui.Image(/*freeAspectRatio ? (IntPtr)compositeBuffer.GetFramebufferTexture(0).GetRendererID() : */(IntPtr)viewportBuffer.GetFramebufferTexture(0).GetRendererID(), new System.Numerics.Vector2(ImGui.GetContentRegionMax().X,ImGui.GetContentRegionAvail().Y), new System.Numerics.Vector2(0, 0), new System.Numerics.Vector2(1, -1));
+            ImGui.Image((IntPtr)viewportBuffer.GetFramebufferTexture(0).GetRendererID(), new System.Numerics.Vector2(ImGui.GetContentRegionMax().X,ImGui.GetContentRegionAvail().Y), new System.Numerics.Vector2(0, 0), new System.Numerics.Vector2(1, -1));
 
 
             ImGui.PopStyleVar(2);
@@ -228,9 +240,10 @@ namespace ElementalEditor.Editor.Panels
                         selectedResolution = SupportedResolutions[i];
                         freeAspectRatio = false;
                         Renderer.Resize(selectedResolution.width, selectedResolution.height);
-                        DebugLogPanel.Log("RESIZED RENDERER", DebugLogPanel.DebugMessageSeverity.Information, "Viewport Change");
                         Screen.Size.X = selectedResolution.width;
                         Screen.Size.Y = selectedResolution.height;
+
+                        DebugLogPanel.Log("RESIZED RENDERER", DebugLogPanel.DebugMessageSeverity.Information, "Viewport Change");
                     }
                 }
 

@@ -17,8 +17,8 @@ namespace ElementalEditor
             ApplicationSpecification specification = new ApplicationSpecification()
             {
                 Name = "Hello World",
-                Height = 600,
-                Width = 800,
+                Height = 1080,
+                Width = 1920,
                 forceVsync = true,
                 useImGui = true,
                 useImGuiDock = true,

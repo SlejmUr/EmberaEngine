@@ -356,6 +356,17 @@ namespace EmberaEngine.Engine.Core
             }
         }
 
+        public void Clear()
+        {
+            uniformInts.Clear();
+            uniformFloats.Clear();
+            uniformBools.Clear();
+            uniformVec2.Clear();
+            uniformVec3.Clear();
+            uniformVec4.Clear();
+            uniformMat4.Clear();
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)

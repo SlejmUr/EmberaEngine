@@ -13,13 +13,25 @@
     <None Remove="Engine\Content\Shaders\2D\nine_slice.frag" />
     <None Remove="Engine\Content\Shaders\2D\sprite2d.frag" />
     <None Remove="Engine\Content\Shaders\2D\sprite2d.vert" />
+    <None Remove="Engine\Content\Shaders\3D\base.vert" />
+    <None Remove="Engine\Content\Shaders\3D\basic\base.frag" />
+    <None Remove="Engine\Content\Shaders\3D\ClusterCompute\cluster.comp" />
+    <None Remove="Engine\Content\Shaders\3D\PBR\clustered_pbr.frag" />
+    <None Remove="Engine\Content\Shaders\3D\PBR\clustered_pbr.vert" />
     <None Remove="Engine\Content\Textures\Placeholders\null.png" />
     <None Remove="Engine\Content\Textures\UI\border.png" />
+    <None Remove="Engine\Content\Textures\UI\button_idle.png" />
+    <None Remove="Engine\Content\Textures\UI\button_pressed.png" />
     <None Remove="Engine\Content\Textures\UI\slider_circle.png" />
     <None Remove="Engine\Content\Textures\UI\slider_square_knob.png" />
     <None Remove="Engine\Content\Textures\UI\slider_stylized_knob.png" />
     <None Remove="Engine\ImGui\shaders\GUI.frag" />
     <None Remove="Engine\ImGui\shaders\GUI.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Engine\Content\Shaders\3D\ClusterCompute\cluster_light_cull.comp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Engine\Content\Assemblies\freetype6.dll">
@@ -40,10 +52,31 @@
     <Content Include="Engine\Content\Shaders\2D\sprite2d.vert">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\base.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\base.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\ClusterCompute\cluster.comp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\PBR\clustered_pbr.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\PBR\clustered_pbr.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Engine\Content\Textures\Placeholders\null.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Textures\UI\border.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\UI\button_idle.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\UI\button_pressed.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Textures\UI\slider_circle.png">

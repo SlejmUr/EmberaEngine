@@ -56,19 +56,11 @@ namespace ElementalEditor.Editor
             EditorCurrentScene.Initialize();
             EditorCurrentScene.Play();
 
-            btn = UIManager.CreateUIElement<UISlider>(t1);
-            btn.dimensions = new OpenTK.Mathematics.Vector4(100, 25, 300, 20);
-
         }
-
-        UISlider btn;
 
         public override void OnKeyDown(KeyboardEvent keyboardEvent)
         {
-            if (keyboardEvent.Key == Keys.Space)
-            {
-                btn.dimensions.Y += 10;
-            }
+
         }
 
 
@@ -127,37 +119,13 @@ namespace ElementalEditor.Editor
 
         }
 
-        //TextComponent t;
-
-        CanvasComponent t1;
-
         void LoadTestSandbox()
         {
-            
-
-            GameObject mainScreenCanvas = EditorCurrentScene.addGameObject("MainCanvas");
-            t1 = mainScreenCanvas.AddComponent<CanvasComponent>();
-
-            //t1.ScaleMode = CanvasScaleMode.ScaleWithScreen;
-
-            //GameObject playText = EditorCurrentScene.addGameObject("PlayText");
-            //playText.transform.position.X = 400;
-            //playText.transform.position.Y = 300;
-            //playText.transform.scale.X = 1;
-            //playText.transform.scale.Y = 1;
-
-            //t = playText.AddComponent<TextComponent>();
-            //t.Content = "TEXT OBJECT";
-
-            //GameObject playButton = EditorCurrentScene.addGameObject("PlayButton");
-            //playButton.transform.position.X = 100;
-            //playButton.transform.position.Y = 100;
-            //playButton.transform.scale.X = 50;
-            //playButton.transform.scale.Y = 50;
-            //SpriteRenderer sr = playButton.AddComponent<SpriteRenderer>();
-            //sr.SolidColor = new OpenTK.Mathematics.Vector4(1, 1, 1, 1);
-            //ButtonComponent btn = playButton.AddComponent<ButtonComponent>();
-
+            GameObject cameraObject = EditorCurrentScene.addGameObject("Camera Boiii");
+            CameraComponent3D camComp = cameraObject.AddComponent<CameraComponent3D>();
+            camComp.ClearColor = new OpenTK.Mathematics.Color4(0, 0, 0, 255);
+            cameraObject.transform.position = new OpenTK.Mathematics.Vector3(6, 0.6f, 13);
+            cameraObject.transform.rotation.X = 206;
         }
 
         public void SetEditorStyling()

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using ImGuiNET;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 namespace EmberaEngine.Engine.Rendering
 {
@@ -17,6 +18,12 @@ namespace EmberaEngine.Engine.Rendering
         {
             GL.ClearColor(r, g, b, a);
         }
+
+        public static void ClearColor(Color4 value)
+        {
+            GL.ClearColor(value);
+        }
+
         public static void Clear(bool color = true, bool depth = false, bool stencil = false)
         {
             ClearBufferMask clearMask = color ? ClearBufferMask.ColorBufferBit : ClearBufferMask.None;

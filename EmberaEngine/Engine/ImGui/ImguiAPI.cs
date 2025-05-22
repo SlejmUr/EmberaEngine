@@ -42,6 +42,7 @@ namespace EmberaEngine.Engine.Imgui
         private Shader _guiShader;
         private GameWindow _GameWindow;
         private int FontCount;
+        private static float dpi_scaling = 1f;
         Matrix4 mvp;
         uint DockspaceID;
         
@@ -61,8 +62,9 @@ namespace EmberaEngine.Engine.Imgui
 
             _GameWindow = gameWindow;
             var io = ImGui.GetIO();
-            
 
+            dpi_scaling = Monitors.GetMonitorFromWindow(gameWindow).HorizontalDpi;
+            Console.WriteLine("DPI: " + dpi_scaling);
 
             FontCount = io.Fonts.Fonts.Size;
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
@@ -77,6 +79,7 @@ namespace EmberaEngine.Engine.Imgui
             SetKeyMappings();
 
             SetPerFrameImGuiData(1f / 60f);
+
         }
 
         public static unsafe ImFontPtr LoadIconFont(string path, int size, (ushort, ushort) range)
@@ -193,6 +196,7 @@ namespace EmberaEngine.Engine.Imgui
             {
                 _frameBegun = false;
                 ImGui.Render();
+
                 RenderImDrawData(ImGui.GetDrawData());
             }
         }
@@ -284,7 +288,7 @@ namespace EmberaEngine.Engine.Imgui
             io.MouseDown[2] = MouseState.IsButtonDown(OpenTK.Windowing.GraphicsLibraryFramework.MouseButton.Middle);
 
             var screenPoint = MouseState.Position;
-            io.MousePos = new System.Numerics.Vector2(screenPoint.X, screenPoint.Y);
+            io.MousePos = new System.Numerics.Vector2(screenPoint.X / _scaleFactor.X, screenPoint.Y / _scaleFactor.Y);
 
             io.MouseWheel = MouseState.Scroll.Y - MouseState.PreviousScroll.Y;
             io.MouseWheelH = MouseState.Scroll.X - MouseState.PreviousScroll.X;
@@ -294,6 +298,8 @@ namespace EmberaEngine.Engine.Imgui
             {
                 if (key == OpenTK.Windowing.GraphicsLibraryFramework.Keys.Unknown)
                     continue;
+
+                
 
                 io.KeysDown[(int)key] = KeyboardState.IsKeyDown(key);
             }
@@ -380,7 +386,7 @@ namespace EmberaEngine.Engine.Imgui
             io.KeyMap[(int)ImGuiKey.End] = (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.End;
             io.KeyMap[(int)ImGuiKey.Delete] = (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.Delete;
             io.KeyMap[(int)ImGuiKey.Backspace] = (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.Backspace;
-            io.KeyMap[(int)ImGuiKey.Enter] = (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.Enter;
+            io.KeyMap[(int)ImGuiKey.Enter] = (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.Enter | (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.KeyPadEnter;
             io.KeyMap[(int)ImGuiKey.Escape] = (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.Escape;
             io.KeyMap[(int)ImGuiKey.A] = (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.A;
             io.KeyMap[(int)ImGuiKey.C] = (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.C;
@@ -396,6 +402,8 @@ namespace EmberaEngine.Engine.Imgui
             {
                 return;
             }
+
+            //ImGui.GetStyle().ScaleAllSizes(dpi_scaling);
 
             GL.Viewport(0, 0, _GameWindow.Size.X, _GameWindow.Size.Y);
             // Get intial state.
@@ -476,6 +484,7 @@ namespace EmberaEngine.Engine.Imgui
 
             _guiShader.Use();
             _guiShader.SetMatrix4("projection_matrix", mvp, false);
+            _guiShader.SetFloat("dpi_scaling", dpi_scaling);
             _guiShader.SetInt("in_fontTexture", 0);
 
             GL.BindVertexArray(_vertexArray);

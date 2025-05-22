@@ -17,7 +17,10 @@ namespace EmberaEngine.Engine.Rendering
             Height = height;
             Width = width;
 
+            Renderer3D.ActiveRenderingPipeline = new ClusteredRenderer();
+
             Renderer2D.Initialize(width, height);
+            Renderer3D.Initialize(width, height);
         }
 
         public static void BeginFrame()
@@ -25,16 +28,19 @@ namespace EmberaEngine.Engine.Rendering
             GraphicsState.Clear(true, true);
             //GraphicsState.ErrorCheck();
             Renderer2D.BeginRender();
+            Renderer3D.BeginRender();
         }
 
         public static void RenderFrame()
         {
             Renderer2D.Render();
+            Renderer3D.Render();
         }
 
         public static void EndFrame()
         {
             Renderer2D.EndRender();
+            Renderer3D.EndRender();
         }
 
         public static void Resize(int width, int height)
@@ -42,6 +48,7 @@ namespace EmberaEngine.Engine.Rendering
             Height = height;
             Width = width;
             Renderer2D.Resize(width, height);
+            Renderer3D.Resize(width, height);
         }
 
         public static Framebuffer GetCompositeBuffer()

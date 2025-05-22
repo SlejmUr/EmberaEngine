@@ -9,8 +9,6 @@ namespace EmberaEngine.Engine.Utilities
     public class Mesh : IDisposable
     {
 
-        public static int TotalMeshCount = 0;
-
         public VertexBuffer VBO;
         public IndexBuffer IBO;
         public VertexArray VAO;
@@ -33,8 +31,6 @@ namespace EmberaEngine.Engine.Utilities
 
         public Mesh()
         {
-            TotalMeshCount += 1;
-            MeshID = UtilRandom.Next(RenderGraph.MAX_MESH_COUNT);
         }
 
         ~Mesh()
@@ -45,7 +41,6 @@ namespace EmberaEngine.Engine.Utilities
         public void Dispose()
         {
             if (isdisposed) { return; }
-            TotalMeshCount -= 1;
             VBO?.Dispose();
             IBO?.Dispose();
             VAO?.Dispose();
