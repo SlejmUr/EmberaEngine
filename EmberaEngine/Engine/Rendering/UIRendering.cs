@@ -58,7 +58,6 @@ namespace EmberaEngine.Engine.Rendering
 
             stylizedKnob = Helper.loadImageAsTex("./Engine/Content/Textures/UI/slider_stylized_knob.png");
 
-            nullTexture = Helper.loadImageAsTex("./Engine/Content/Textures/Placeholders/null.png");
             border = Helper.loadImageAsTex("./Engine/Content/Textures/UI/border.png");
             button_idle = Helper.loadImageAsTex("./Engine/Content/Textures/UI/button_idle.png", TextureMagFilter.Nearest);
             button_pressed = Helper.loadImageAsTex("./Engine/Content/Textures/UI/button_pressed.png", TextureMagFilter.Nearest);
