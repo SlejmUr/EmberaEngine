@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Editor\Assets\Fonts\forkawesome-webfont.ttf" />
@@ -15,6 +16,12 @@
     <None Remove="Editor\Assets\Fonts\Roboto-Medium.ttf" />
     <None Remove="Editor\Assets\Fonts\TerminalDosis-Bold.ttf" />
     <None Remove="Editor\Assets\Fonts\TerminalDosis-Regular.ttf" />
+    <None Remove="Editor\Assets\Shaders\gizmoTexture.frag" />
+    <None Remove="Editor\Assets\Shaders\gizmoTexture.vert" />
+    <None Remove="Editor\Assets\Textures\GizmoTextures\DirectionalLightOverlay.png" />
+    <None Remove="Editor\Assets\Textures\GizmoTextures\LightComponentTexture.png" />
+    <None Remove="Editor\Assets\Textures\GizmoTextures\PointLightOverlay.png" />
+    <None Remove="Editor\Assets\Textures\GizmoTextures\SpotLightOverlay.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Editor\Assets\Fonts\forkawesome-webfont.ttf">
@@ -47,11 +54,37 @@
     <Content Include="Editor\Assets\Fonts\TerminalDosis-Regular.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Editor\Assets\Shaders\base.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Editor\Assets\Shaders\base.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Editor\Assets\Shaders\gizmoTexture.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Editor\Assets\Shaders\gizmoTexture.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Editor\Assets\Textures\GizmoTextures\DirectionalLightOverlay.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Editor\Assets\Textures\GizmoTextures\PointLightOverlay.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Editor\Assets\Textures\GizmoTextures\SpotLightOverlay.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EmberaEngine\EmberaEngine.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ImGuizmo.NET">
+      <HintPath>..\EmberaEngine\Engine\Content\Assemblies\ImGuizmo.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

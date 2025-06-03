@@ -56,6 +56,12 @@ namespace EmberaEngine.Engine.Utilities
             GL.DrawArrays(PrimitiveType.Triangles, 0, VertexBuffer.VertexCount);//VertexBuffer.VertexCount);
         }
 
+        public void Render(PrimitiveType primitiveType)
+        {
+            GL.BindVertexArray(VertexArrayObject);
+            GL.DrawArrays(primitiveType, 0, VertexBuffer.VertexCount);//VertexBuffer.VertexCount);
+        }
+
         public void Render(IndexBuffer IBO)
         {
             GL.BindVertexArray(VertexArrayObject);

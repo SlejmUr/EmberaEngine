@@ -52,7 +52,10 @@ namespace EmberaEngine.Engine.Core
             window.Load += OnLoad;
             window.UpdateFrame += OnUpdateFrame;
             window.RenderFrame += OnRenderFrame;
+
             window.KeyDown += OnKeyDown;
+            window.KeyUp += OnKeyUp;
+
             window.Resize += OnResize;
             window.TextInput += OnTextInput;
 
@@ -61,6 +64,7 @@ namespace EmberaEngine.Engine.Core
             window.MouseEnter += OnMouseEnter;
             window.MouseLeave += OnMouseLeave;
             window.MouseUp += OnMouseInput;
+            window.MouseWheel += OnMouseWheel;
 
             Renderer.Initialize(appSpec.Width, appSpec.Height);
 
@@ -70,6 +74,11 @@ namespace EmberaEngine.Engine.Core
         private void OnMouseMove(OpenTK.Windowing.Common.MouseMoveEventArgs obj)
         {
             LayerHandler.OnMouseMoveEvent(obj);
+        }
+
+        private void OnMouseWheel(OpenTK.Windowing.Common.MouseWheelEventArgs obj)
+        {
+            LayerHandler.OnMouseWheelEvent(obj);
         }
 
         private void OnMouseLeave()
@@ -122,6 +131,12 @@ namespace EmberaEngine.Engine.Core
             LayerHandler.KeyDownInput((Keys)(int)obj.Key, obj.ScanCode, obj.Modifiers.ToString(), caps);
         }
 
+        private void OnKeyUp(OpenTK.Windowing.Common.KeyboardKeyEventArgs obj)
+        {
+            bool caps = obj.Modifiers.ToString().Split(",").Contains("CapsLock");
+            LayerHandler.KeyUpInput((Keys)(int)obj.Key, obj.ScanCode, obj.Modifiers.ToString(), caps);
+        }
+
         public void Run()
         {
             window.Run();
@@ -138,6 +153,8 @@ namespace EmberaEngine.Engine.Core
             Renderer.BeginFrame();
             Renderer.RenderFrame();
             Renderer.EndFrame();
+            LayerHandler.LateRenderLayers();
+
         }
 
         private void OnUpdateFrame(OpenTK.Windowing.Common.FrameEventArgs obj)
@@ -158,6 +175,7 @@ namespace EmberaEngine.Engine.Core
 
             // MOVE TO GAMELAYER.CS ON PROD/EXPORT FOR STANDALONE BUILDS
             UIManager.Update();
+            Input.Update();
         }
     }
 }

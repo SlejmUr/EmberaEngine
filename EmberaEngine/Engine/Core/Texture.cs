@@ -19,6 +19,7 @@ namespace EmberaEngine.Engine.Core
         public int Depth { get; private set; } = 1;
 
         public static Texture White2DTex;
+        public static Texture Black2DTex;
 
         static Texture()
         {
@@ -28,11 +29,21 @@ namespace EmberaEngine.Engine.Core
             White2DTex.TexImage2D<byte>(1, 1, EmberaEngine.Engine.Core.PixelInternalFormat.Rgba, EmberaEngine.Engine.Core.PixelFormat.Rgba, EmberaEngine.Engine.Core.PixelType.UnsignedByte, new byte[] { 255, 255, 255, 255 });
             White2DTex.GenerateMipmap();
 
+            Black2DTex = new Texture(TextureTarget2d.Texture2D);
+            Black2DTex.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
+            Black2DTex.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
+            Black2DTex.TexImage2D(1, 1, PixelInternalFormat.Rgba, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+
         }
 
         public static Texture GetWhite2D()
         {
             return White2DTex;
+        }
+
+        public static Texture GetBlack2D()
+        {
+            return Black2DTex;
         }
 
         public static Texture ConfigureDefault(TextureTarget target, int width, int height, byte[] pixels)
@@ -65,6 +76,24 @@ namespace EmberaEngine.Engine.Core
 
             GL.CreateTextures(target, 1, out handle);
         }
+
+        public Texture(TextureTargetCube textureTarget)
+        {
+            target = (TextureTarget)textureTarget;
+            textureDimension = TextureDimension.Three;
+            GL.CreateTextures(target, 1, out handle);
+        }
+
+
+        public Texture(TextureTargetd textureTarget)
+        {
+
+            target = (TextureTarget)textureTarget;
+            textureDimension = TextureDimension.Undefined;
+
+            GL.CreateTextures(target, 1, out handle);
+        }
+
 
         public Texture(TextureTarget1d textureTarget)
         {
@@ -154,6 +183,26 @@ namespace EmberaEngine.Engine.Core
             this.Height = height;
         }
 
+        public void TexImage2D(int width, int height, TextureTarget texTarget,  PixelInternalFormat pixelInternalFormat, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels)
+        {
+            GL.BindTexture(target, handle);
+            GL.TexImage2D(texTarget, 0, (OpenTK.Graphics.OpenGL.PixelInternalFormat)pixelInternalFormat, width, height, 0, (OpenTK.Graphics.OpenGL.PixelFormat)pixelFormat, (OpenTK.Graphics.OpenGL.PixelType)pixelType, pixels);
+            GL.BindTexture(target, 0);
+
+            this.Width = width;
+            this.Height = height;
+        }
+
+        public void TexImage2D<T>(int width, int height, TextureTarget texTarget, PixelInternalFormat pixelInternalFormat, PixelFormat pixelFormat, PixelType pixelType, T[] pixels) where T : unmanaged
+        {
+            GL.BindTexture(target, handle);
+            GL.TexImage2D(texTarget, 0, (OpenTK.Graphics.OpenGL.PixelInternalFormat)pixelInternalFormat, width, height, 0, (OpenTK.Graphics.OpenGL.PixelFormat)pixelFormat, (OpenTK.Graphics.OpenGL.PixelType)pixelType, pixels);
+            GL.BindTexture(target, 0);
+
+            this.Width = width;
+            this.Height = height;
+        }
+
         public void SubTexture2D(int width, int height, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels, int level = 0, int xOffset = 0, int yOffset = 0)
         {
             GL.TextureSubImage2D(handle, level, xOffset, yOffset, width, height, (OpenTK.Graphics.OpenGL.PixelFormat)pixelFormat, (OpenTK.Graphics.OpenGL.PixelType)pixelType, pixels);
@@ -171,6 +220,17 @@ namespace EmberaEngine.Engine.Core
             GL.BindTexture(target, handle);
             GL.TexSubImage2D(target, level, xOffset, yOffset, width, height, (OpenTK.Graphics.OpenGL.PixelFormat)pixelFormat, (OpenTK.Graphics.OpenGL.PixelType)pixelType, pixels);
             GL.BindTexture(target, 0);
+        }
+
+        public void TexImage3D(int width, int height, int depth, PixelInternalFormat pixelInternalFormat, PixelFormat pixelFormat, PixelType pixelType, IntPtr pixels)
+        {
+            GL.BindTexture(target, handle);
+            GL.TexImage3D(target, 0, (OpenTK.Graphics.OpenGL.PixelInternalFormat)pixelInternalFormat, width, height, depth, 0, (OpenTK.Graphics.OpenGL.PixelFormat)pixelFormat, (OpenTK.Graphics.OpenGL.PixelType)pixelType, pixels);
+            GL.BindTexture(target, 0);
+
+            this.Width = width;
+            this.Height = height;
+            this.Depth = depth;
         }
 
         public void SetAnisotropy(float value)
@@ -198,6 +258,11 @@ namespace EmberaEngine.Engine.Core
             GL.BindTexture(target, handle);
         }
 
+        public void Bind(TextureTarget target)
+        {
+            GL.BindTexture(target, handle);
+        }
+
         public int GetRendererID()
         {
             return handle;
@@ -208,6 +273,11 @@ namespace EmberaEngine.Engine.Core
             return (int)target;
         }
 
+    }
+
+    public enum TextureTargetCube
+    {
+        TextureCubeMap = TextureTarget.TextureCubeMap
     }
 
     public enum SizedInternalFormat
@@ -1002,6 +1072,219 @@ namespace EmberaEngine.Engine.Core
     {
         Texture1D = 3552,
         ProxyTexture1D = 32867
+    }
+
+    public enum TextureTargetd
+    {
+        //
+        // Summary:
+        //     [requires: v1.0 or ARB_internalformat_query2] Original was GL_TEXTURE_1D = 0x0DE0
+        Texture1D = 3552,
+        //
+        // Summary:
+        //     [requires: v1.0 or ARB_internalformat_query2] Original was GL_TEXTURE_2D = 0x0DE1
+        Texture2D = 3553,
+        //
+        // Summary:
+        //     [requires: v1.1] Original was GL_PROXY_TEXTURE_1D = 0x8063
+        ProxyTexture1D = 32867,
+        //
+        // Summary:
+        //     [requires: EXT_texture] Original was GL_PROXY_TEXTURE_1D_EXT = 0x8063
+        ProxyTexture1DExt = 32867,
+        //
+        // Summary:
+        //     [requires: v1.1] Original was GL_PROXY_TEXTURE_2D = 0x8064
+        ProxyTexture2D = 32868,
+        //
+        // Summary:
+        //     [requires: EXT_texture] Original was GL_PROXY_TEXTURE_2D_EXT = 0x8064
+        ProxyTexture2DExt = 32868,
+        //
+        // Summary:
+        //     [requires: v1.2 or ARB_internalformat_query2] Original was GL_TEXTURE_3D = 0x806F
+        Texture3D = 32879,
+        //
+        // Summary:
+        //     [requires: EXT_texture3D] Original was GL_TEXTURE_3D_EXT = 0x806F
+        Texture3DExt = 32879,
+        //
+        // Summary:
+        //     Original was GL_TEXTURE_3D_OES = 0x806F
+        Texture3DOes = 32879,
+        //
+        // Summary:
+        //     [requires: v1.2] Original was GL_PROXY_TEXTURE_3D = 0x8070
+        ProxyTexture3D = 32880,
+        //
+        // Summary:
+        //     [requires: EXT_texture3D] Original was GL_PROXY_TEXTURE_3D_EXT = 0x8070
+        ProxyTexture3DExt = 32880,
+        //
+        // Summary:
+        //     [requires: SGIS_detail_texture] Original was GL_DETAIL_TEXTURE_2D_SGIS = 0x8095
+        DetailTexture2DSgis = 32917,
+        //
+        // Summary:
+        //     [requires: SGIS_texture4D] Original was GL_TEXTURE_4D_SGIS = 0x8134
+        Texture4DSgis = 33076,
+        //
+        // Summary:
+        //     [requires: SGIS_texture4D] Original was GL_PROXY_TEXTURE_4D_SGIS = 0x8135
+        ProxyTexture4DSgis = 33077,
+        //
+        // Summary:
+        //     [requires: v3.1 or ARB_internalformat_query2] Original was GL_TEXTURE_RECTANGLE
+        //     = 0x84F5
+        TextureRectangle = 34037,
+        //
+        // Summary:
+        //     [requires: ARB_texture_rectangle] Original was GL_TEXTURE_RECTANGLE_ARB = 0x84F5
+        TextureRectangleArb = 34037,
+        //
+        // Summary:
+        //     [requires: NV_texture_rectangle] Original was GL_TEXTURE_RECTANGLE_NV = 0x84F5
+        TextureRectangleNv = 34037,
+        //
+        // Summary:
+        //     [requires: v3.1] Original was GL_PROXY_TEXTURE_RECTANGLE = 0x84F7
+        ProxyTextureRectangle = 34039,
+        //
+        // Summary:
+        //     [requires: ARB_texture_rectangle] Original was GL_PROXY_TEXTURE_RECTANGLE_ARB
+        //     = 0x84F7
+        ProxyTextureRectangleArb = 34039,
+        //
+        // Summary:
+        //     [requires: NV_texture_rectangle] Original was GL_PROXY_TEXTURE_RECTANGLE_NV =
+        //     0x84F7
+        ProxyTextureRectangleNv = 34039,
+        //
+        // Summary:
+        //     [requires: v1.3 or ARB_internalformat_query2] Original was GL_TEXTURE_CUBE_MAP
+        //     = 0x8513
+        TextureCubeMap = 34067,
+        //
+        // Summary:
+        //     [requires: v1.3 or ARB_direct_state_access] Original was GL_TEXTURE_BINDING_CUBE_MAP
+        //     = 0x8514
+        TextureBindingCubeMap = 34068,
+        //
+        // Summary:
+        //     [requires: v1.3] Original was GL_TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515
+        TextureCubeMapPositiveX = 34069,
+        //
+        // Summary:
+        //     [requires: v1.3] Original was GL_TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516
+        TextureCubeMapNegativeX = 34070,
+        //
+        // Summary:
+        //     [requires: v1.3] Original was GL_TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517
+        TextureCubeMapPositiveY = 34071,
+        //
+        // Summary:
+        //     [requires: v1.3] Original was GL_TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518
+        TextureCubeMapNegativeY = 34072,
+        //
+        // Summary:
+        //     [requires: v1.3] Original was GL_TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519
+        TextureCubeMapPositiveZ = 34073,
+        //
+        // Summary:
+        //     [requires: v1.3] Original was GL_TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A
+        TextureCubeMapNegativeZ = 34074,
+        //
+        // Summary:
+        //     [requires: v1.3] Original was GL_PROXY_TEXTURE_CUBE_MAP = 0x851B
+        ProxyTextureCubeMap = 34075,
+        //
+        // Summary:
+        //     [requires: ARB_texture_cube_map] Original was GL_PROXY_TEXTURE_CUBE_MAP_ARB =
+        //     0x851B
+        ProxyTextureCubeMapArb = 34075,
+        //
+        // Summary:
+        //     [requires: EXT_texture_cube_map] Original was GL_PROXY_TEXTURE_CUBE_MAP_EXT =
+        //     0x851B
+        ProxyTextureCubeMapExt = 34075,
+        //
+        // Summary:
+        //     [requires: v3.0 or ARB_internalformat_query2] Original was GL_TEXTURE_1D_ARRAY
+        //     = 0x8C18
+        Texture1DArray = 35864,
+        //
+        // Summary:
+        //     [requires: v3.0] Original was GL_PROXY_TEXTURE_1D_ARRAY = 0x8C19
+        ProxyTexture1DArray = 35865,
+        //
+        // Summary:
+        //     [requires: EXT_texture_array] Original was GL_PROXY_TEXTURE_1D_ARRAY_EXT = 0x8C19
+        ProxyTexture1DArrayExt = 35865,
+        //
+        // Summary:
+        //     [requires: v3.0 or ARB_internalformat_query2] Original was GL_TEXTURE_2D_ARRAY
+        //     = 0x8C1A
+        Texture2DArray = 35866,
+        //
+        // Summary:
+        //     [requires: v3.0] Original was GL_PROXY_TEXTURE_2D_ARRAY = 0x8C1B
+        ProxyTexture2DArray = 35867,
+        //
+        // Summary:
+        //     [requires: EXT_texture_array] Original was GL_PROXY_TEXTURE_2D_ARRAY_EXT = 0x8C1B
+        ProxyTexture2DArrayExt = 35867,
+        //
+        // Summary:
+        //     [requires: v3.1 or ARB_internalformat_query2] Original was GL_TEXTURE_BUFFER
+        //     = 0x8C2A
+        TextureBuffer = 35882,
+        //
+        // Summary:
+        //     [requires: v4.0 or ARB_internalformat_query2] Original was GL_TEXTURE_CUBE_MAP_ARRAY
+        //     = 0x9009
+        TextureCubeMapArray = 36873,
+        //
+        // Summary:
+        //     [requires: ARB_texture_cube_map_array] Original was GL_TEXTURE_CUBE_MAP_ARRAY_ARB
+        //     = 0x9009
+        TextureCubeMapArrayArb = 36873,
+        //
+        // Summary:
+        //     Original was GL_TEXTURE_CUBE_MAP_ARRAY_EXT = 0x9009
+        TextureCubeMapArrayExt = 36873,
+        //
+        // Summary:
+        //     Original was GL_TEXTURE_CUBE_MAP_ARRAY_OES = 0x9009
+        TextureCubeMapArrayOes = 36873,
+        //
+        // Summary:
+        //     [requires: v4.0] Original was GL_PROXY_TEXTURE_CUBE_MAP_ARRAY = 0x900B
+        ProxyTextureCubeMapArray = 36875,
+        //
+        // Summary:
+        //     [requires: ARB_texture_cube_map_array] Original was GL_PROXY_TEXTURE_CUBE_MAP_ARRAY_ARB
+        //     = 0x900B
+        ProxyTextureCubeMapArrayArb = 36875,
+        //
+        // Summary:
+        //     [requires: v3.2 or ARB_internalformat_query2, ARB_texture_multisample, NV_internalformat_sample_query]
+        //     Original was GL_TEXTURE_2D_MULTISAMPLE = 0x9100
+        Texture2DMultisample = 37120,
+        //
+        // Summary:
+        //     [requires: v3.2 or ARB_texture_multisample] Original was GL_PROXY_TEXTURE_2D_MULTISAMPLE
+        //     = 0x9101
+        ProxyTexture2DMultisample = 37121,
+        //
+        // Summary:
+        //     [requires: v3.2 or ARB_internalformat_query2, ARB_texture_multisample, NV_internalformat_sample_query]
+        //     Original was GL_TEXTURE_2D_MULTISAMPLE_ARRAY = 0x9102
+        Texture2DMultisampleArray = 37122,
+        //
+        // Summary:
+        //     [requires: v3.2 or ARB_texture_multisample] Original was GL_PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY
+        //     = 0x9103
+        ProxyTexture2DMultisampleArray = 37123
     }
 
 }

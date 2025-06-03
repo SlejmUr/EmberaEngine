@@ -24,11 +24,34 @@ namespace EmberaEngine.Engine.Core
         public Material(Shader shader)
         {
             this.shader = shader;
+
+            propertyInts = new Dictionary<string, int>();
+            propertyFloats = new Dictionary<string, float>();
+            propertyBools = new Dictionary<string, bool>();
+            propertyVec2 = new Dictionary<string, Vector2>();
+            propertyVec3 = new Dictionary<string, Vector3>();
+            propertyVec4 = new Dictionary<string, Vector4>();
+            propertyMat3 = new Dictionary<string, Matrix3>();
+            propertyMat4 = new Dictionary<string, Matrix4>();
+            propertyTextures = new Dictionary<string, Texture>();
         }
 
-        public void Use()
+        public Material()
         {
-            shader.Use();
+            propertyInts = new Dictionary<string, int>();
+            propertyFloats = new Dictionary<string, float>();
+            propertyBools = new Dictionary<string, bool>();
+            propertyVec2 = new Dictionary<string, Vector2>();
+            propertyVec3 = new Dictionary<string, Vector3>();
+            propertyVec4 = new Dictionary<string, Vector4>();
+            propertyMat3 = new Dictionary<string, Matrix3>();
+            propertyMat4 = new Dictionary<string, Matrix4>();
+            propertyTextures = new Dictionary<string, Texture>();
+        }
+
+        public void Apply()
+        {
+            if (shader == null) { return; }
 
             foreach (string key in propertyInts.Keys)
             {
@@ -70,8 +93,6 @@ namespace EmberaEngine.Engine.Core
                 propertyTextures[key].Bind();
                 i++;
             }
-
-            shader.Apply();
         }
 
 
@@ -111,6 +132,119 @@ namespace EmberaEngine.Engine.Core
         public void Set(string name, Texture value)
         {
             propertyTextures[name] = value;
+        }
+
+        public int GetInt(string name)
+        {
+            if (propertyInts.TryGetValue(name, out int value))
+            {
+                return value;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        public float GetFloat(string name)
+        {
+            if (propertyFloats.TryGetValue(name, out float value))
+            {
+                return value;
+            }
+            else
+            {
+                return 0f;
+            }
+        }
+
+        public bool GetBool(string name)
+        {
+            if (propertyBools.TryGetValue(name, out bool value))
+            {
+                return value;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public Vector2 GetVector2(string name)
+        {
+            if (propertyVec2.TryGetValue(name, out Vector2 value))
+            {
+                return value;
+            }
+            else
+            {
+                return Vector2.Zero;
+            }
+        }
+
+        public Vector3 GetVector3(string name)
+        {
+            if (propertyVec3.TryGetValue(name, out Vector3 value))
+            {
+                return value;
+            }
+            else
+            {
+                return Vector3.Zero;
+            }
+        }
+
+        public Vector4 GetVector4(string name)
+        {
+            if (propertyVec4.TryGetValue(name, out Vector4 value))
+            {
+                return value;
+            }
+            else
+            {
+                return Vector4.Zero;
+            }
+        }
+
+        public Matrix3 GetMatrix3(string name)
+        {
+            if (propertyMat3.TryGetValue(name, out Matrix3 value))
+            {
+                return value;
+            }
+            else
+            {
+                return Matrix3.Identity;
+            }
+        }
+
+        public Matrix4 GetMatrix4(string name)
+        {
+            if (propertyMat4.TryGetValue(name, out Matrix4 value))
+            {
+                return value;
+            }
+            else
+            {
+                return Matrix4.Identity;
+            }
+        }
+
+        public Texture GetTexture(string name)
+        {
+            if (propertyTextures.TryGetValue(name, out Texture value))
+            {
+                return value;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public int GetTextureCount()
+        {
+            return propertyTextures.Count;
         }
 
     }

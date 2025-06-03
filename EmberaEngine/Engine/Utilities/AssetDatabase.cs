@@ -64,7 +64,7 @@ namespace EmberaEngine.Engine.Utilities
 
         static int CreateRandomNum()
         {
-            int rnd = UtilRandom.Next();
+            int rnd = (int)UtilRandom.Next();
             return rnd;
         }
     }

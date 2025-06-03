@@ -40,9 +40,11 @@ namespace ElementalEditor.Editor.Panels
         int viewportHeight, viewportWidth;
         Vector2 viewportPos;
 
+        bool isMouseOverWindow;
+
         public override void OnAttach()
         {
-            compositeBuffer = Renderer3D.GetComposite();
+            compositeBuffer = Renderer3D.GetOutputFrameBuffer();
 
             viewportBufferTexture = new Texture(TextureTarget2d.Texture2D);
             viewportBufferTexture.TexImage2D(viewportWidth, viewportHeight, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
@@ -69,16 +71,17 @@ namespace ElementalEditor.Editor.Panels
                 if (SupportedResolutions[i].width == monitorInfoList.HorizontalResolution && SupportedResolutions[i].height == monitorInfoList.VerticalResolution)
                 {
                     selectedResolution = SupportedResolutions[i];
-                    selectedResolution.width = 1920;
-                    selectedResolution.height = 1080;
+                    //selectedResolution.width = 1920;
+                    //selectedResolution.height = 1080;
                     Renderer.Resize(selectedResolution.width, selectedResolution.height);
                     Screen.Size.X = selectedResolution.width;
                     Screen.Size.Y = selectedResolution.height;
                     break;
                 }
             }
-        }
 
+            Guizmo3D.Initialize();
+        }
         public override void OnGUI()
         {
 
@@ -95,6 +98,8 @@ namespace ElementalEditor.Editor.Panels
             {
                 prevViewportHeight = viewportHeight;
                 prevViewportWidth = viewportWidth;
+
+                Console.WriteLine(viewportWidth);
 
                 viewportBufferTexture.TexImage2D(viewportWidth, viewportHeight, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
                 viewportBufferTexture.GenerateMipmap();
@@ -120,9 +125,7 @@ namespace ElementalEditor.Editor.Panels
 
             DrawViewportTools();
 
-            DrawGuizmo2D();
-
-
+            isMouseOverWindow = ImGui.IsWindowHovered();
 
             ImGui.End();
 
@@ -164,6 +167,23 @@ namespace ElementalEditor.Editor.Panels
 
         }
 
+        public override void OnKeyDown(KeyboardEvent key)
+        {
+            if (isMouseOverWindow)
+            {
+
+                Input.OnKeyDown(key.Key);
+            }
+        }
+
+        public override void OnKeyUp(KeyboardEvent key)
+        {
+            if (isMouseOverWindow)
+            {
+                Input.OnKeyUp(key.Key);
+            }
+        }
+
         public override void OnMouseMove(MouseMoveEvent moveEvent)
         {
 
@@ -177,15 +197,17 @@ namespace ElementalEditor.Editor.Panels
                 {
                     moveEvent.position.X = (int)MapValue(moveEvent.position.X, viewportPos.X + resizeCoords.Item1, viewportPos.X + resizeCoords.Item3, 0, selectedResolution.width);
                     moveEvent.position.Y = (int)MapValue(moveEvent.position.Y, viewportPos.Y + resizeCoords.Item2, viewportPos.Y + resizeCoords.Item4, selectedResolution.height, 0);
-                    //Console.WriteLine(moveEvent.position);
                 }
 
-                if (moveEvent.position.X < 0)
-                    moveEvent.position.X = 0;
-                if (moveEvent.position.Y < 0)
-                    moveEvent.position.Y = 0;
-
                 Input.OnMouseMove(moveEvent);
+            }
+        }
+
+        public override void OnMouseWheel(MouseWheelEvent mouseWheel)
+        {
+            if (isMouseOverWindow)
+            {
+                Input.OnMouseWheel(mouseWheel);
             }
         }
 
@@ -206,9 +228,8 @@ namespace ElementalEditor.Editor.Panels
                 Renderer.Resize(viewportWidth, viewportHeight);
                 Screen.Size.X = viewportWidth;
                 Screen.Size.Y = viewportHeight;
+                editor.EditorCurrentScene.OnResize(viewportWidth, viewportHeight);
             }
-                
-            //CanvasManager.ResizeAllCanvases(viewportWidth, viewportHeight);
         }
 
         public void DrawViewportTools()
@@ -242,6 +263,7 @@ namespace ElementalEditor.Editor.Panels
                         Renderer.Resize(selectedResolution.width, selectedResolution.height);
                         Screen.Size.X = selectedResolution.width;
                         Screen.Size.Y = selectedResolution.height;
+                        editor.EditorCurrentScene.OnResize(selectedResolution.width, selectedResolution.height);
 
                         DebugLogPanel.Log("RESIZED RENDERER", DebugLogPanel.DebugMessageSeverity.Information, "Viewport Change");
                     }
@@ -277,27 +299,6 @@ namespace ElementalEditor.Editor.Panels
             ImGui.PopStyleColor(1);
 
 
-        }
-
-        public void DrawGuizmo2D()
-        {
-            return;
-            ImGui.SetItemAllowOverlap();
-            // CHANGE THIS
-
-            GameObjectPanel gop = (GameObjectPanel)editor.Panels[1];
-
-            if (gop.SelectedObject != null)
-            {
-                //CanvasComponent canvasComponent = gop.SelectedObject.GetComponent<CanvasComponent>();
-                //if (canvasComponent != null)
-                //{
-                //    ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-
-                //    //DebugLogPanel.Log(canvasComponent.left + resizeCoords.Item1 + " " + canvasComponent.right);
-                //    //drawList.AddLine(new Vector2(resizeCoords.Item1 + viewportPos.X, 50 + resizeCoords.Item2), new Vector2(canvasComponent.right, canvasComponent.bottom), UI.ToUint(new OpenTK.Mathematics.Vector4i(255,255,255,255)));
-                //}
-            }
         }
 
         public void ClearViewport()

@@ -64,6 +64,33 @@ namespace EmberaEngine.Engine.Core
             return null;
         }
 
+        public void RemoveComponent<T>() where T : Component
+        {
+            for (int i = 0;i < Components.Count;i++)
+            {
+                if (typeof(T) == Components[i].GetType())
+                {
+                    scene.ComponentRemoved(Components[i]);
+                    Components.RemoveAt(i);
+                }
+            }
+        }
+
+        public void RemoveComponent(Component component)
+        {
+            if (Components.Contains(component))
+            {
+                scene.ComponentRemoved(component);
+                Components.Remove(component);
+            }
+
+        }
+
+        public List<Component> GetComponents()
+        {
+            return Components;
+        }
+
         public void OnStart()
         {
             for (int i = 0; i < Components.Count; i++)

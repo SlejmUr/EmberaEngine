@@ -61,7 +61,7 @@ namespace EmberaEngine.Engine.Core
 
             if (geometryPath != "")
             {
-                using (StreamReader reader = new StreamReader(geometryPath, Encoding.UTF8))
+                using ( StreamReader reader = new StreamReader(geometryPath, Encoding.UTF8))
                 {
                     GeometryShaderSource = reader.ReadToEnd();
                     GeometryShader = GL.CreateShader(ShaderType.GeometryShader);
@@ -78,7 +78,7 @@ namespace EmberaEngine.Engine.Core
             FragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(FragmentShader, FragmentShaderSource);
 
-            CompileSource(VertexShader, FragmentShader, geometryPath != "" ? GeometryShader : 0);
+            CompileSource(VertexShader, FragmentShader, GeometryShader);
         }
 
         public Shader(string Path)
@@ -102,21 +102,6 @@ namespace EmberaEngine.Engine.Core
 
             vPath = Path + ".vert";
             fPath = Path + ".frag";
-
-            VertexShader = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(VertexShader, VertexShaderSource);
-
-            FragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(FragmentShader, FragmentShaderSource);
-
-            CompileSource(VertexShader, FragmentShader);
-        }
-
-        public Shader(string VertexShaderSource, string FragmentShaderSource)
-        {
-
-            int VertexShader;
-            int FragmentShader;
 
             VertexShader = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(VertexShader, VertexShaderSource);
@@ -180,6 +165,7 @@ namespace EmberaEngine.Engine.Core
         public void SetInt(string name, int value)
         {
             int location = this.GetUniformLocation(name);
+            if (location == -1) { return; }
             GL.Uniform1(location, value);
         }
 
@@ -188,6 +174,7 @@ namespace EmberaEngine.Engine.Core
             for (int i = 0; i < value.Length; i++)
             {
                 int location = this.GetUniformLocation(name + "["+i+"]");
+                if (location == -1) { return; }
                 GL.Uniform1(location, value[i]);
             }
         }
@@ -195,36 +182,42 @@ namespace EmberaEngine.Engine.Core
         public void SetFloat(string name, float value)
         {
             int location = this.GetUniformLocation(name);
+            if (location == -1) { return; }
             GL.Uniform1(location, value);
         }
 
         public void SetBool(string name, bool value)
         {
             int location = this.GetUniformLocation(name);
+            if (location == -1) { return; }
             GL.Uniform1(location, value ? 1 : 0);
         }
 
         public void SetMatrix4(string name, Matrix4 value, bool transpose = false)
         {
             int location = this.GetUniformLocation(name);
+            if (location == -1) { return; }
             GL.UniformMatrix4(location, transpose, ref value);
         }
 
         public void SetVector4(string name, Vector4 value)
         {
             int location = this.GetUniformLocation(name);
+            if (location == -1) { return; }
             GL.Uniform4(location, value);
         }
 
         public void SetVector3(string name, Vector3 value)
         {
             int location = this.GetUniformLocation(name);
+            if (location == -1) { return; }
             GL.Uniform3(location, value);
         }
 
         public void SetVector2(string name, Vector2 value)
         {
             int location = this.GetUniformLocation(name);
+            if (location == -1) { return; }
             GL.Uniform2(location, value);
         }
 

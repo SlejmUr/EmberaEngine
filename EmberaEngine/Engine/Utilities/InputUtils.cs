@@ -31,6 +31,11 @@ namespace EmberaEngine.Engine.Utilities
         public bool IsPressed => Action != InputAction.Release; 
     }
 
+    public struct MouseWheelEvent
+    {
+        public Vector2 Offset; // this is equivalent to delta
+    }
+
     public struct TextInputEvent
     {
         public int Unicode;

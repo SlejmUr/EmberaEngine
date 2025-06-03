@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
+using SharpFont;
 
 namespace EmberaEngine.Engine.Utilities
 {
@@ -44,7 +45,6 @@ namespace EmberaEngine.Engine.Utilities
             GL.CreateBuffers(1, out handle);
 
             int size = sizeof(T) * data.Length;
-            //Console.WriteLine($"Array of {data.Length} structs. Total size: {size} bytes\nIndividual stuct size: {size/data.Length}");
 
             fixed (T* ptr = &data[0])
             {

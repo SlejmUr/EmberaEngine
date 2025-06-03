@@ -5,15 +5,13 @@ struct Cluster
 {
     vec4 minPoint;
     vec4 maxPoint;
-    uint count;
-    uint lightIndices[100];
 };
 
-layout(std430, binding = 2) restrict buffer clusterSSBO {
+layout(std430, binding = 4) restrict buffer clusterSSBO {
     Cluster clusters[];
 };
 
-layout (std430, binding = 5) buffer screenViewData {
+layout (std430, binding = 7) buffer screenViewData {
     mat4 inverseProjectionMatrix;
     uvec4 tileSizes;
     uint screenWidth;

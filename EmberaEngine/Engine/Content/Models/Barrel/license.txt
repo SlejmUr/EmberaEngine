@@ -1,0 +1,11 @@
+Model Information:
+* title:	Old wine barrel
+* source:	https://sketchfab.com/3d-models/old-wine-barrel-8e739f1dadd9476b8cc8405206dee758
+* author:	kolya5561 (https://sketchfab.com/kolya5561)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Old wine barrel" (https://sketchfab.com/3d-models/old-wine-barrel-8e739f1dadd9476b8cc8405206dee758) by kolya5561 (https://sketchfab.com/kolya5561) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -8,21 +8,229 @@ using System.Threading.Tasks;
 
 namespace EmberaEngine.Engine.Rendering
 {
+    public enum LightType
+    {
+        PointLight,
+        SpotLight,
+        DirectionalLight
+    }
 
+    public class DirectionalLight
+    {
+        public GPUDirectionalLight internalLight;
+        public bool needsUpdate;
 
+        public Vector3 direction
+        {
+            get => this.internalLight.Direction.Xyz;
+            set
+            {
+                this.internalLight.Direction.Xyz = value;
+                this.needsUpdate = true;
+            }
+        }
 
+        public bool enabled
+        {
+            get => this.internalLight.Direction.W == 1;
+            set
+            {
+                this.internalLight.Direction.W = value ? 1 : 0;
+                this.needsUpdate = true;
+            }
+        }
+
+        public Vector3 color
+        {
+            get => this.internalLight.Color.Xyz;
+            set
+            {
+                this.internalLight.Color.Xyz = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public float intensity
+        {
+            get => this.internalLight.Color.W;
+            set
+            {
+                this.internalLight.Color.W = value;
+                this.needsUpdate = true;
+            }
+        }
+    }
+
+    public class PointLight
+    {
+        public GPUPointLight internalLight;
+        public bool needsUpdate;
+
+        public Vector3 position
+        {
+            get => this.internalLight.position.Xyz;
+            set
+            {
+                this.internalLight.position.Xyz = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public Vector3 Color
+        {
+            get => this.internalLight.color.Xyz;
+            set
+            {
+                this.internalLight.color.Xyz = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public bool enabled
+        {
+            get => this.internalLight.position.W == 1;
+            set
+            {
+                this.internalLight.position.W = value ? 1 : 0;
+                this.needsUpdate = true;
+            }
+        }
+
+        public float intensity
+        {
+            get => this.internalLight.color.W;
+            set
+            {
+                this.internalLight.color.W = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public float range
+        {
+            get => this.internalLight.range;
+            set
+            {
+                this.internalLight.range = value;
+                this.needsUpdate = true;
+            }
+        }
+    }
+
+    public class SpotLight
+    {
+        public GPUSpotLight internalLight;
+        public bool needsUpdate;
+
+        public Vector3 position
+        {
+            get => this.internalLight.position.Xyz;
+            set
+            {
+                this.internalLight.position.Xyz = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public Vector3 Color
+        {
+            get => this.internalLight.color.Xyz;
+            set
+            {
+                this.internalLight.color.Xyz = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public bool enabled
+        {
+            get => this.internalLight.position.W == 1;
+            set
+            {
+                this.internalLight.position.W = value ? 1 : 0;
+                this.needsUpdate = true;
+            }
+        }
+
+        public float intensity
+        {
+            get => this.internalLight.color.W;
+            set
+            {
+                this.internalLight.color.W = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public float range
+        {
+            get => this.internalLight.direction.W;
+            set
+            {
+                this.internalLight.direction.W = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public Vector3 direction
+        {
+            get => this.internalLight.direction.Xyz;
+            set
+            {
+                this.internalLight.direction.Xyz = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public float innerCutoff
+        {
+            get => this.internalLight.innerCutoff;
+            set
+            {
+                this.internalLight.innerCutoff = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public float outerCutoff
+        {
+            get => this.internalLight.outerCutoff;
+            set
+            {
+                this.internalLight.outerCutoff = value;
+                this.needsUpdate = true;
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+    public unsafe struct GPUDirectionalLight
+    {
+        public Vector4 Direction; // Normalized + w for enabled/disabled
+        public Vector4 Color; // Color + w for intensity
+    }
 
 
     [StructLayout(LayoutKind.Sequential, Pack = 16)]
-    public unsafe struct PointLight
+    public unsafe struct GPUPointLight
     {
-        public Vector4 position;
-        public Vector4 color;
-        public bool enabled;
-        public float intensity;
+        public Vector4 position; // 3 floats for position 1 float enabled/disabled
+        public Vector4 color; // 3 floats for color 1 float for intensity
         public float range;
 
-        private fixed byte _padding[4];
+        private fixed byte _padding[12];
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+    public unsafe struct GPUSpotLight
+    {
+        public Vector4 position; // xyz position w enabled
+        public Vector4 color; // xyz color w intensity
+        public Vector4 direction; // xyz direction w range
+        public float innerCutoff;
+        public float outerCutoff;
+
+        private fixed byte _padding[8];
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 16)]

@@ -9,6 +9,7 @@ using OIconFont;
 using EmberaEngine.Engine.Components;
 using ElementalEditor.Editor.Utils;
 using EmberaEngine.Engine.Utilities;
+using OpenTK.Mathematics;
 
 namespace ElementalEditor.Editor
 {
@@ -16,6 +17,7 @@ namespace ElementalEditor.Editor
     {
         public Application app;
         public Scene EditorCurrentScene;
+        public EditorCamera EditorCamera;
 
         public List<Panel> Panels = new List<Panel>();
 
@@ -25,12 +27,15 @@ namespace ElementalEditor.Editor
 
         public EditorLayer()
         {
+            AddPanel<MenuBar>();
             AddPanel<ViewportPanel>();
             AddPanel<GameObjectPanel>();
             AddPanel<ProjectAssetPanel>();
             AddPanel<DebugLogPanel>();
             AddPanel<ExperimentalPanel>();
             AddPanel<PerformancePanel>();
+            AddPanel<MaterialPanel>();
+            AddPanel<GuizmoPanel>();
         }
 
         public override void OnAttach()
@@ -44,6 +49,7 @@ namespace ElementalEditor.Editor
 
             // Setup Scene
             EditorCurrentScene = new Scene();
+            EditorCamera = new EditorCamera(65.0f, Screen.Size.X, Screen.Size.Y, 1000f, 0.1f);
             LoadTestSandbox();
 
 
@@ -55,26 +61,42 @@ namespace ElementalEditor.Editor
 
             EditorCurrentScene.Initialize();
             EditorCurrentScene.Play();
-
+            Renderer3D.SetRenderCamera(EditorCamera.Camera);
         }
 
         public override void OnKeyDown(KeyboardEvent keyboardEvent)
         {
-
+            for (int i = 0; i < Panels.Count; i++)
+            {
+                Panels[i].OnKeyDown(keyboardEvent);
+            }
         }
 
+        public override void OnKeyUp(KeyboardEvent keyboardEvent)
+        {
+            for (int i = 0; i < Panels.Count; i++)
+            {
+                Panels[i].OnKeyUp(keyboardEvent);
+            }
+        }
 
         public override void OnUpdate(float deltaTime)
         {
             EditorCurrentScene.OnUpdate(deltaTime);
+            EditorCamera.Update(deltaTime);
 
             for (int i = 0; i < Panels.Count; i++)
             {
                 Panels[i].OnUpdate(deltaTime);
             }
 
-
             //t.Content = "FPS: " + Math.Round((1 / deltaTime));
+            //barrelObject.transform.rotation.Y += 100 * deltaTime;
+        }
+
+        public override void OnResize(int width, int height)
+        {
+            EditorCamera.SetViewportSize(width, height);
         }
 
         public override void OnGUIRender()
@@ -103,11 +125,27 @@ namespace ElementalEditor.Editor
             }
         }
 
+        public override void OnMouseWheel(MouseWheelEvent mouseWheel)
+        {
+            for (int i = 0; i < Panels.Count; i++)
+            {
+                Panels[i].OnMouseWheel(mouseWheel);
+            }
+        }
+
         public override void OnRender()
         {
             for (int i = 0; i < Panels.Count; i++)
             {
                 Panels[i].OnRender();
+            }
+        }
+
+        public override void OnLateRender()
+        {
+            for (int i = 0; i < Panels.Count; i++)
+            {
+                Panels[i].OnLateRender();
             }
         }
 
@@ -119,14 +157,49 @@ namespace ElementalEditor.Editor
 
         }
 
+        public T GetPanel<T>() where T : Panel, new()
+        {
+            for (int i = 0; i < Panels.Count; i++)
+            {
+                Console.WriteLine(Panels[i].GetType().Name);
+                if (typeof(T) == Panels[i].GetType())
+                {
+                    return (T)Panels[i];
+                }
+            }
+
+            return null;
+        }
+
         void LoadTestSandbox()
         {
+            SkyboxManager.LoadHDRI(Helper.loadHDRIAsTex("Engine/Content/Textures/Skyboxes/mudroad.hdr"));
+
             GameObject cameraObject = EditorCurrentScene.addGameObject("Camera Boiii");
             CameraComponent3D camComp = cameraObject.AddComponent<CameraComponent3D>();
             camComp.ClearColor = new OpenTK.Mathematics.Color4(0, 0, 0, 255);
-            cameraObject.transform.position = new OpenTK.Mathematics.Vector3(6, 0.6f, 13);
-            cameraObject.transform.rotation.X = 206;
+            cameraObject.transform.position = new OpenTK.Mathematics.Vector3(-5, 5f, 0);
+            cameraObject.transform.rotation = new(0, -25, 0);
+
+            GameObject lightObject = EditorCurrentScene.addGameObject("LightObject");
+            lightObject.transform.position.Y = 6;
+            lightObject.AddComponent<LightComponent>();
+            
+
+            barrelObject = EditorCurrentScene.addGameObject("Barrel");
+            MeshRenderer barrelMeshRenderer = barrelObject.AddComponent<MeshRenderer>();
+            barrelObject.transform.scale = Vector3.One * 1;
+
+            //Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/SSAO Test/sphere.obj");
+            Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/Sponza/sponza.obj");
+            //Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/Portal2-Elevator/scene.gltf");
+
+            Console.WriteLine(meshLoaderOutput.Length);
+
+            barrelMeshRenderer.SetMeshes(meshLoaderOutput);
         }
+
+        GameObject barrelObject;
 
         public void SetEditorStyling()
         {
@@ -158,7 +231,7 @@ namespace ElementalEditor.Editor
 
             style.WindowMenuButtonPosition = ImGuiDir.None;
 
-            style.FramePadding = new System.Numerics.Vector2(14, 14);
+            style.FramePadding = new System.Numerics.Vector2(12, 12);
 
             style.FrameRounding = 3f;
             style.TabRounding = 3f;

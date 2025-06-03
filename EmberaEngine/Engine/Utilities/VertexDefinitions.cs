@@ -7,6 +7,95 @@ namespace EmberaEngine.Engine.Utilities
 {
     public class Primitives
     {
+        public static Vertex[] GetCircle(int segments = 64)
+        {
+            Vertex[] vertices = new Vertex[segments];
+
+            Vector3 normal = new Vector3(0, 0, 1); // Facing forward
+
+            for (int i = 0; i < segments; i++)
+            {
+                float angle = (float)(i * Math.PI * 2.0 / segments);
+                float x = MathF.Cos(angle) * 0.5f;
+                float y = MathF.Sin(angle) * 0.5f;
+
+                Vector3 pos = new Vector3(x, y, 0);
+                Vector2 uv = new Vector2(x + 0.5f, y + 0.5f); // optional
+
+                vertices[i] = new Vertex(pos, normal, uv);
+            }
+
+            return vertices;
+        }
+
+
+
+
+        public static Vertex[] GetQuadVertex()
+        {
+            return new Vertex[]
+            {
+                // First triangle
+                new Vertex(new Vector3(-0.5f, -0.5f, 0.0f), new Vector3(0, 0, 1), new Vector2(0, 0)),
+                new Vertex(new Vector3( 0.5f, -0.5f, 0.0f), new Vector3(0, 0, 1), new Vector2(1, 0)),
+                new Vertex(new Vector3( 0.5f,  0.5f, 0.0f), new Vector3(0, 0, 1), new Vector2(1, 1)),
+
+                // Second triangle
+                new Vertex(new Vector3( 0.5f,  0.5f, 0.0f), new Vector3(0, 0, 1), new Vector2(1, 1)),
+                new Vertex(new Vector3(-0.5f,  0.5f, 0.0f), new Vector3(0, 0, 1), new Vector2(0, 1)),
+                new Vertex(new Vector3(-0.5f, -0.5f, 0.0f), new Vector3(0, 0, 1), new Vector2(0, 0)),
+            };
+        }
+
+        public static Vertex[] GetWireframeCubeVertices()
+        {
+            Vector3 dummyNormal = new Vector3(0, 0, 1);       // Arbitrary normal
+            Vector2 dummyUV = new Vector2(0, 0);              // Arbitrary UV
+
+            return new Vertex[]
+            {
+                // Bottom square
+                new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3( 0.5f, -0.5f, -0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3( 0.5f, -0.5f, -0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3( 0.5f, -0.5f,  0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3( 0.5f, -0.5f,  0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), dummyNormal, dummyUV),
+
+                // Top square
+                new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3( 0.5f,  0.5f, -0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3( 0.5f,  0.5f, -0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3( 0.5f,  0.5f,  0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3( 0.5f,  0.5f,  0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), dummyNormal, dummyUV),
+
+                // Vertical edges
+                new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3( 0.5f, -0.5f, -0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3( 0.5f,  0.5f, -0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3( 0.5f, -0.5f,  0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3( 0.5f,  0.5f,  0.5f), dummyNormal, dummyUV),
+
+                new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), dummyNormal, dummyUV),
+                new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), dummyNormal, dummyUV),
+            };
+        }
+
+
 
         public static Vertex[] GetCubeVertex()
         {

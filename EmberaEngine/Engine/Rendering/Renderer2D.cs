@@ -182,11 +182,9 @@ namespace EmberaEngine.Engine.Rendering
 
         public static void Resize(int width, int height)
         {
-            Console.WriteLine(width + " " + height);
             CompositeBufferTexture.TexImage2D(width, height, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
             CompositeBufferTexture.GenerateMipmap();
             Projection = Graphics.CreateOrthographic2D(width, height, -1f, 1f);
-            Console.WriteLine("RESIZED");
         }
 
         public static Framebuffer GetComposite2D()

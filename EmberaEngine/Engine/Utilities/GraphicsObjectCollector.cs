@@ -44,7 +44,7 @@ namespace EmberaEngine.Engine.Utilities
         public static void AddTexToDispose(int TO)
         {
 #if DEBUG
-            //Console.WriteLine("DISPOSING TEX OBJ");
+            Console.WriteLine("DISPOSING TEX OBJ");
 #endif
             d_Textures.Add(TO);
         }

@@ -16,9 +16,9 @@ namespace ElementalEditor
 
             ApplicationSpecification specification = new ApplicationSpecification()
             {
-                Name = "Hello World",
-                Height = 1080,
-                Width = 1920,
+                Name = "Devoid Engine - Elemental Editor",
+                Height = (int)(1080 * 1.5f),
+                Width = (int)(1920 * 1.5f),
                 forceVsync = true,
                 useImGui = true,
                 useImGuiDock = true,

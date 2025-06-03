@@ -16,6 +16,7 @@ out vec3 BiTangent;
 out vec2 texCoords;
 out vec3 FragPos;
 out vec3 WorldPos;
+out vec2 viewportCoords;
 
 void main()
 {

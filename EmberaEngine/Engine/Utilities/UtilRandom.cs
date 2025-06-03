@@ -15,6 +15,11 @@ namespace EmberaEngine.Engine.Utilities
             return Instance.NextInt64();
         }
 
+        public static float GetFloat()
+        {
+            return (float)Instance.NextDouble();
+        }
+
         public static long GetInt(int maxValue)
         {
             return Instance.NextInt64(maxValue);
@@ -30,9 +35,9 @@ namespace EmberaEngine.Engine.Utilities
             return Instance.Next(maxValue);
         }
 
-        public static int Next()
+        public static uint Next()
         {
-            return Instance.Next();
+            return (uint)Instance.Next();
         }
     }
 }

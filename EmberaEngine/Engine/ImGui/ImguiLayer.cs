@@ -16,7 +16,7 @@ namespace EmberaEngine.Engine.Imgui
 
         IntPtr Context;
         public ImguiAPI imguiAPI;
-        public static bool customTitlebar = false;
+        public static bool customTitlebar = true;
         public static bool UseDockspace = false;
 
         public void InitIMGUI(GameWindow window, int width, int height)
@@ -60,7 +60,7 @@ namespace EmberaEngine.Engine.Imgui
             imguiAPI.Update(deltaTime);
             if (ImguiLayer.UseDockspace)
             {
-                imguiAPI.SetUpDockspace(customTitlebar);
+                imguiAPI.SetUpDockspace();
             }
         }
         

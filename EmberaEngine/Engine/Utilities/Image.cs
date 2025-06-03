@@ -1,4 +1,6 @@
-﻿using SixLabors.ImageSharp.PixelFormats;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using StbImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +13,29 @@ namespace EmberaEngine.Engine.Utilities
     {
         public int Width, Height;
         public byte[] Pixels;
+        public float[] PixelHP;
+        public bool IsHDR;
 
         public Image()
         {
 
         }
+
+        public void LoadHDRI(string path, bool directPath = false)
+        {
+            using (var stream = File.OpenRead(path))
+            {
+                var imageResult = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlue);
+
+                this.Width = imageResult.Width;
+                this.Height = imageResult.Height;
+                this.PixelHP = imageResult.Data;
+                this.IsHDR = true;
+
+                this.Pixels = null;
+            }
+        }
+
 
         public void LoadPNG(string path, bool directPath = false)
         {

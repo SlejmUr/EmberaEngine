@@ -10,6 +10,8 @@ using System.Numerics;
 using System.Text;
 using System.Reflection;
 using EmberaEngine.Engine.Rendering;
+using ElementalEditor.Editor.CustomEditors;
+using ElementalEditor.Editor.EditorAttributes;
 
 namespace ElementalEditor.Editor.Panels
 {
@@ -17,6 +19,12 @@ namespace ElementalEditor.Editor.Panels
     {
         public GameObject SelectedObject = null;
         private string searchBuffer = "";
+
+        public override void OnAttach()
+        {
+            CacheCustomEditors();
+            GetComponents();
+        }
 
         public void DrawObjectButton(GameObject gameObject, int id)
         {
@@ -121,24 +129,24 @@ namespace ElementalEditor.Editor.Panels
                     {
                         ImGui.InputText("##component_search", ref searchBuffer, 20);
 
-                        List<Component> components = GetComponents();
+                        List<Type> components = componentCache;
 
                         for (int i = 0; i < components.Count; i++)
                         {
                             if (searchBuffer.Trim() == "")
                             {
-                                if (ImGui.Button(MaterialDesign.Settings + components[i].GetType().Name.ToString(), new Vector2(-1, 50)))
+                                if (ImGui.Button(MaterialDesign.Settings + components[i].Name.ToString(), new Vector2(-1, 50)))
                                 {
-                                    SelectedObject.AddComponent(components[i]);
+                                    SelectedObject.AddComponent((Component)Activator.CreateInstance(components[i]));
                                     ImGui.CloseCurrentPopup();
                                 }
                             } else if (searchBuffer.Length < components[i].GetType().Name.Length)
                             {
-                                if (searchBuffer.ToLower() == components[i].GetType().Name.Substring(0, searchBuffer.Length).ToLower())
+                                if (searchBuffer.ToLower() == components[i].Name.Substring(0, searchBuffer.Length).ToLower())
                                 {
                                     if (ImGui.Button(MaterialDesign.Settings + components[i].GetType().Name.ToString(), new Vector2(-1, 50)))
                                     {
-                                        SelectedObject.AddComponent(components[i]);
+                                        SelectedObject.AddComponent((Component)Activator.CreateInstance(components[i]));
                                         ImGui.CloseCurrentPopup();
                                     }
                                 }
@@ -149,7 +157,6 @@ namespace ElementalEditor.Editor.Panels
                     }
                     ImGui.PopStyleVar(2);
                     ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 6);
-
                     for (int i = 0; i < SelectedObject.Components.Count; i++)
                     {
                         Component component = SelectedObject.Components[i];
@@ -157,11 +164,22 @@ namespace ElementalEditor.Editor.Panels
                         ImGui.PushID(component.GetType().Name + i);
                         if (ImGui.CollapsingHeader(component.GetType() == typeof(Transform) ? MaterialDesign.Flip_to_front + " " + component.Type : component.Type))
                         {
-                            ImGui.TreePush();
+                            Type componentType = component.GetType();
                             UI.BeginPropertyGrid("##" + i);
-                            UI.DrawComponentField(component.GetType().GetFields(), (object)component);
-                            UI.EndPropertyGrid();
+                            ImGui.TreePush();
+                            if (customEditorMap.TryGetValue(componentType, out var editorType))
+                            {
+                                editorType.component = component;
+                                editorType.OnGUI();
+                            }
+                            else
+                            {
+                                // Default UI fallback
+                                UI.DrawComponentProperty(componentType.GetProperties(), component);
+                                UI.DrawComponentField(componentType.GetFields(), component);
+                            }
                             ImGui.TreePop();
+                            UI.EndPropertyGrid();
                         }
                         ImGui.PopStyleVar();
                         ImGui.PopID();
@@ -175,19 +193,36 @@ namespace ElementalEditor.Editor.Panels
             }
         }
 
-        List<Component> componentCache = new List<Component>();
-        List<Component> GetComponents()
+        Dictionary<Type, CustomEditorScript> customEditorMap = new();
+
+        void CacheCustomEditors()
         {
-            if (componentCache.Count > 0) { return componentCache; }
-            List<Component> objects = new List<Component>();
-            foreach (Type type in Assembly.GetAssembly(typeof(Component)).GetTypes().Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(Component))))
+            var editorTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.IsClass && !t.IsAbstract && typeof(CustomEditorScript).IsAssignableFrom(t));
+
+            foreach (var editorType in editorTypes)
             {
-                objects.Add((Component)Activator.CreateInstance(type));
+                var attr = editorType.GetCustomAttribute<CustomEditor>();
+                if (attr != null && attr.target != null)
+                {
+                    customEditorMap[attr.target] = (CustomEditorScript)Activator.CreateInstance(editorType);
+                    customEditorMap[attr.target].OnEnable();
+                }
             }
+        }
 
-            componentCache = objects;
+        List<Type> componentCache = new List<Type>();
+        List<Type> GetComponents()
+        {
 
-            return objects;
+            var allTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(Component)))
+                .ToList();
+
+            componentCache = allTypes;
+            return allTypes;
         }
     }
 

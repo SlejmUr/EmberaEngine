@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 using OpenTK.Mathematics;
 using EmberaEngine.Engine.Utilities;
+using OpenTK.Graphics.OpenGL;
 
 namespace EmberaEngine.Engine.Rendering
 {
@@ -47,6 +48,53 @@ namespace EmberaEngine.Engine.Rendering
             Cube.SetVertexArrayObject(CubeVAO);
 
             return Cube;
+        }
+
+        public static Mesh GetWireFrameCube()
+        {
+            VertexArray CubeVAO;
+            Vertex[] vertices1 = Primitives.GetWireframeCubeVertices();
+            VertexBuffer CubeVBO = new VertexBuffer(Vertex.VertexInfo, vertices1.Length, true);
+            CubeVBO.SetData(vertices1, vertices1.Length);
+            CubeVAO = new VertexArray(CubeVBO);
+
+            Mesh Cube = new();
+            Cube.SetVertexArrayObject(CubeVAO);
+
+            return Cube;
+        }
+
+        public static Mesh GetQuad()
+        {
+            VertexArray QuadVAO;
+            Vertex[] vertices1 = Primitives.GetQuadVertex();
+            VertexBuffer QuadVBO = new VertexBuffer(Vertex.VertexInfo, vertices1.Length, true);
+            QuadVBO.SetData(vertices1, vertices1.Length);
+            QuadVAO = new VertexArray(QuadVBO);
+
+            Mesh Quad = new();
+            Quad.SetVertexArrayObject(QuadVAO);
+
+            return Quad;
+        }
+
+        public static Mesh GetCircle()
+        {
+            VertexArray CircleVAO;
+            Vertex[] vertices1 = Primitives.GetCircle();
+            VertexBuffer CircleVBO = new VertexBuffer(Vertex.VertexInfo, vertices1.Length, true);
+            CircleVBO.SetData(vertices1, vertices1.Length);
+            CircleVAO = new VertexArray(CircleVBO);
+
+            Mesh Quad = new();
+            Quad.SetVertexArrayObject(CircleVAO);
+
+            return Quad;
+        }
+
+        public static void DrawFullScreenTri()
+        {
+            GL.DrawArrays(BeginMode.Triangles, 0, 3);
         }
 
     }

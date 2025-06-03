@@ -13,6 +13,7 @@ namespace EmberaEngine.Engine.Core
 
         public static Vector2 mousePosition = Vector2.Zero;
         public static Vector2 mouseDelta = Vector2.Zero;
+        public static Vector2 mouseScrollDelta = Vector2.Zero;
         public static MouseButtonEvent mouseBtnEvent;
         public static MouseMoveEvent mouseMoveEvent;
 
@@ -43,6 +44,11 @@ namespace EmberaEngine.Engine.Core
             
         }
 
+        public static void OnMouseWheel(MouseWheelEvent e)
+        {
+            mouseScrollDelta = e.Offset;
+        }
+
         public static bool IsPressed(MouseButton btn)
         {
             if (btn == mouseBtnEvent.Button)
@@ -71,6 +77,55 @@ namespace EmberaEngine.Engine.Core
                 return mouseBtnEvent.IsPressed;
             }
             return false;
+        }
+
+        // --- KEYBOARD ---
+        private static HashSet<Keys> keysDown = new();
+        private static HashSet<Keys> keysPressedThisFrame = new();
+        private static HashSet<Keys> keysReleasedThisFrame = new();
+
+        public static void OnKeyDown(Keys key)
+        {
+            if (!keysDown.Contains(key))
+            {
+                keysDown.Add(key);
+                keysPressedThisFrame.Add(key);
+            }
+        }
+
+        public static void OnKeyUp(Keys key)
+        {
+            if (keysDown.Contains(key))
+            {
+                keysDown.Remove(key);
+                keysReleasedThisFrame.Add(key);
+            }
+        }
+
+        public static bool GetKey(Keys key)
+        {
+            return keysDown.Contains(key);
+        }
+
+        public static bool GetKeyDown(Keys key)
+        {
+            Console.WriteLine(keysPressedThisFrame.Contains(key));
+            return keysPressedThisFrame.Contains(key);
+        }
+
+        public static bool GetKeyUp(Keys key)
+        {
+            return keysReleasedThisFrame.Contains(key);
+        }
+
+        /// <summary>
+        /// Call this at the start of every frame to reset per-frame key states.
+        /// </summary>
+        public static void Update()
+        {
+            mouseScrollDelta = Vector2.Zero;
+            keysPressedThisFrame.Clear();
+            keysReleasedThisFrame.Clear();
         }
 
 

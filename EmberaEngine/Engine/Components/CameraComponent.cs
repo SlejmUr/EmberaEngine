@@ -20,6 +20,7 @@ namespace EmberaEngine.Engine.Components
         private float nearClip = .1f, farClip = 1000f;
 
         private int width = Screen.Size.X, height = Screen.Size.Y;
+        private int prevWidth, prevHeight;
         private float aspectRatio;
 
         private Vector3 _front = Vector3.UnitZ;
@@ -29,13 +30,26 @@ namespace EmberaEngine.Engine.Components
         public float Fov
         {
             get => MathHelper.RadiansToDegrees(_fovy);
-            set => _fovy = MathHelper.DegreesToRadians(value);
+            set
+            {
+                float fovV = MathHelper.DegreesToRadians(value);
+                if (fovV <= 0f || fovV > Math.PI) return;
+                _fovy = fovV;
+                SetCameraProperties();
+            }
         }
 
         public bool isDefault
         {
             get => camera.isDefault;
-            set => camera.isDefault = value;
+            set
+            {
+                camera.isDefault = value;
+                if (value)
+                {
+                    this.gameObject.scene.SetMainCamera(this);
+                }
+            }
         }
 
 
@@ -45,21 +59,12 @@ namespace EmberaEngine.Engine.Components
         {
             camera = new Camera();
 
-            aspectRatio = (float)1920/1080;
-            Console.WriteLine(aspectRatio);
-
-            camera.SetProjectionMatrix(
-                Matrix4.CreatePerspectiveFieldOfView(_fovy, aspectRatio, nearClip, farClip)
-            );
-
-            camera.isDefault = true;
-
-            Renderer3D.RegisterCamera( camera );
+            SetCameraProperties();
         }
 
         public override void OnStart()
         {
-
+            this.gameObject.scene.AddCamera(this);
         }
 
         public override void OnUpdate(float dt)
@@ -70,11 +75,30 @@ namespace EmberaEngine.Engine.Components
             camera.farClip = farClip;
             camera.fovy = _fovy;
             UpdateCameraVectors();
+
+            width = Screen.Size.X;
+            height = Screen.Size.Y;
+
+            if (prevWidth != width || prevHeight != height)
+            {
+                prevWidth = width; prevHeight = height;
+                SetCameraProperties();
+                Console.WriteLine("Resized");
+            }
         }
 
         public override void OnDestroy()
         {
-            Renderer3D.RemoveCamera( camera );
+            this.gameObject.scene.RemoveCamera( this );
+        }
+
+        private void SetCameraProperties()
+        {
+            aspectRatio = (float)width / height;
+
+            camera.SetProjectionMatrix(
+                Matrix4.CreatePerspectiveFieldOfView(_fovy, aspectRatio, nearClip, farClip)
+            );
         }
 
         private void UpdateCameraVectors()

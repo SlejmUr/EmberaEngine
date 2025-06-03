@@ -64,7 +64,6 @@ namespace EmberaEngine.Engine.Imgui
             var io = ImGui.GetIO();
 
             dpi_scaling = Monitors.GetMonitorFromWindow(gameWindow).HorizontalDpi;
-            Console.WriteLine("DPI: " + dpi_scaling);
 
             FontCount = io.Fonts.Fonts.Size;
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
@@ -220,6 +219,9 @@ namespace EmberaEngine.Engine.Imgui
             ImGui.NewFrame();
             ImGui.PushFont(_CurrentFont);
 
+            HandleCursorWrap(_GameWindow);
+
+
             elapsedTime += deltaSeconds;
 
             if (elapsedTime > 10f)
@@ -229,6 +231,86 @@ namespace EmberaEngine.Engine.Imgui
             }
 
         }
+
+
+        // Store these between frames:
+        Vector2 _lastMouseScreen;
+        bool _justWarped = false;
+
+        void HandleCursorWrap(NativeWindow window)
+        {
+            var io = ImGui.GetIO();
+            Vector2 screenSize = new(window.Size.X, window.Size.Y);
+            Vector2 screenPoint = window.MousePosition;
+            Vector2 mouseDelta = screenPoint - _lastMouseScreen;
+
+            Vector2 newScreenPoint = screenPoint;
+            bool wrapped = false;
+            const float margin = 2.0f;
+
+            if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+            {
+                // Check if we need to wrap
+                if (screenPoint.X <= margin)
+                {
+                    newScreenPoint.X = screenSize.X - margin - 1;
+                    wrapped = true;
+                }
+                else if (screenPoint.X >= screenSize.X - margin)
+                {
+                    newScreenPoint.X = margin + 1;
+                    wrapped = true;
+                }
+
+                if (screenPoint.Y <= margin)
+                {
+                    newScreenPoint.Y = screenSize.Y - margin - 1;
+                    wrapped = true;
+                }
+                else if (screenPoint.Y >= screenSize.Y - margin)
+                {
+                    newScreenPoint.Y = margin + 1;
+                    wrapped = true;
+                }
+
+                if (wrapped)
+                {
+                    // Warp cursor
+                    window.MousePosition = new OpenTK.Mathematics.Vector2i((int)newScreenPoint.X, (int)newScreenPoint.Y);
+
+                    // Update ImGui mouse position using scaled value
+                    io.MousePos = new System.Numerics.Vector2(
+                        newScreenPoint.X / _scaleFactor.X,
+                        newScreenPoint.Y / _scaleFactor.Y
+                    );
+
+                    // Manually apply the delta from this frame BEFORE warp
+                    io.MouseDelta = new System.Numerics.Vector2(mouseDelta.X / _scaleFactor.X, mouseDelta.Y / _scaleFactor.Y);
+
+                    // Prevent delta from spiking on next frame
+                    _justWarped = true;
+                    _lastMouseScreen = newScreenPoint;
+                    return;
+                }
+            }
+
+            // Handle normal input or post-warp reset
+            io.MousePos = new System.Numerics.Vector2(screenPoint.X / _scaleFactor.X, screenPoint.Y / _scaleFactor.Y);
+
+            if (_justWarped)
+            {
+                io.MouseDelta = System.Numerics.Vector2.Zero;
+                _justWarped = false;
+            }
+            else
+            {
+                io.MouseDelta = new System.Numerics.Vector2(mouseDelta.X / _scaleFactor.X, mouseDelta.Y / _scaleFactor.Y);
+            }
+
+            _lastMouseScreen = screenPoint;
+        }
+
+
 
 
         //int[] param = new int[];
@@ -566,7 +648,7 @@ namespace EmberaEngine.Engine.Imgui
 
         public void SetUpDockspace(bool customTitlebar = false)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0,0));
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0, 0));
             ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(_GameWindow.Size.X, _GameWindow.Size.Y));
 
@@ -612,7 +694,7 @@ namespace EmberaEngine.Engine.Imgui
 
                 ImGui.SetCursorScreenPos(pos);
             }
-            
+
             if (firstFrame) { DockspaceID = ImGui.GetID("Dockspace"); firstFrame = false; }
 
             ImGui.DockSpace(ImGui.GetID("Dockspace"));
@@ -620,7 +702,7 @@ namespace EmberaEngine.Engine.Imgui
             ImGui.PopStyleVar();
         }
 
-        
+
 
         /// <summary>
         /// Frees all graphics resources used by the renderer.

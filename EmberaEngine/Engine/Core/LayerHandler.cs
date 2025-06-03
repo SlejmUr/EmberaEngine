@@ -51,6 +51,22 @@ namespace EmberaEngine.Engine.Core
             }
         }
 
+        public void KeyUpInput(Keys key, int scanCode, string modifiers, bool caps)
+        {
+            KeyboardEvent keyboardEvent = new KeyboardEvent()
+            {
+                Key = key,
+                scanCode = scanCode,
+                modifiers = modifiers,
+                Caps = caps
+            };
+
+            for (int i = 0; i < layers.Count; i++)
+            {
+                layers[i].OnKeyUp(keyboardEvent);
+            }
+        }
+
         public void OnMouseMoveEvent(OpenTK.Windowing.Common.MouseMoveEventArgs obj)
         {
             MouseMoveEvent mouseMoveEvent = new MouseMoveEvent()
@@ -65,6 +81,19 @@ namespace EmberaEngine.Engine.Core
             }
 
             //Input.OnMouseMove(mouseMoveEvent);
+        }
+
+        public void OnMouseWheelEvent(OpenTK.Windowing.Common.MouseWheelEventArgs obj)
+        {
+            MouseWheelEvent mouseWheelEvent = new MouseWheelEvent()
+            {
+                Offset = obj.Offset,
+            };
+
+            for (int i = 0; i < layers.Count; i++)
+            {
+                layers[i].OnMouseWheel(mouseWheelEvent);
+            }
         }
 
         public void OnMouseButtonEvent(OpenTK.Windowing.Common.MouseButtonEventArgs obj)

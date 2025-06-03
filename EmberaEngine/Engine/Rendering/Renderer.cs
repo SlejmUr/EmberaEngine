@@ -25,7 +25,6 @@ namespace EmberaEngine.Engine.Rendering
 
         public static void BeginFrame()
         {
-            GraphicsState.Clear(true, true);
             //GraphicsState.ErrorCheck();
             Renderer2D.BeginRender();
             Renderer3D.BeginRender();

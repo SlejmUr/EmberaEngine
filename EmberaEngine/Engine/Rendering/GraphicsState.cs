@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using EmberaEngine.Engine.Core;
 using ImGuiNET;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -8,7 +9,8 @@ namespace EmberaEngine.Engine.Rendering
 {
     public class GraphicsState
     {
-
+        static bool isCulled;
+        static bool isDepthTested;
         public static void ErrorCheck()
         {
             Console.WriteLine(GL.GetError());
@@ -51,7 +53,25 @@ namespace EmberaEngine.Engine.Rendering
 
         public static void SetBlending(bool blend)
         {
-            GL.Enable(EnableCap.Blend);
+            if (blend)
+            {
+                GL.Enable(EnableCap.Blend);
+            } else
+            {
+                GL.Disable(EnableCap.Blend);
+            }
+        }
+
+        public static void SetCubemapSeamless(bool blend)
+        {
+            if (blend)
+            {
+                GL.Enable(EnableCap.TextureCubeMapSeamless);
+            }
+            else
+            {
+                GL.Disable(EnableCap.TextureCubeMapSeamless);
+            }
         }
 
         public static void SetBlendingFunc(BlendingFactor blendingFactor, BlendingFactor factor)
@@ -59,8 +79,14 @@ namespace EmberaEngine.Engine.Rendering
             GL.BlendFunc((OpenTK.Graphics.OpenGL.BlendingFactor)blendingFactor, (OpenTK.Graphics.OpenGL.BlendingFactor)factor);
         }
 
+        public static void SetBlendingEquation(BlendEquationMode blendEquationMode)
+        {
+            GL.BlendEquation((OpenTK.Graphics.OpenGL.BlendEquationMode)blendEquationMode);
+        }
+
         public static void SetDepthTest(bool depthTest)
         {
+            if (isDepthTested == depthTest) return;
             if (depthTest)
             {
                 GL.Enable(EnableCap.DepthTest);
@@ -69,10 +95,17 @@ namespace EmberaEngine.Engine.Rendering
             {
                 GL.Disable(EnableCap.DepthTest);
             }
+            isDepthTested = depthTest;
+        }
+
+        public static void SetDepthMask(bool value)
+        {
+            GL.DepthMask(value);
         }
 
         public static void SetCulling(bool culling)
         {
+            if (isCulled == culling) { return; }
             if (culling)
             {
                 GL.Enable(EnableCap.CullFace);
@@ -81,6 +114,22 @@ namespace EmberaEngine.Engine.Rendering
             {
                 GL.Disable(EnableCap.CullFace);
             }
+            isCulled = culling;
+        }
+
+        public static void SetPolygonMode(MaterialFace materialFace, PolygonMode polygonMode)
+        {
+            GL.PolygonMode(materialFace, polygonMode);
+        }
+
+        public static void SetLineWidth(float width)
+        {
+            GL.LineWidth(width);
+        }
+
+        public static void SetTextureActiveBinding(EmberaEngine.Engine.Core.TextureUnit textureUnit)
+        {
+            GL.ActiveTexture((OpenTK.Graphics.OpenGL.TextureUnit)textureUnit);
         }
 
         public static void SetPixelStoreI(PixelStoreParameter ps, int val)
@@ -88,6 +137,30 @@ namespace EmberaEngine.Engine.Rendering
             GL.PixelStore((OpenTK.Graphics.OpenGL.PixelStoreParameter)ps, val);
         }
 
+    }
+
+    public enum BlendEquationMode
+    {
+        //
+        // Summary:
+        //     [requires: v1.4 or ARB_imaging] Original was GL_FUNC_ADD = 0x8006
+        FuncAdd = 32774,
+        //
+        // Summary:
+        //     [requires: v1.4 or ARB_imaging] Original was GL_MIN = 0x8007
+        Min = 32775,
+        //
+        // Summary:
+        //     [requires: v1.4 or ARB_imaging] Original was GL_MAX = 0x8008
+        Max = 32776,
+        //
+        // Summary:
+        //     [requires: v1.4 or ARB_imaging] Original was GL_FUNC_SUBTRACT = 0x800A
+        FuncSubtract = 32778,
+        //
+        // Summary:
+        //     [requires: v1.4 or ARB_imaging] Original was GL_FUNC_REVERSE_SUBTRACT = 0x800B
+        FuncReverseSubtract = 32779
     }
 
     public enum PixelStoreParameter

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using EmberaEngine.Engine.Core;
 using EmberaEngine.Engine.Rendering;
+using OpenTK.Mathematics;
 
 namespace EmberaEngine.Engine.Utilities
 {
@@ -15,7 +16,7 @@ namespace EmberaEngine.Engine.Utilities
 
         Vertex[] Vertices;
 
-        public int MaterialIndex;
+        public uint MaterialIndex;
 
         public int MeshID;
         public int VertexCount;
@@ -23,7 +24,10 @@ namespace EmberaEngine.Engine.Utilities
         public string name;
         public string fileID;
         public bool Renderable = true;
-        
+
+        internal Vector3 position;
+        internal Vector3 rotation;
+        internal Vector3 scale;
 
         bool IsStatic = true;
 

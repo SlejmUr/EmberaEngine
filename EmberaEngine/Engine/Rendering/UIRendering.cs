@@ -59,8 +59,8 @@ namespace EmberaEngine.Engine.Rendering
             stylizedKnob = Helper.loadImageAsTex("./Engine/Content/Textures/UI/slider_stylized_knob.png");
 
             border = Helper.loadImageAsTex("./Engine/Content/Textures/UI/border.png");
-            button_idle = Helper.loadImageAsTex("./Engine/Content/Textures/UI/button_idle.png", TextureMagFilter.Nearest);
-            button_pressed = Helper.loadImageAsTex("./Engine/Content/Textures/UI/button_pressed.png", TextureMagFilter.Nearest);
+            button_idle = Helper.loadImageAsTex("./Engine/Content/Textures/UI/button_idle.png", TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            button_pressed = Helper.loadImageAsTex("./Engine/Content/Textures/UI/button_pressed.png", TextureMinFilter.Nearest,TextureMagFilter.Nearest);
 
             NineSliceShader = new Shader("./Engine/Content/Shaders/2D/sprite2d.vert", "./Engine/Content/Shaders/2D/nine_slice.frag", "");
         }

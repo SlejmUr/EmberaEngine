@@ -4,21 +4,125 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Engine\Content\Models\textures\**" />
+    <EmbeddedResource Remove="Engine\Content\Models\textures\**" />
+    <None Remove="Engine\Content\Models\textures\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="Engine\Content\Assemblies\freetype6.dll" />
+    <None Remove="Engine\Content\Models\Barrel\license.txt" />
+    <None Remove="Engine\Content\Models\Barrel\scene.bin" />
+    <None Remove="Engine\Content\Models\Barrel\scene.gltf" />
+    <None Remove="Engine\Content\Models\Barrel\textures\tile_baseColor.png" />
+    <None Remove="Engine\Content\Models\Barrel\textures\tile_metallicRoughness.png" />
+    <None Remove="Engine\Content\Models\Barrel\textures\tile_normal.png" />
+    <None Remove="Engine\Content\Models\Barrel\textures\wine_barrel_baseColor.png" />
+    <None Remove="Engine\Content\Models\Barrel\textures\wine_barrel_metallicRoughness.png" />
+    <None Remove="Engine\Content\Models\Barrel\textures\wine_barrel_normal.png" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\license.txt" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\scene.bin" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\scene.gltf" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_a_baseColor.jpeg" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_a_metallicRoughness.png" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_b_baseColor.jpeg" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_b_emissive.png" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_c_baseColor.jpeg" />
+    <None Remove="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_c_emissive.png" />
+    <None Remove="Engine\Content\Models\Sponza\README.md" />
+    <None Remove="Engine\Content\Models\Sponza\sponza.mtl" />
+    <None Remove="Engine\Content\Models\Sponza\sponza.obj" />
+    <None Remove="Engine\Content\Models\Sponza\textures\background.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\background_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\chain_texture.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\chain_texture_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\lion.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\lion2_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\lion_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\spnza_bricks_a_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\spnza_bricks_a_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_arch_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_arch_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_ceiling_a_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_ceiling_a_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_column_a_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_column_a_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_column_b_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_column_b_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_column_c_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_column_c_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_curtain_blue_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_curtain_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_curtain_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_curtain_green_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_details_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_details_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_fabric_blue_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_fabric_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_fabric_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_fabric_green_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_flagpole_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_flagpole_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_floor_a_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_floor_a_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_roof_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_roof_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_thorn_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\sponza_thorn_diff.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\Thumbs.db" />
+    <None Remove="Engine\Content\Models\Sponza\textures\vase_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\vase_dif.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\vase_hanging.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\vase_hanging_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\vase_plant.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\vase_round.tga" />
+    <None Remove="Engine\Content\Models\Sponza\textures\vase_round_ddn.tga" />
+    <None Remove="Engine\Content\Models\SSAO Test\devoid_logo.obj" />
+    <None Remove="Engine\Content\Models\SSAO Test\devoid_scene.mtl" />
+    <None Remove="Engine\Content\Models\SSAO Test\devoid_scene.obj" />
+    <None Remove="Engine\Content\Models\SSAO Test\sphere.obj" />
+    <None Remove="Engine\Content\Models\SSAO Test\untitled.glb" />
+    <None Remove="Engine\Content\Models\SSAO Test\untitled.obj" />
     <None Remove="Engine\Content\Shaders\2D\font.frag" />
     <None Remove="Engine\Content\Shaders\2D\font.vert" />
     <None Remove="Engine\Content\Shaders\2D\nine_slice.frag" />
     <None Remove="Engine\Content\Shaders\2D\sprite2d.frag" />
     <None Remove="Engine\Content\Shaders\2D\sprite2d.vert" />
+    <None Remove="Engine\Content\Shaders\3D\AO\ssao.frag" />
+    <None Remove="Engine\Content\Shaders\3D\AO\ssao.vert" />
+    <None Remove="Engine\Content\Shaders\3D\AO\ssaoBlur.frag" />
     <None Remove="Engine\Content\Shaders\3D\base.vert" />
     <None Remove="Engine\Content\Shaders\3D\basic\base.frag" />
+    <None Remove="Engine\Content\Shaders\3D\basic\brdfLUT.frag" />
+    <None Remove="Engine\Content\Shaders\3D\basic\fullscreen.vert" />
+    <None Remove="Engine\Content\Shaders\3D\basic\gbuffer.frag" />
+    <None Remove="Engine\Content\Shaders\3D\basic\gbuffer.vert" />
+    <None Remove="Engine\Content\Shaders\3D\basic\irradianceMap.frag" />
+    <None Remove="Engine\Content\Shaders\3D\basic\panoramicToCubemap.frag" />
+    <None Remove="Engine\Content\Shaders\3D\basic\prefilterMap.frag" />
+    <None Remove="Engine\Content\Shaders\3D\basic\skybox.frag" />
+    <None Remove="Engine\Content\Shaders\3D\basic\skybox.vert" />
+    <None Remove="Engine\Content\Shaders\3D\Bloom\bloom.vert" />
+    <None Remove="Engine\Content\Shaders\3D\Bloom\downsample.frag" />
+    <None Remove="Engine\Content\Shaders\3D\Bloom\upsample.frag" />
     <None Remove="Engine\Content\Shaders\3D\ClusterCompute\cluster.comp" />
+    <None Remove="Engine\Content\Shaders\3D\DebugShaders\visualizeCluster.frag" />
+    <None Remove="Engine\Content\Shaders\3D\DebugShaders\visualizeCluster.geom" />
+    <None Remove="Engine\Content\Shaders\3D\DebugShaders\visualizeCluster.vert" />
     <None Remove="Engine\Content\Shaders\3D\PBR\clustered_pbr.frag" />
     <None Remove="Engine\Content\Shaders\3D\PBR\clustered_pbr.vert" />
+    <None Remove="Engine\Content\Shaders\3D\ScreenShaders\tonemap.frag" />
+    <None Remove="Engine\Content\Shaders\3D\Volumetrics\volumetricLighting.frag" />
     <None Remove="Engine\Content\Textures\Placeholders\null.png" />
+    <None Remove="Engine\Content\Textures\Skyboxes\aperture.hdr" />
+    <None Remove="Engine\Content\Textures\Skyboxes\Beach.hdr" />
+    <None Remove="Engine\Content\Textures\Skyboxes\circus.hdr" />
+    <None Remove="Engine\Content\Textures\Skyboxes\mudroad.hdr" />
+    <None Remove="Engine\Content\Textures\Skyboxes\newport_loft.hdr" />
+    <None Remove="Engine\Content\Textures\Skyboxes\voor.hdr" />
     <None Remove="Engine\Content\Textures\UI\border.png" />
     <None Remove="Engine\Content\Textures\UI\button_idle.png" />
     <None Remove="Engine\Content\Textures\UI\button_pressed.png" />
@@ -29,6 +133,267 @@
     <None Remove="Engine\ImGui\shaders\GUI.vert" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Engine\Content\Models\Barrel\license.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Barrel\scene.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Barrel\scene.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Barrel\textures\tile_baseColor.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Barrel\textures\tile_metallicRoughness.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Barrel\textures\tile_normal.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Barrel\textures\wine_barrel_baseColor.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Barrel\textures\wine_barrel_metallicRoughness.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Barrel\textures\wine_barrel_normal.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\license.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\scene.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\scene.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_a_baseColor.jpeg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_a_metallicRoughness.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_b_baseColor.jpeg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_b_emissive.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_c_baseColor.jpeg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Portal2-Elevator\textures\elevator_main_c_emissive.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\sponza.mtl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\sponza.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\background.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\background_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\chain_texture.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\chain_texture_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\lion.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\lion2_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\lion_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\spnza_bricks_a_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\spnza_bricks_a_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_arch_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_arch_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_ceiling_a_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_ceiling_a_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_column_a_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_column_a_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_column_b_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_column_b_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_column_c_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_column_c_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_curtain_blue_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_curtain_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_curtain_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_curtain_green_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_details_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_details_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_fabric_blue_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_fabric_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_fabric_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_fabric_green_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_flagpole_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_flagpole_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_floor_a_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_floor_a_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_roof_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_roof_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_thorn_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\sponza_thorn_diff.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\Thumbs.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\vase_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\vase_dif.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\vase_hanging.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\vase_hanging_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\vase_plant.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\vase_round.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\Sponza\textures\vase_round_ddn.tga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\SSAO Test\devoid_scene.mtl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\SSAO Test\devoid_scene.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\SSAO Test\sphere.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\SSAO Test\untitled.glb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Models\SSAO Test\untitled.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\AO\ssao.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\AO\ssao.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\AO\ssaoBlur.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\brdfLUT.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\fullscreen.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\gbuffer.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\gbuffer.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\irradianceMap.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\panoramicToCubemap.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\prefilterMap.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\skybox.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\skybox.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\tonemap.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\Bloom\bloom.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\Bloom\downsample.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\Bloom\upsample.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Engine\Content\Shaders\3D\ClusterCompute\cluster_light_cull.comp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -61,13 +426,46 @@
     <Content Include="Engine\Content\Shaders\3D\ClusterCompute\cluster.comp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Engine\Content\Shaders\3D\DebugShaders\visualizeCluster.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\DebugShaders\visualizeCluster.geom">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\DebugShaders\visualizeCluster.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Engine\Content\Shaders\3D\PBR\clustered_pbr.frag">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Shaders\3D\PBR\clustered_pbr.vert">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Engine\Content\Shaders\3D\basic\tonemap.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\Volumetrics\volumetricLighting.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Engine\Content\Textures\Placeholders\null.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\Skyboxes\aperture.hdr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\Skyboxes\Beach.hdr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\Skyboxes\circus.hdr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\Skyboxes\mudroad.hdr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\Skyboxes\newport_loft.hdr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\Skyboxes\voor.hdr">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Textures\UI\border.png">
@@ -97,6 +495,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Aether.Physics2D" Version="2.0.0" />
+    <PackageReference Include="AssimpNet" Version="4.1.0" />
+    <PackageReference Include="BepuPhysics" Version="2.4.0" />
     <PackageReference Include="Box2D" Version="2.3.0" />
     <PackageReference Include="ImGui.NET" Version="1.87.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -107,9 +507,16 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
     <PackageReference Include="SkiaSharp" Version="2.88.6" />
     <PackageReference Include="SpaceWizards.SharpFont" Version="1.0.2" />
+    <PackageReference Include="StbImageSharp" Version="2.30.15" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Engine\Content\Shaders\3D\ScreenShaders\" />
     <Folder Include="Engine\ImGui\imnodes\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ImGuizmo.NET">
+      <HintPath>Engine\Content\Assemblies\ImGuizmo.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
