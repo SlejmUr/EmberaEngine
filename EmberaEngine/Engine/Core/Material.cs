@@ -128,7 +128,7 @@ namespace EmberaEngine.Engine.Core
         {
             propertyMat4[name] = value;
         }
-        
+
         public void Set(string name, Texture value)
         {
             propertyTextures[name] = value;

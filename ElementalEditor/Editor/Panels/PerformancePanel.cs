@@ -9,11 +9,19 @@ namespace ElementalEditor.Editor.Panels
 {
     class PerformancePanel : Panel
     {
-
-        float dt;
+        Queue<float> frameTimes = new Queue<float>();
+        const int sampleCount = 10;
 
         public override void OnGUI()
         {
+
+            // Compute average dt
+            float avgDt = 0;
+            foreach (var t in frameTimes)
+                avgDt += t;
+            avgDt /= frameTimes.Count;
+
+            float avgFps = 1f / avgDt;
 
             if (ImGui.Begin("Performance"))
             {
@@ -21,28 +29,29 @@ namespace ElementalEditor.Editor.Panels
                 {
                     ImGui.TableSetupColumn("Category", ImGuiTableColumnFlags.WidthFixed);
                     ImGui.TableSetupColumn("Performance", ImGuiTableColumnFlags.WidthFixed);
-
                     ImGui.TableHeadersRow();
-                    ImGui.TableNextColumn();
 
-                    ImGui.Text("Frame Rate");
-                    ImGui.TableNextColumn();
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.Text("Avg Frame Rate");
 
-                    ImGui.Text((1/dt).ToString());
-                    ImGui.TableNextColumn();
-
+                    ImGui.TableSetColumnIndex(1);
+                    ImGui.Text($"{avgFps:F2} FPS");
 
                     ImGui.EndTable();
-
-                    ImGui.End();
                 }
 
+                ImGui.End();
             }
+
         }
 
         public override void OnUpdate(float dt)
         {
-            this.dt = dt;
+            // Store the latest dt
+            frameTimes.Enqueue(dt);
+            if (frameTimes.Count > sampleCount)
+                frameTimes.Dequeue();
         }
     }
 }

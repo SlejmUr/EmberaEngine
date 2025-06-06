@@ -27,6 +27,11 @@ namespace ElementalEditor.Editor.Panels
             public int refreshRate;
         }
 
+
+        int toolbarHeight = 48;
+
+
+
         List<SupportedResolution> SupportedResolutions = new List<SupportedResolution>();
         SupportedResolution selectedResolution;
         bool freeAspectRatio = false;
@@ -58,6 +63,7 @@ namespace ElementalEditor.Editor.Panels
 
             for (int i = 0; i < monitorInfoList.SupportedVideoModes.Count; i++)
             {
+                if (monitorInfoList.SupportedVideoModes[i].RefreshRate != 60) continue;
                 SupportedResolutions.Add(new SupportedResolution()
                 {
                     width = monitorInfoList.SupportedVideoModes[i].Width,
@@ -112,6 +118,10 @@ namespace ElementalEditor.Editor.Panels
                 ClearViewport();
                 Framebuffer.BlitFrameBuffer(compositeBuffer, viewportBuffer, (0, 0, selectedResolution.width, selectedResolution.height), (resizeCoords.Item1, resizeCoords.Item2, resizeCoords.Item3, resizeCoords.Item4), OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit, OpenTK.Graphics.OpenGL.BlitFramebufferFilter.Nearest);
 
+            } else
+            {
+                Framebuffer.BlitFrameBuffer(compositeBuffer, viewportBuffer, (0, 0, selectedResolution.width, selectedResolution.height), (resizeCoords.Item1, resizeCoords.Item2, resizeCoords.Item3, resizeCoords.Item4), OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit, OpenTK.Graphics.OpenGL.BlitFramebufferFilter.Nearest);
+
             }
 
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(0, 0));
@@ -135,29 +145,28 @@ namespace ElementalEditor.Editor.Panels
 
 
 
-        public (int, int, int, int) CalculateScaleWithScreen(int viewportWidth, int viewportHeight, int resolutionWidth, int resolutionHeight)
+        public (int, int, int, int) CalculateScaleWithScreen(int viewportWidth,int viewportHeight,int resolutionWidth,int resolutionHeight)
         {
+            int usableHeight = viewportHeight - toolbarHeight;
 
-            // Calculate the scaling factors for width and height
+            // Calculate scale maintaining aspect ratio
             float scaleWidth = (float)viewportWidth / resolutionWidth;
-            float scaleHeight = (float)viewportHeight / resolutionHeight;
-
-            // Choose the smaller scaling factor to maintain aspect ratio
+            float scaleHeight = (float)usableHeight / resolutionHeight;
             float scaleFactor = Math.Min(scaleWidth, scaleHeight);
 
-            // Apply the scaling factor
+            // Scaled dimensions
             float scaledWidth = resolutionWidth * scaleFactor;
             float scaledHeight = resolutionHeight * scaleFactor;
 
-            // Calculate centering offsets
+            // Center horizontally in full width, vertically in usable height
             int left = (int)((viewportWidth - scaledWidth) / 2);
-            int top = (int)((viewportHeight - scaledHeight) / 2);
+            int top = (int)((usableHeight - scaledHeight) / 2);  // now correctly centers below toolbar
             int right = left + (int)scaledWidth;
             int bottom = top + (int)scaledHeight;
 
-            // Return the scaled resolution and offsets
             return (left, top, right, bottom);
         }
+
         static float MapValue(float value, float fromMin, float fromMax, float toMin, float toMax)
         {
             // First, normalize the value to the range [0, 1] within the source range
@@ -223,83 +232,102 @@ namespace ElementalEditor.Editor.Panels
         {
 
 
-            if (freeAspectRatio)
+            if (freeAspectRatio && (prevViewportHeight != viewportHeight || prevViewportWidth != viewportWidth))
             {
-                Renderer.Resize(viewportWidth, viewportHeight);
                 Screen.Size.X = viewportWidth;
                 Screen.Size.Y = viewportHeight;
+                Renderer.Resize(viewportWidth, viewportHeight);
                 editor.EditorCurrentScene.OnResize(viewportWidth, viewportHeight);
             }
         }
 
         public void DrawViewportTools()
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 5f);
-            float size = 45;
+            float buttonSize = 40;
 
+            // Style setup
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 6f);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 10));
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(6, 4));
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(10, 8));
+            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 3f);
 
-            System.Numerics.Vector2 curPos = ImGui.GetCursorPos();
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.16f, 0.15f, 0.13f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0.28f, 0.30f, 0.33f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.25f, 0.25f, 0.25f, 0.9f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.35f, 0.35f, 0.35f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.20f, 0.20f, 0.20f, 1f));
 
-            ImGui.SetCursorPosX(10);
-            ImGui.SetCursorPosY(size + 15);
+            // Begin tool child panel
+            ImGui.SetCursorPos(new Vector2(1.5f, toolbarHeight));
+            ImGui.BeginChild("##VIEWPORT_TOOLS", new Vector2(ImGui.GetContentRegionAvail().X - 1.5f, toolbarHeight), true, ImGuiWindowFlags.NoScrollbar);
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(7, 7));
-            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5);
-            ImGui.PushStyleColor(ImGuiCol.ChildBg, new System.Numerics.Vector4(0, 0, 0, 0));
+            // --- Resolution dropdown ---
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Resolution:");
+            ImGui.SameLine();
 
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(7, 7));
-            ImGui.BeginChild("##VIEW_TOOLS", new System.Numerics.Vector2(250, 48), true, ImGuiWindowFlags.AlwaysUseWindowPadding);
+            var resLabel = freeAspectRatio
+                ? "Free Aspect"
+                : $"{selectedResolution.width}x{selectedResolution.height} @ {selectedResolution.refreshRate}Hz";
 
+            ImGui.PushItemWidth(200);
 
-            if (ImGui.BeginCombo("##supportedResolutions", freeAspectRatio ? "Free Aspect" : selectedResolution.width + "x" + selectedResolution.height + " @" + selectedResolution.refreshRate + "Hz"))
+            if (ImGui.BeginCombo("##ResCombo", resLabel, ImGuiComboFlags.HeightLargest))
             {
-
                 for (int i = 0; i < SupportedResolutions.Count; i++)
                 {
-                    if (ImGui.Selectable(SupportedResolutions[i].width + "x" + SupportedResolutions[i].height + " @" + SupportedResolutions[i].refreshRate + "Hz"))
+                    var res = SupportedResolutions[i];
+                    bool isSelected = selectedResolution.Equals(res) && !freeAspectRatio;
+                    if (ImGui.Selectable($"{res.width}x{res.height} @ {res.refreshRate}Hz", isSelected))
                     {
-                        selectedResolution = SupportedResolutions[i];
+                        selectedResolution = res;
                         freeAspectRatio = false;
-                        Renderer.Resize(selectedResolution.width, selectedResolution.height);
-                        Screen.Size.X = selectedResolution.width;
-                        Screen.Size.Y = selectedResolution.height;
-                        editor.EditorCurrentScene.OnResize(selectedResolution.width, selectedResolution.height);
+
+                        Renderer.Resize(res.width, res.height);
+                        Screen.Size.X = res.width;
+                        Screen.Size.Y = res.height;
+                        editor.EditorCurrentScene.OnResize(res.width, res.height);
 
                         DebugLogPanel.Log("RESIZED RENDERER", DebugLogPanel.DebugMessageSeverity.Information, "Viewport Change");
                     }
                 }
 
-                if (ImGui.Selectable("Free Aspect"))
+                if (ImGui.Selectable("Free Aspect", freeAspectRatio))
                 {
                     freeAspectRatio = true;
+                    Renderer.Resize(viewportWidth, viewportHeight);
+                    Screen.Size.X = viewportWidth;
+                    Screen.Size.Y = viewportHeight;
+                    editor.EditorCurrentScene.OnResize(viewportWidth, viewportHeight);
                 }
 
                 ImGui.EndCombo();
             }
 
-            ImGui.EndChild();
+            ImGui.PopItemWidth();
 
-            ImGui.PopStyleVar();
+            // --- Play/Pause button ---
+            float centerX = ImGui.GetWindowContentRegionMax().X / 2;
+            ImGui.SameLine();
+            ImGui.SetCursorPosY(4);
+            ImGui.SetCursorPosX(centerX - (buttonSize / 2));
 
-            ImGui.PopStyleVar(2);
-            ImGui.PopStyleColor();
-
-
-            ImGui.SetCursorPosX((ImGui.GetWindowContentRegionMax().X * 0.5f) - ((size+10) * 0.5f));
-            ImGui.SetCursorPosY(size + 15);
-            ImGui.PushStyleColor(ImGuiCol.Button, new System.Numerics.Vector4(.21f, .21f, .21f, 0.7f));
-            if (ImGui.Button(editor.EditorCurrentScene.IsPlaying == true ? MaterialDesign.Pause : MaterialDesign.Play_arrow, new Vector2(size + 10, size)))
+            var icon = editor.EditorCurrentScene.IsPlaying ? MaterialDesign.Pause : MaterialDesign.Play_arrow;
+            if (ImGui.Button(icon, new Vector2(buttonSize, buttonSize)))
             {
-
+                // You can toggle play mode here
+                editor.EditorCurrentScene.IsPlaying = !editor.EditorCurrentScene.IsPlaying;
             }
 
-            ImGui.SetCursorPos(curPos);
+            ImGui.EndChild();
 
-            ImGui.PopStyleVar();
-            ImGui.PopStyleColor(1);
-
-
+            // Pop all styles
+            ImGui.PopStyleColor(5);
+            ImGui.PopStyleVar(6);
         }
+
 
         public void ClearViewport()
         {

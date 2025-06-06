@@ -134,6 +134,9 @@ void main() {
 
 	vec4 diffuseColor = GetDiffuse();
 
+	if (diffuseColor.a == 0) discard;
+
+
 	//diffuseColor.xyz *= (texture(material.AO_TEX, viewportCoords).r);
 
 	vec3 albedo = diffuseColor.xyz;

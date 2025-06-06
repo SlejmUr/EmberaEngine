@@ -39,9 +39,9 @@
 
 //        public override void OnUpdate(float dt)
 //        {
-//            //textObject.transform = gameObject.transform.position.Xy;
-//            //textObject.scale = gameObject.transform.scale.Xy;
-//            //textObject.rotationAngle = gameObject.transform.rotation.X;
+//            //textObject.transform = gameObject.transform.Position.Xy;
+//            //textObject.scale = gameObject.transform.Scale.Xy;
+//            //textObject.rotationAngle = gameObject.transform.Rotation.X;
 
 //            if (prevContent != Content)
 //            {

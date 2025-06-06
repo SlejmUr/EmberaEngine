@@ -89,17 +89,22 @@ namespace EmberaEngine.Engine.Components
             else if (previousValue == LightType.SpotLight)
             {
                 LightManager.RemoveSpotLight(spotLight);
+            } else
+            {
+                LightManager.RemoveDirectionalLight(directionalLight);
             }
 
             if (newValue == LightType.PointLight)
             {
-                pointLight = LightManager.AddPointLight(gameObject.transform.position, color, intensity, radius);
-            } else if (newValue == LightType.SpotLight)
+                pointLight = LightManager.AddPointLight(gameObject.transform.Position, color, intensity, radius);
+            }
+            else if (newValue == LightType.SpotLight)
             {
-                spotLight = LightManager.AddSpotLight(gameObject.transform.position, color, Vector3.Normalize(gameObject.transform.rotation), intensity, radius, innerCutoff, outerCutoff);
-            } else if (newValue == LightType.DirectionalLight)
+                spotLight = LightManager.AddSpotLight(gameObject.transform.Position, color, Vector3.Normalize(gameObject.transform.Rotation), intensity, radius, innerCutoff, outerCutoff);
+            }
+            else if (newValue == LightType.DirectionalLight)
             {
-                directionalLight = LightManager.AddDirectionalLight(gameObject.transform.rotation, color, intensity);
+                directionalLight = LightManager.AddDirectionalLight(gameObject.transform.Rotation, color, intensity);
             }
         }
 
@@ -107,7 +112,7 @@ namespace EmberaEngine.Engine.Components
         {
             if (LightType == LightType.PointLight)
             {
-                pointLight.position = gameObject.transform.position;
+                pointLight.position = gameObject.transform.Position;
                 pointLight.Color = color;
                 pointLight.range = radius;
                 pointLight.intensity = intensity;
@@ -115,18 +120,18 @@ namespace EmberaEngine.Engine.Components
             }
             else if (LightType == LightType.SpotLight)
             {
-                spotLight.position = gameObject.transform.position;
+                spotLight.position = gameObject.transform.Position;
                 spotLight.Color = color;
                 spotLight.range = radius;
                 spotLight.intensity = intensity;
                 spotLight.enabled = enabled;
                 spotLight.innerCutoff = innerCutoff;
                 spotLight.outerCutoff = outerCutoff;
-                spotLight.direction = Vector3.Normalize(gameObject.transform.rotation);
+                spotLight.direction = Vector3.Normalize(gameObject.transform.Rotation);
             }
             else if (lightType == LightType.DirectionalLight)
             {
-                directionalLight.direction = gameObject.transform.rotation;
+                directionalLight.direction = gameObject.transform.Rotation;
                 directionalLight.color = color;
                 directionalLight.intensity = intensity;
                 directionalLight.enabled = enabled;
@@ -137,10 +142,10 @@ namespace EmberaEngine.Engine.Components
         {
             if (lightType == LightType.PointLight)
             {
-                pointLight.position = gameObject.transform.position;
+                pointLight.position = gameObject.transform.Position;
             } else if (lightType == LightType.SpotLight)
             {
-                spotLight.position = gameObject.transform.position;
+                spotLight.position = gameObject.transform.Position;
             }
         }
 
@@ -151,6 +156,22 @@ namespace EmberaEngine.Engine.Components
                 OnChangedValue();
             }
 
+        }
+
+        public override void OnDestroy()
+        {
+            if (lightType == LightType.PointLight)
+            {
+                LightManager.RemovePointLight(pointLight);
+            }
+            else if (lightType == LightType.SpotLight)
+            {
+                LightManager.RemoveSpotLight(spotLight);
+            }
+            else if (lightType == LightType.DirectionalLight)
+            {
+                LightManager.RemoveDirectionalLight(directionalLight);
+            }
         }
     }
 }

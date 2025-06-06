@@ -24,7 +24,7 @@ namespace ElementalEditor.Editor.GizmoAddons
             ColliderComponent3D lComponent = (ColliderComponent3D)component;
             if (lComponent.ColliderShape == ColliderShapeType.Box)
             {
-                Guizmo3D.RenderCube(lComponent.gameObject.transform.position, lComponent.Size, lComponent.gameObject.transform.rotation);
+                Guizmo3D.RenderCube(lComponent.gameObject.transform.Position, lComponent.Size, lComponent.gameObject.transform.Rotation);
             }
         }
     }

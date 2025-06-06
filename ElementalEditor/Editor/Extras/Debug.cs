@@ -39,10 +39,10 @@
 
 //            GameObject playText = scene.addGameObject("PlayText");
 //            //playText.AddComponent<ButtonComponent>();
-//            playText.transform.position.X = 400;
-//            playText.transform.position.Y = 300;
-//            playText.transform.scale.X = 1;
-//            playText.transform.scale.Y = 1;
+//            playText.transform.Position.X = 400;
+//            playText.transform.Position.Y = 300;
+//            playText.transform.Scale.X = 1;
+//            playText.transform.Scale.Y = 1;
 
 //            TextComponent t = playText.AddComponent<TextComponent>();
 //            t.Content = "20 DOLLARS IS 20 DOLLARS";
@@ -67,10 +67,10 @@
 
 //            //sr.Sprite = debugTexture;
 //            //sr.SolidColor = new OpenTK.Mathematics.Vector4(0, 1, 0, 1f);
-//            screenText.transform.position.X = 400 - 50;
-//            screenText.transform.position.Y = 300;
-//            screenText.transform.scale.X = 200;
-//            screenText.transform.scale.Y = 100;
+//            screenText.transform.Position.X = 400 - 50;
+//            screenText.transform.Position.Y = 300;
+//            screenText.transform.Scale.X = 200;
+//            screenText.transform.Scale.Y = 100;
 
 //        }
 

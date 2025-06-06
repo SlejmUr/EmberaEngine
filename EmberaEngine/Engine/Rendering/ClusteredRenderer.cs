@@ -228,11 +228,7 @@ namespace EmberaEngine.Engine.Rendering
                 GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture0 + textureStartIndex + 2);
                 SkyboxManager.GetBRDFLUT().Bind();
 
-                Matrix4 model = Matrix4.CreateScale(mesh.scale.X, mesh.scale.Y, mesh.scale.Z);
-                model *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(mesh.rotation.X));
-                model *= Matrix4.CreateRotationY(MathHelper.DegreesToRadians(mesh.rotation.Y));
-                model *= Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(mesh.rotation.Z));
-                model *= Matrix4.CreateTranslation(mesh.position);
+                Matrix4 model = mesh.worldMatrix;
 
 
                 material.shader.SetFloat("material.ambientFactor", 0.3f);
@@ -398,6 +394,10 @@ namespace EmberaEngine.Engine.Rendering
         public void SetRenderSettings(RenderSetting renderSetting)
         {
             this.renderSettings = renderSetting;
+
+            BloomPass.SetState(renderSetting.useBloom);
+            SSAOPass.SetState(renderSetting.useSSAO);
+
         }
 
         public RenderSetting GetRenderSettings()

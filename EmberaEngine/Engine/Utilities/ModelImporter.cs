@@ -10,8 +10,6 @@ using System.Text;
 using EmberaEngine.Engine.Core;
 using EmberaEngine.Engine.Components;
 using EmberaEngine.Engine.Rendering;
-//using BepuPhysics.Collidables;
-using EmberaEngine.Engine.Rendering;
 using EmberaEngine.Engine.Utilities;
 using System.Numerics;
 using System.Resources;
@@ -22,21 +20,27 @@ namespace EmberaEngine.Engine.Utilities
     {
         public struct ModelData
         {
-            public Mesh mesh;
-            public Core.Material material;
+            public GameObject rootObject; // This contains everything.
+            public List<GameObject> meshObjects;
+            public List<GameObject> cameras;
+            public List<GameObject> lights;
         }
-
 
         static Dictionary<string, Core.Texture> Textures = new Dictionary<string, Core.Texture>();
         static Dictionary<int, uint> processedMaterialIndices = new Dictionary<int, uint>();
-        public static Mesh[] LoadModel(string path)
+
+        public static ModelData LoadModel(string path)
         {
+            string virtualPath = Path.GetDirectoryName(path);
+            string fileName = Path.GetFileName(path);
+            string physicalPath = Path.GetDirectoryName(VirtualFileSystem.ResolvePath(virtualPath));
+
             var importer = new AssimpContext();
             Assimp.Scene scene;
 
             try
             {
-                scene = importer.ImportFile(path,
+                scene = importer.ImportFile(VirtualFileSystem.ResolvePath(path),
                     PostProcessSteps.Triangulate |
                     PostProcessSteps.GenerateNormals |
                     PostProcessSteps.CalculateTangentSpace |
@@ -47,44 +51,153 @@ namespace EmberaEngine.Engine.Utilities
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[ModelImporter] Failed to load model: {path}\nError: {e.Message}");
-                return null;
+                Console.WriteLine($"[ModelImporter] Failed to load model: {virtualPath}\nError: {e.Message}");
+                return default;
             }
 
-            if (scene?.RootNode == null) return null;
+            if (scene?.RootNode == null) return default;
 
-            List<Mesh> totalMeshes = new List<Mesh>();
-            string baseDir = Path.GetDirectoryName(Path.GetFullPath(path)).Replace("\\", "/");
+            List<GameObject> meshObjects = new List<GameObject>();
+            List<GameObject> cameras = new List<GameObject>();
+            List<GameObject> lights = new List<GameObject>();
+
+            GameObject rootGO = new GameObject();
+            rootGO.Name = Path.GetFileNameWithoutExtension(virtualPath);
             int totalMeshCount = scene.MeshCount;
             int meshProcessed = 0;
 
-            void ProcessNode(Node node)
+            Console.WriteLine("VIRTUAL FILE: " + virtualPath);
+
+            // 1. Process materials first
+            for (int i = 0; i < scene.MaterialCount; i++)
             {
+                if (!processedMaterialIndices.ContainsKey(i))
+                {
+                    var material = SetupMaterial(i, scene, virtualPath);
+                    var materialID = MaterialManager.AddMaterial(material);
+                    processedMaterialIndices[i] = materialID;
+                }
+            }
+
+            // 2. Now process meshes (via node traversal)
+            void ProcessNode(Node node, GameObject parentGO)
+            {
+                GameObject currentGO = new GameObject();
+                currentGO.Name = node.Name;
+                parentGO.AddChild(currentGO);
+
                 foreach (int meshIdx in node.MeshIndices)
                 {
                     var assimpMesh = scene.Meshes[meshIdx];
-                    var processed = ProcessMesh(assimpMesh, scene, node.Transform, baseDir);
-                    totalMeshes.Add(processed);
+                    var processedMesh = ProcessMesh(assimpMesh, scene, node.Transform, virtualPath);
+
+                    var meshGO = new GameObject();
+                    meshGO.Name = assimpMesh.Name != "" ? assimpMesh.Name.Substring(0, 10) : $"Mesh_{meshIdx}";
+                    var meshRenderer = meshGO.AddComponent<MeshRenderer>();
+                    meshRenderer.SetMesh(processedMesh);
+
+                    currentGO.AddChild(meshGO);
+                    meshObjects.Add(meshGO);
+
                     meshProcessed++;
-                    Console.WriteLine($"[ModelImporter] Progress: {(meshProcessed / (float)totalMeshCount):P0}");
+                    //Console.WriteLine($"[ModelImporter] Progress: {(meshProcessed / (float)totalMeshCount):P0}");
                 }
 
                 foreach (var child in node.Children)
-                    ProcessNode(child);
+                {
+                    ProcessNode(child, currentGO);
+                }
             }
 
-            ProcessNode(scene.RootNode);
+            ProcessNode(scene.RootNode, rootGO);
+
+            // Process cameras
+            foreach (var cam in scene.Cameras)
+            {
+                GameObject gameObject = new GameObject();
+                var cameraComponent = gameObject.AddComponent<CameraComponent3D>();
+
+                cameraComponent.FarPlane = cam.ClipPlaneFar;
+                cameraComponent.NearPlane = cam.ClipPlaneNear;
+                cameraComponent.Fov = MathHelper.RadiansToDegrees(cam.FieldOfview);
+                gameObject.transform.Position = new OpenTK.Mathematics.Vector3(cam.Position.X, cam.Position.Y, cam.Position.Z);
+                gameObject.transform.Rotation = new OpenTK.Mathematics.Vector3(cam.Direction.X, cam.Direction.Y, cam.Direction.Z);
+
+                if (scene.RootNode.FindNode(cam.Name) is Node node)
+                {
+                    var parent = FindGOByName(rootGO, cam.Name);
+                    parent?.AddChild(gameObject);
+                }
+                else
+                {
+                    rootGO.AddChild(gameObject);
+                }
+
+                cameras.Add(gameObject);
+            }
+
+
+            // Process lights
+            foreach (var light in scene.Lights)
+            {
+
+                LightType lightType;
+
+                switch (light.LightType)
+                {
+                    case LightSourceType.Point:
+                        lightType = LightType.PointLight;
+                        break;
+                    case LightSourceType.Spot:
+                        lightType = LightType.SpotLight;
+                        break;
+                    case LightSourceType.Directional:
+                        lightType = LightType.DirectionalLight;
+                        break;
+                    default:
+                        continue;
+                }
+
+                GameObject gameObject = new GameObject();
+                var lightComponent = gameObject.AddComponent<LightComponent>();
+
+                gameObject.transform.Position = new OpenTK.Mathematics.Vector3(light.Position.X, light.Position.Y, light.Position.Z);
+                gameObject.transform.Rotation = new OpenTK.Mathematics.Vector3(light.Direction.X, light.Direction.Y, light.Direction.Z);
+
+                lightComponent.LightType = lightType;
+                lightComponent.Enabled = true;
+                lightComponent.Radius = ComputeLightRange(light);
+                float intensity = 0.2126f * light.ColorDiffuse.R + 0.7152f * light.ColorDiffuse.G + 0.0722f * light.ColorDiffuse.B;
+                lightComponent.Color = new Color4(light.ColorDiffuse.R, light.ColorDiffuse.G, light.ColorDiffuse.B, 1);
+                lightComponent.OuterCutoff = MathHelper.RadiansToDegrees(light.AngleOuterCone);
+                lightComponent.InnerCutoff = MathHelper.RadiansToDegrees(light.AngleInnerCone);
+
+                // Attach to node if exists
+                if (scene.RootNode.FindNode(light.Name) is Node node)
+                {
+                    // find GO with same name
+                    var parent = FindGOByName(rootGO, light.Name);
+                    parent?.AddChild(gameObject);
+                }
+                else
+                {
+                    rootGO.AddChild(gameObject);
+                }
+
+
+                lights.Add(gameObject);
+            }
+
             importer.Dispose();
 
-            foreach (var mesh in totalMeshes)
-            {
-                mesh.SetPath(path);
-                mesh.fileID = Path.GetFileName(path);
-            }
+            //foreach (var mesh in totalMeshes)
+            //{
+            //    mesh.SetPath(path);
+            //    mesh.fileID = Path.GetFileName(path);
+            //}
 
-            return totalMeshes.ToArray();
+            return new ModelData { rootObject = rootGO, meshObjects = meshObjects, cameras = cameras, lights = lights };
         }
-
 
         public static Mesh ProcessMesh(Assimp.Mesh mesh, Assimp.Scene scene, Assimp.Matrix4x4 transform, string path = "")
         {
@@ -98,7 +211,6 @@ namespace EmberaEngine.Engine.Utilities
                 OpenTK.Mathematics.Vector3 modifiedNormals = (OpenTK.Mathematics.Vector4.TransformColumn(ToOpenTKMatrix(transform), new OpenTK.Mathematics.Vector4((mesh.Normals[i].X, mesh.Normals[i].Y, mesh.Normals[i].Z, 1))) * Matrix4.CreateScale(0.02f)).Xyz;
                 if (mesh.TextureCoordinateChannels[0].Count != 0)
                 {
-                    // (Matrix4.Mult( * new Vector4(mesh.Vertices[i].X, mesh.Vertices[i].Y, mesh.Vertices[i].Z, 1)).xyz;
                     modifiedNormals.Normalize();
                     if (mesh.Tangents.Count > 0 && mesh.BiTangents.Count > 0)
                     {
@@ -111,14 +223,14 @@ namespace EmberaEngine.Engine.Utilities
                 }
                 else
                 {
-                    vertex = new Vertex(modifiedVertex, modifiedNormals, OpenTK.Mathematics.Vector2.Zero);//, new Vector2(mesh.TextureCoordinateChannels[0][i].X, mesh.TextureCoordinateChannels[0][i].Y));
+                    vertex = new Vertex(modifiedVertex, modifiedNormals, OpenTK.Mathematics.Vector2.Zero);
                 }
-                // process vertex positions, normals and texture coordinates
                 vertices.Add(vertex);
             }
             Mesh mesh1 = new Mesh();
             mesh1.name = mesh.Name;
             mesh1.MeshID = mesh.Name.GetHashCode();
+            mesh1.SetPath(path);
             mesh1.SetVertices(vertices.ToArray());
             if (indices.Length != 0)
             {
@@ -130,16 +242,16 @@ namespace EmberaEngine.Engine.Utilities
             if (processedMaterialIndices.ContainsKey(mesh.MaterialIndex))
             {
                 materialID = processedMaterialIndices[mesh.MaterialIndex];
-            } else
+            }
+            else
             {
                 Core.Material material = SetupMaterial(mesh.MaterialIndex, scene, path);
 
                 materialID = MaterialManager.AddMaterial(material);
+                processedMaterialIndices[mesh.MaterialIndex] = materialID;
             }
 
             mesh1.MaterialIndex = materialID;
-
-
             return mesh1;
         }
 
@@ -163,50 +275,104 @@ namespace EmberaEngine.Engine.Utilities
 
             return mat;
         }
-
         static void TrySetTexture(Assimp.Material mat, TextureType type, string uniformName, string useFlag, Core.Material outputMat, string baseDir)
         {
             if (!mat.GetMaterialTexture(type, 0, out TextureSlot texSlot))
                 return;
 
-            string fullPath = CorrectFilePath(texSlot.FilePath, baseDir);
-            var texture = CheckTextureExists(fullPath) ?? Helper.loadImageAsTex(fullPath, TextureMinFilter.LinearMipmapLinear, TextureMagFilter.Linear);
+            string fullPath = Path.Combine(baseDir, texSlot.FilePath);
 
-            if (texture == null) return;
+            // Load or get existing TextureReference
+            TextureReference textureRef = (TextureReference)AssetLoader.Load<Texture>(fullPath);  // returns IAssetReference<Texture>
 
+            if (textureRef == null)
+                return;
+
+            if (textureRef.isLoaded)
+            {
+                SetupTexture(textureRef.value, fullPath, texSlot, outputMat, uniformName, useFlag);
+            }
+            else
+            {
+                textureRef.OnLoad += (tex) =>
+                {
+                    SetupTexture(tex, fullPath, texSlot, outputMat, uniformName, useFlag);
+                };
+            }
+        }
+
+        static void SetupTexture(Texture texture, string path, TextureSlot texSlot, Core.Material mat, string uniformName, string useFlag)
+        {
+            texture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
             texture.SetAnisotropy(8f);
             texture.GenerateMipmap();
             SetWrap(texSlot.WrapModeU, texSlot.WrapModeV, texture);
-            AddToTextureDict(fullPath, texture);
 
+            Console.WriteLine(uniformName);
 
-            outputMat.Set(uniformName, texture);
-            outputMat.Set(useFlag, 1);
+            mat.Set(uniformName, texture);
+            mat.Set(useFlag, 1);
         }
 
 
+
+        static GameObject FindGOByName(GameObject root, string name)
+        {
+            if (root.Name == name)
+                return root;
+
+            foreach (var child in root.children)
+            {
+                var found = FindGOByName(child, name);
+                if (found != null)
+                    return found;
+            }
+
+            return null;
+        }
+
+        private static float ComputeLightRange(Light light, float threshold = 0.01f)
+        {
+            float Kc = light.AttenuationConstant;
+            float Kl = light.AttenuationLinear;
+            float Kq = light.AttenuationQuadratic;
+
+            float intensityAtDistance = 1.0f / threshold;
+            float c = Kc - intensityAtDistance;
+
+            // Solve quadratic: Kq * d^2 + Kl * d + c = 0
+            float discriminant = Kl * Kl - 4 * Kq * c;
+
+            if (Kq == 0 || discriminant < 0)
+                return 100.0f; // fallback if invalid or directional light
+
+            float sqrtD = MathF.Sqrt(discriminant);
+            float d1 = (-Kl + sqrtD) / (2 * Kq);
+            float d2 = (-Kl - sqrtD) / (2 * Kq);
+
+            float range = MathF.Max(d1, d2);
+            return range > 0 ? range : 100.0f;
+        }
+
         static void SetWrap(Assimp.TextureWrapMode U, Assimp.TextureWrapMode V, Texture texture)
         {
-            if (U == Assimp.TextureWrapMode.Wrap && V == Assimp.TextureWrapMode.Wrap) {
+            if (U == Assimp.TextureWrapMode.Wrap && V == Assimp.TextureWrapMode.Wrap)
+            {
                 texture.SetWrapMode(Core.TextureWrapMode.Repeat, Core.TextureWrapMode.Repeat);
-            } else if (U == Assimp.TextureWrapMode.Wrap && V == Assimp.TextureWrapMode.Clamp)
+            }
+            else if (U == Assimp.TextureWrapMode.Wrap && V == Assimp.TextureWrapMode.Clamp)
             {
                 texture.SetWrapMode(Core.TextureWrapMode.Repeat, Core.TextureWrapMode.Clamp);
-            } else if (U == Assimp.TextureWrapMode.Clamp && V == Assimp.TextureWrapMode.Wrap)
+            }
+            else if (U == Assimp.TextureWrapMode.Clamp && V == Assimp.TextureWrapMode.Wrap)
             {
                 texture.SetWrapMode(Core.TextureWrapMode.Clamp, Core.TextureWrapMode.Repeat);
             }
-
         }
 
         static Core.Texture CheckTextureExists(string path)
         {
-            Core.Texture value;
-            if (Textures.ContainsKey(path))
-            {
-                return Textures[path];
-            }
-            return null;
+            return Textures.TryGetValue(path, out var tex) ? tex : null;
         }
 
         static void AddToTextureDict(string path, Core.Texture texture)
@@ -219,8 +385,12 @@ namespace EmberaEngine.Engine.Utilities
 
         public static Matrix4 ToOpenTKMatrix(Assimp.Matrix4x4 matrix)
         {
-            return new Matrix4(matrix.A1, matrix.A2, matrix.A3, matrix.A4, matrix.B1, matrix.B2, matrix.B3, matrix.B4, matrix.C1, matrix.C2, matrix.C3, matrix.C4, matrix.D1, matrix.D2, matrix.D3, matrix.D4);
+            return new Matrix4(matrix.A1, matrix.A2, matrix.A3, matrix.A4,
+                               matrix.B1, matrix.B2, matrix.B3, matrix.B4,
+                               matrix.C1, matrix.C2, matrix.C3, matrix.C4,
+                               matrix.D1, matrix.D2, matrix.D3, matrix.D4);
         }
+
 
         static string CorrectFilePath(string path, string basePath = null)
         {
@@ -262,6 +432,5 @@ namespace EmberaEngine.Engine.Utilities
             // resolves any internal "..\" to get the true full path.
             return Path.GetFullPath(finalPath);
         }
-
     }
 }

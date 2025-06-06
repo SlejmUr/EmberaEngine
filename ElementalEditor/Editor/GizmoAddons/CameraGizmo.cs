@@ -7,10 +7,10 @@ using OpenTK.Mathematics;
 
 namespace ElementalEditor.Editor.GizmoAddons
 {
-    internal class LightGizmo : GizmoObject
+    internal class CameraGizmo : GizmoObject
     {
 
-        public override Type ComponentType => typeof(LightComponent);
+        public override Type ComponentType => typeof(CameraComponent3D);
 
         private Texture pointLightTexture;
         private Texture spotLightTexture;

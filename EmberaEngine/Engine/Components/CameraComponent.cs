@@ -47,9 +47,23 @@ namespace EmberaEngine.Engine.Components
                 camera.isDefault = value;
                 if (value)
                 {
-                    this.gameObject.scene.SetMainCamera(this);
+                    this.gameObject.Scene.SetMainCamera(this);
                 }
             }
+        }
+
+        public float FarPlane
+        {
+            get => farClip;
+            set {
+                farClip = value;
+            }
+        }
+
+        public float NearPlane
+        {
+            get => nearClip;
+            set => nearClip = value;
         }
 
 
@@ -64,12 +78,12 @@ namespace EmberaEngine.Engine.Components
 
         public override void OnStart()
         {
-            this.gameObject.scene.AddCamera(this);
+            this.gameObject.Scene.AddCamera(this);
         }
 
         public override void OnUpdate(float dt)
         {
-            camera.position = gameObject.transform.position;
+            camera.position = gameObject.transform.Position;
             camera.SetClearColor(ClearColor);
             camera.nearClip = nearClip;
             camera.farClip = farClip;
@@ -89,7 +103,7 @@ namespace EmberaEngine.Engine.Components
 
         public override void OnDestroy()
         {
-            this.gameObject.scene.RemoveCamera( this );
+            this.gameObject.Scene.RemoveCamera( this );
         }
 
         private void SetCameraProperties()
@@ -103,8 +117,8 @@ namespace EmberaEngine.Engine.Components
 
         private void UpdateCameraVectors()
         {
-            float PITCH = MathHelper.DegreesToRadians(gameObject.transform.rotation.Y);
-            float YAW = MathHelper.DegreesToRadians(gameObject.transform.rotation.X);
+            float PITCH = MathHelper.DegreesToRadians(gameObject.transform.Rotation.Y);
+            float YAW = MathHelper.DegreesToRadians(gameObject.transform.Rotation.X);
 
             // First, the front matrix is calculated using some basic trigonometry.
             _front.X = MathF.Cos(PITCH) * MathF.Cos(YAW);
@@ -119,7 +133,7 @@ namespace EmberaEngine.Engine.Components
             // not be what you need for all cameras so keep this in mind if you do not want a FPS camera.
             _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitY));
             _up = Vector3.Normalize(Vector3.Cross(_right, _front));
-            camera.SetViewMatrix(Matrix4.LookAt(gameObject.transform.position, gameObject.transform.position + _front, _up));
+            camera.SetViewMatrix(Matrix4.LookAt(gameObject.transform.Position, gameObject.transform.Position + _front, _up));
         }
 
     }

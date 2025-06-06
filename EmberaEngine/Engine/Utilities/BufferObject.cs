@@ -52,6 +52,18 @@ namespace EmberaEngine.Engine.Utilities
             }
         }
 
+        public BufferObject(BufferStorageTarget target, uint size, BufferStorageFlags flags = BufferStorageFlags.None)
+        {
+            this.target = target;
+            GL.CreateBuffers(1, out handle);
+            GL.NamedBufferStorage(handle, (int)size, IntPtr.Zero, flags);
+        }
+
+        public void* GetMappedBufferRange(int offset, uint size, BufferAccessMask bufferAccessMask)
+        {
+            return (void*)GL.MapNamedBufferRange(handle, offset, (int)size, bufferAccessMask);
+        }
+
         public void SetData<T>(int offset, int size, in T data) where T : unmanaged
         {
             fixed (void* ptr = &data)
@@ -78,6 +90,17 @@ namespace EmberaEngine.Engine.Utilities
         {
             GL.BindBufferBase((BufferRangeTarget)target, index, handle);
         }
+
+        public void Bind(BufferTarget target)
+        {
+            GL.BindBuffer(target, handle);
+        }
+
+        public void DeleteBuffer()
+        {
+            GL.DeleteBuffer(handle);
+        }
+
 
         public int GetRendererID()
         {

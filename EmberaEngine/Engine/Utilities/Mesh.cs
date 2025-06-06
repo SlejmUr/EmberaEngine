@@ -25,9 +25,7 @@ namespace EmberaEngine.Engine.Utilities
         public string fileID;
         public bool Renderable = true;
 
-        internal Vector3 position;
-        internal Vector3 rotation;
-        internal Vector3 scale;
+        internal Matrix4 worldMatrix;
 
         bool IsStatic = true;
 

@@ -12,7 +12,7 @@ uniform sampler2D gDepth;
 uniform vec3 samples[64]; //change this when increasing or decreasing samples;
 
 int kernelSize = 64; // change this too
-float radius = 5;
+float radius = 2;
 float bias = 0.0025;
 
 uniform mat4 W_PROJECTION_MATRIX;

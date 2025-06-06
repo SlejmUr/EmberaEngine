@@ -10,6 +10,7 @@ using EmberaEngine.Engine.Components;
 using ElementalEditor.Editor.Utils;
 using EmberaEngine.Engine.Utilities;
 using OpenTK.Mathematics;
+using static EmberaEngine.Engine.Utilities.ModelImporter;
 
 namespace ElementalEditor.Editor
 {
@@ -18,6 +19,10 @@ namespace ElementalEditor.Editor
         public Application app;
         public Scene EditorCurrentScene;
         public EditorCamera EditorCamera;
+
+        public ImFontPtr interBoldFont;
+
+        public string projectPath;
 
         public List<Panel> Panels = new List<Panel>();
 
@@ -38,14 +43,26 @@ namespace ElementalEditor.Editor
             AddPanel<GuizmoPanel>();
         }
 
+        void LoadProject()
+        {
+            Project.SetupProject(projectPath);
+
+            //app.window.Close();
+        }
+
         public override void OnAttach()
         {
             SetEditorStyling();
 
+            interBoldFont = ImGui.GetIO().Fonts.AddFontFromFileTTF("Editor/Assets/Fonts/InterExtraBold.ttf", 20);
             app.ImGuiLayer.SetFont(ImGui.GetIO().Fonts.AddFontFromFileTTF("Editor/Assets/Fonts/JetBrainsMono-Bold.ttf", 20));
+            
             app.ImGuiLayer.SetIconFont("Editor/Assets/Fonts/forkawesome-webfont.ttf", 25, (FontAwesome.ForkAwesome.IconMin, FontAwesome.ForkAwesome.IconMax16));
             app.ImGuiLayer.SetIconFont("Editor/Assets/Fonts/MaterialIcons-Regular.ttf", 25, (MaterialDesign.IconMin, MaterialDesign.IconMax16));
             app.ImGuiLayer.RecreateFontDevice();
+
+
+            LoadProject();
 
             // Setup Scene
             EditorCurrentScene = new Scene();
@@ -91,7 +108,7 @@ namespace ElementalEditor.Editor
             }
 
             //t.Content = "FPS: " + Math.Round((1 / deltaTime));
-            //barrelObject.transform.rotation.Y += 100 * deltaTime;
+            //barrelObject.transform.Rotation.Y += 100 * deltaTime;
         }
 
         public override void OnResize(int width, int height)
@@ -178,25 +195,31 @@ namespace ElementalEditor.Editor
             GameObject cameraObject = EditorCurrentScene.addGameObject("Camera Boiii");
             CameraComponent3D camComp = cameraObject.AddComponent<CameraComponent3D>();
             camComp.ClearColor = new OpenTK.Mathematics.Color4(0, 0, 0, 255);
-            cameraObject.transform.position = new OpenTK.Mathematics.Vector3(-5, 5f, 0);
-            cameraObject.transform.rotation = new(0, -25, 0);
+            cameraObject.transform.Position = new OpenTK.Mathematics.Vector3(-5, 5f, 0);
+            cameraObject.transform.Rotation = new(0, -25, 0);
 
             GameObject lightObject = EditorCurrentScene.addGameObject("LightObject");
-            lightObject.transform.position.Y = 6;
+            lightObject.transform.Position = new Vector3(0, 6, 0);
             lightObject.AddComponent<LightComponent>();
-            
 
-            barrelObject = EditorCurrentScene.addGameObject("Barrel");
-            MeshRenderer barrelMeshRenderer = barrelObject.AddComponent<MeshRenderer>();
-            barrelObject.transform.scale = Vector3.One * 1;
+
+            //barrelObject = EditorCurrentScene.addGameObject("Barrel");
+            //MeshRenderer barrelMeshRenderer = barrelObject.AddComponent<MeshRenderer>();
+            //barrelObject.transform.Scale = Vector3.One * 1;
 
             //Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/SSAO Test/sphere.obj");
-            Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/Sponza/sponza.obj");
+
+            //ModelData meshLoaderOutput = ModelImporter.LoadModel("res://Sponza/sponza.obj");
+
+            ModelData meshLoaderOutput = ModelImporter.LoadModel("Sponza/sponza.obj");
+            if (meshLoaderOutput.rootObject == null)
+            {
+                return;
+            }
+
             //Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/Portal2-Elevator/scene.gltf");
 
-            Console.WriteLine(meshLoaderOutput.Length);
-
-            barrelMeshRenderer.SetMeshes(meshLoaderOutput);
+            EditorCurrentScene.addGameObject(meshLoaderOutput.rootObject);
         }
 
         GameObject barrelObject;
@@ -217,25 +240,30 @@ namespace ElementalEditor.Editor
             style.Colors[((int)ImGuiCol.HeaderHovered)] = new System.Numerics.Vector4(0.1f, 0.1f, 0.1f, 0.5f);
             style.Colors[((int)ImGuiCol.HeaderActive)] = new System.Numerics.Vector4(0.2f, 0.2f, 0.2f, 0.5f);
 
-            style.Colors[(int)ImGuiCol.Tab] = new System.Numerics.Vector4(0.14f, 0.14f, 0.14f, 1);
-            style.Colors[(int)ImGuiCol.TabHovered] = new System.Numerics.Vector4(0.15f, 0.15f, 0.15f, 1);
-            style.Colors[(int)ImGuiCol.TabActive] = new System.Numerics.Vector4(0.14f, 0.14f, 0.14f, 1);
-            style.Colors[(int)ImGuiCol.TabUnfocused] = new System.Numerics.Vector4(0.07f, 0.07f, 0.07f, 1);
-            style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new System.Numerics.Vector4(0.14f, 0.14f, 0.14f, 1);
+            style.Colors[(int)ImGuiCol.Tab] = new System.Numerics.Vector4(0.18f, 0.20f, 0.23f, 1f); // Default tab
+            style.Colors[(int)ImGuiCol.TabHovered] = new System.Numerics.Vector4(0.28f, 0.30f, 0.35f, 1f); // Hovered
+            style.Colors[(int)ImGuiCol.TabActive] = new System.Numerics.Vector4(0.22f, 0.24f, 0.27f, 1f); // Active tab
+            style.Colors[(int)ImGuiCol.TabUnfocused] = new System.Numerics.Vector4(0.12f, 0.12f, 0.13f, 1f); // Background/inactive
+            style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new System.Numerics.Vector4(0.18f, 0.20f, 0.23f, 1f); // Active but unfocused
+
+
 
             style.Colors[(int)ImGuiCol.FrameBg] = new System.Numerics.Vector4(0.11f, 0.10f, 0.08f, 1f);
             style.Colors[(int)ImGuiCol.PopupBg] = new System.Numerics.Vector4(0.1f, 0.1f, 0.1f, 0.9f);
             style.Colors[(int)ImGuiCol.ChildBg] = new System.Numerics.Vector4(0.1f, 0.1f, 0.1f, 0.7f);
 
+            style.Colors[(int)ImGuiCol.PopupBg] = new System.Numerics.Vector4(0.9f, 0.9f, 0.9f, 1f);
+
             style.Colors[(int)ImGuiCol.Text] = new System.Numerics.Vector4(0.74f, 0.71f, 0.71f, 1f);
+
 
             style.WindowMenuButtonPosition = ImGuiDir.None;
 
             style.FramePadding = new System.Numerics.Vector2(12, 12);
 
-            style.FrameRounding = 3f;
-            style.TabRounding = 3f;
-            style.PopupRounding = 5f;
+            style.FrameRounding = 2f;
+            style.TabRounding = 2f;
+            style.PopupRounding = 3f;
         }
 
 

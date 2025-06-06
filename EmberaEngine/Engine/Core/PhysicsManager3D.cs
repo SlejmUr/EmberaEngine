@@ -64,8 +64,8 @@ namespace EmberaEngine.Engine.Core
         {
             var body = simulation.Bodies.GetBodyReference(handle);
 
-            var position = Helper.ToNumerics3(transform.position);
-            var euler = Helper.ToNumerics3(transform.rotation);
+            var position = Helper.ToNumerics3(transform.Position);
+            var euler = Helper.ToNumerics3(transform.Rotation);
             var rotation = Quaternion.CreateFromYawPitchRoll(euler.X, euler.Y, euler.Z);
 
             body.Pose.Position = position;
@@ -76,8 +76,8 @@ namespace EmberaEngine.Engine.Core
         {
             var body = simulation.Statics.GetStaticReference(handle);
 
-            var position = Helper.ToNumerics3(transform.position);
-            var euler = Helper.ToNumerics3(transform.rotation);
+            var position = Helper.ToNumerics3(transform.Position);
+            var euler = Helper.ToNumerics3(transform.Rotation);
             var rotation = Quaternion.CreateFromYawPitchRoll(euler.X, euler.Y, euler.Z);
 
             body.Pose.Position = position;
@@ -104,8 +104,8 @@ namespace EmberaEngine.Engine.Core
             BodyHandle bodyHandle = default;
             StaticHandle staticHandle = default;
 
-            var position = Helper.ToNumerics3(transform.position);
-            var rotation = Helper.ToQuaternion(Helper.ToRadians(Helper.ToNumerics3(transform.rotation)));
+            var position = Helper.ToNumerics3(transform.Position);
+            var rotation = Helper.ToQuaternion(Helper.ToRadians(Helper.ToNumerics3(transform.Rotation)));
 
             switch (rigidBody.Rigidbody3DType)
             {

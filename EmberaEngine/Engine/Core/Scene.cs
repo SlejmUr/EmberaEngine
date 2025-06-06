@@ -37,9 +37,15 @@ namespace EmberaEngine.Engine.Core
         {
             GameObject gameObject = new GameObject();
             gameObject.Name = name;
-            gameObject.scene = this;
+            gameObject.Scene = this;
             GameObjects.Add(gameObject);
             return gameObject;
+        }
+
+        public void addGameObject(GameObject gameObject)
+        {
+            gameObject.Scene = this;
+            GameObjects.Add(gameObject);
         }
 
         public T GetComponent<T>() where T : Component, new()
@@ -62,7 +68,7 @@ namespace EmberaEngine.Engine.Core
 
             for (int i = 0; i < GameObjects.Count; i++)
             {
-                components.AddRange(GameObjects[i].GetComponents());
+                components.AddRange(GameObjects[i].GetComponentsRecursive());
             }
             return components;
         }

@@ -60,13 +60,13 @@ namespace EmberaEngine.Engine.Components
         {
             collider = gameObject.GetComponent<ColliderComponent3D>();
 
-            gameObject.scene.OnComponentAdded += OnComponentAddedCallback;
-            gameObject.scene.OnComponentRemoved += OnComponentRemovedCallback;
+            gameObject.Scene.OnComponentAdded += OnComponentAddedCallback;
+            gameObject.Scene.OnComponentRemoved += OnComponentRemovedCallback;
 
             if (collider != null)
             {
                 collider.OnColliderPropertyChanged += OnValueChanged;
-                physicsObjectHandle = gameObject.scene.PhysicsManager3D
+                physicsObjectHandle = gameObject.Scene.PhysicsManager3D
                     .AddPhysicsObject(gameObject.transform, this, collider);
             }
         }
@@ -80,8 +80,8 @@ namespace EmberaEngine.Engine.Components
             } else if (!physicsObjectHandle.IsStatic)
             {
                 var pose = physicsObjectHandle.BodyReference.Pose;
-                gameObject.transform.position = Helper.ToVector3(pose.Position);
-                gameObject.transform.rotation = Helper.ToDegrees(Helper.ToEulerAngles(pose.Orientation));
+                gameObject.transform.Position = Helper.ToVector3(pose.Position);
+                gameObject.transform.Rotation = Helper.ToDegrees(Helper.ToEulerAngles(pose.Orientation));
             }
         }
 
@@ -89,7 +89,7 @@ namespace EmberaEngine.Engine.Components
         {
             if (collider == null) return;
 
-            var physicsManager = gameObject.scene.PhysicsManager3D;
+            var physicsManager = gameObject.Scene.PhysicsManager3D;
 
             if (!physicsObjectHandle.IsStatic &&
                 physicsManager.DynamicExists(physicsObjectHandle.BodyHandle))
@@ -114,7 +114,7 @@ namespace EmberaEngine.Engine.Components
             collider = (ColliderComponent3D)component;
             collider.OnColliderPropertyChanged += OnValueChanged;
 
-            physicsObjectHandle = gameObject.scene.PhysicsManager3D
+            physicsObjectHandle = gameObject.Scene.PhysicsManager3D
                 .AddPhysicsObject(gameObject.transform, this, collider);
         }
 

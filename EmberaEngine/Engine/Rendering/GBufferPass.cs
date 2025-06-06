@@ -69,11 +69,7 @@ namespace EmberaEngine.Engine.Rendering
             {
                 Mesh mesh = meshes[i];
 
-                Matrix4 model = Matrix4.CreateScale(mesh.scale.X, mesh.scale.Y, mesh.scale.Z);
-                model *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(mesh.rotation.X));
-                model *= Matrix4.CreateRotationY(MathHelper.DegreesToRadians(mesh.rotation.Y));
-                model *= Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(mesh.rotation.Z));
-                model *= Matrix4.CreateTranslation(mesh.position);
+                Matrix4 model = mesh.worldMatrix;
 
 
                 // Change this to not compute model matrices every render pass, but rather a centralized compute for it, and preferably a UBO for projection and view

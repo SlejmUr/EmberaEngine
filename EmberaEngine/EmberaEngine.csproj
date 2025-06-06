@@ -8,8 +8,11 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Engine\Content\Models\Portal2Chamber\**" />
     <Compile Remove="Engine\Content\Models\textures\**" />
+    <EmbeddedResource Remove="Engine\Content\Models\Portal2Chamber\**" />
     <EmbeddedResource Remove="Engine\Content\Models\textures\**" />
+    <None Remove="Engine\Content\Models\Portal2Chamber\**" />
     <None Remove="Engine\Content\Models\textures\**" />
   </ItemGroup>
   <ItemGroup>

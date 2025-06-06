@@ -34,9 +34,7 @@ namespace EmberaEngine.Engine.Components
             for (int i = 0; i < meshes.Length; i++)
             {
                 Mesh mesh = meshes[i];
-                mesh.position = gameObject.transform.position;
-                mesh.rotation = gameObject.transform.rotation;
-                mesh.scale = gameObject.transform.scale;
+                mesh.worldMatrix = gameObject.transform.GetWorldMatrix();
             }
         }
 

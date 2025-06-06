@@ -10,7 +10,7 @@ namespace EngineStarter
         {
             Elemental elemental = new Elemental();
 
-            elemental.Run();
+            elemental.Run("D:/Devoid Engine/EmberaProject");
         }
     }
 }

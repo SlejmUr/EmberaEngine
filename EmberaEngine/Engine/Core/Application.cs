@@ -176,6 +176,9 @@ namespace EmberaEngine.Engine.Core
             // MOVE TO GAMELAYER.CS ON PROD/EXPORT FOR STANDALONE BUILDS
             UIManager.Update();
             Input.Update();
+
+            MainThreadDispatcher.ExecutePending();
+
         }
     }
 }

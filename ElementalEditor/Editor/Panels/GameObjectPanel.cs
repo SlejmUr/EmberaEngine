@@ -19,12 +19,31 @@ namespace ElementalEditor.Editor.Panels
     {
         public GameObject SelectedObject = null;
         private string searchBuffer = "";
+        static int? activeDragComponentIndex = null;
+        private static GameObject DraggedObject = null;
+
+        TextureReference texReference;
 
         public override void OnAttach()
         {
             CacheCustomEditors();
             GetComponents();
+
+            texReference = (TextureReference)AssetLoader.Load<Texture>("a.png");
         }
+
+        private bool IsChildOf(GameObject child, GameObject potentialParent)
+        {
+            var current = child.parentObject;
+            while (current != null)
+            {
+                if (current == potentialParent)
+                    return true;
+                current = current.parentObject;
+            }
+            return false;
+        }
+
 
         public void DrawObjectButton(GameObject gameObject, int id)
         {
@@ -39,64 +58,237 @@ namespace ElementalEditor.Editor.Panels
             if (selected) { ImGui.PopStyleColor(); }
         }
 
+        private void DrawDropZone(GameObject dropTarget, bool before)
+        {
+            ImGui.PushID($"dropzone_{dropTarget.GetHashCode()}_{before}");
+
+            ImGui.Selectable("##DropZone", false, ImGuiSelectableFlags.AllowDoubleClick, new Vector2(ImGui.GetContentRegionAvail().X, 4));
+
+            // --- Allow clicking the drop zone to select the GameObject ---
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            {
+                SelectedObject = dropTarget;
+            }
+
+
+            if (ImGui.BeginDragDropTarget())
+            {
+                unsafe
+                {
+                    ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("GAMEOBJECT");
+                    if (payload.NativePtr != null)
+                    {
+                        if (DraggedObject != null && DraggedObject != dropTarget && !IsChildOf(dropTarget, DraggedObject))
+                        {
+                            // Get the target sibling list (same parent as dropTarget)
+                            var newParent = dropTarget.parentObject;
+                            var targetList = newParent?.children ?? editor.EditorCurrentScene.GameObjects;
+
+                            // Remove from old parent
+                            var oldList = DraggedObject.parentObject?.children ?? editor.EditorCurrentScene.GameObjects;
+                            oldList.Remove(DraggedObject);
+
+                            // Set new parent
+                            DraggedObject.parentObject = newParent;
+
+                            // Insert at appropriate position
+                            int index = targetList.IndexOf(dropTarget);
+                            if (!before) index++;
+                            index = Math.Clamp(index, 0, targetList.Count);
+                            targetList.Insert(index, DraggedObject);
+                        }
+
+                        DraggedObject = null;
+                    }
+                }
+                ImGui.EndDragDropTarget();
+            }
+
+            ImGui.PopID();
+        }
+
+
+
+        private void DrawGameObjectRecursive(GameObject gameObject, int depth, ref int rowIndex)
+        {
+            ImGui.PushID(gameObject.GetHashCode());
+
+            // --- DRAW ALTERNATING BACKGROUND ---
+            Vector2 min = ImGui.GetItemRectMin(); // Only valid *after* a widget is rendered
+            Vector2 max = ImGui.GetItemRectMax();
+
+            float lineHeight = ImGui.GetTextLineHeightWithSpacing();
+            Vector2 cursorPos = ImGui.GetCursorScreenPos();
+            var bgColor = (rowIndex % 2 == 0)
+                ? new Vector4(0.16f, 0.16f, 0.16f, 1f)
+                : new Vector4(0.18f, 0.18f, 0.18f, 1f);
+
+            ImGui.GetWindowDrawList().AddRectFilled(
+                new Vector2(cursorPos.X, cursorPos.Y),
+                new Vector2(cursorPos.X + ImGui.GetContentRegionAvail().X, cursorPos.Y + lineHeight),
+                ImGui.ColorConvertFloat4ToU32(bgColor)
+            );
+
+            // --- CONTINUE WITH TREE NODE ---
+            bool isSelected = (SelectedObject == gameObject);
+            bool hasChildren = gameObject.children != null && gameObject.children.Count > 0;
+
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.SpanFullWidth;
+
+            if (!hasChildren)
+                flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+
+            if (isSelected)
+            {
+                flags |= ImGuiTreeNodeFlags.Selected;
+                ImGui.PushStyleColor(ImGuiCol.Header, new Vector4(0.26f, 0.45f, 0.78f, 0.8f));         // Selected
+                ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Vector4(0.3f, 0.5f, 0.85f, 1.0f));   // Selected + hovered
+            }
+
+            bool open = ImGui.TreeNodeEx(MaterialDesign.Crop_square + " " + gameObject.Name, flags);
+
+            if (isSelected)
+                ImGui.PopStyleColor(2);
+
+
+            if (ImGui.IsItemClicked())
+            {
+                SelectedObject = gameObject;
+            }
+
+            if (ImGui.BeginDragDropSource())
+            {
+                ImGui.SetDragDropPayload("GAMEOBJECT", IntPtr.Zero, 0);
+                ImGui.Text(MaterialDesign.Crop_square + " " + gameObject.Name);
+                DraggedObject = gameObject;
+                ImGui.EndDragDropSource();
+            }
+
+            if (ImGui.BeginDragDropTarget())
+            {
+                ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("GAMEOBJECT");
+                unsafe
+                {
+                    if (payload.NativePtr != null)
+                    {
+                        if (DraggedObject != null && DraggedObject != gameObject && !IsChildOf(DraggedObject, gameObject))
+                        {
+                            DraggedObject.parentObject?.children?.Remove(DraggedObject);
+                            if (DraggedObject.parentObject == null)
+                                editor.EditorCurrentScene.GameObjects.Remove(DraggedObject);
+
+                            DraggedObject.parentObject = gameObject;
+                            gameObject.children ??= new List<GameObject>();
+                            gameObject.children.Add(DraggedObject);
+                        }
+                        DraggedObject = null;
+                    }
+                }
+                ImGui.EndDragDropTarget();
+            }
+
+            rowIndex++;
+
+            if (open && hasChildren)
+            {
+                var children = gameObject.children;
+                for (int i = 0; i < children.Count; i++)
+                {
+                    DrawDropZone(children[i], before: true);
+                    DrawGameObjectRecursive(children[i], depth + 1, ref rowIndex);
+                }
+                DrawDropZone(children[^1], before: false);
+
+                ImGui.TreePop();
+            }
+
+            ImGui.PopID();
+        }
+
+
+
+
+
+
         public override void OnGUI()
         {
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0, 0));
-            if (ImGui.Begin(MaterialDesign.List +  " GameObjects"))
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+
+            if (ImGui.Begin(MaterialDesign.List + " GameObjects"))
             {
 
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(10, 10));
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(5, 5));
+                if (texReference.isLoaded)
+                {
+                    Console.WriteLine(texReference.value.Width);
+                    ImGui.Image(texReference.value.GetRendererID(), new Vector2(100, 100));
+                } else
+                {
+                    ImGui.Button("PLACEHOLDER!");
+                }
+
+
+                    // Setup frame/window padding for child
+                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 5));
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 5));
+                ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.18f, 0.20f, 0.23f, 1f));
+
+                if (ImGui.BeginChild("gameobject_child_window", new Vector2(ImGui.GetContentRegionAvail().X, 40), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
+                {
+                    string searchBuffer1 = "";
+                    ImGui.Text("Search");
+                    ImGui.SameLine();
+                    ImGui.InputText("##goSearch", ref searchBuffer, 20);
+                    ImGui.EndChild();
+                }
+
+                ImGui.PopStyleColor();
+                ImGui.PopStyleVar(2); // FramePadding + WindowPadding (from child)
+
+                // Context menu
                 if (ImGui.BeginPopupContextWindow())
                 {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.1f, 0.1f, 0.1f, 1f));
+
                     ImGui.Text("Context Menu");
                     if (ImGui.Selectable("Create GameObject"))
                     {
                         editor.EditorCurrentScene.addGameObject("GameObject");
                     }
+
+                    ImGui.PopStyleColor();
                     ImGui.EndPopup();
                 }
-                ImGui.PopStyleVar(2);
 
-
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(5, 5));
+                // Push styles for the object list rendering
+                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 5));
                 ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Vector2(0, 0.5f));
                 ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 0f);
-                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, System.Numerics.Vector2.Zero);
-                ImGui.PushStyleColor(ImGuiCol.Button, new System.Numerics.Vector4(0.11f, 0.10f, 0.08f, 1f));
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.11f, 0.10f, 0.08f, 1f));
 
-
-                if (ImGui.BeginTable("##gameObjects", 2)) {
-
-                    ImGui.TableSetupColumn("Name");
-                    ImGui.TableSetupColumn("Status");
-                    ImGui.TableHeadersRow();
-                    ImGui.TableNextColumn();
-                    float columnSizeY = ImGui.GetTextLineHeight();
-
-                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0, 0));
-                    for (int i = 0; i < editor.EditorCurrentScene.GameObjects.Count; i++)
-                    {
-                        DrawObjectButton(editor.EditorCurrentScene.GameObjects[i], i);
-                        
-                        ImGui.TableNextColumn();
-
-                        ImGui.Text("DISABLED");
-
-                        ImGui.TableNextColumn();
-                    }
-                    ImGui.PopStyleVar(1);
-                    ImGui.EndTable();
+                // Game object hierarchy rendering
+                var roots = editor.EditorCurrentScene.GameObjects;
+                int rowIndex = 0;
+                for (int i = 0; i < roots.Count; i++)
+                {
+                    DrawDropZone(roots[i], before: true);
+                    DrawGameObjectRecursive(roots[i], 0, ref rowIndex);
                 }
 
+                // Drop zone after the last item
+                if (roots.Count > 0)
+                    DrawDropZone(roots[^1], before: false);
 
-                ImGui.PopStyleColor();
+                // Pop the final style sets
+                ImGui.PopStyleColor();     // Button color
+                ImGui.PopStyleVar(4);      // FramePadding, ButtonTextAlign, FrameBorderSize, ItemSpacing
 
-                ImGui.PopStyleVar(5);
-
-                ImGui.End();
+                ImGui.End();               // End main window
             }
+
+            ImGui.PopStyleVar();           // WindowPadding (from the very beginning)
+
 
             // Drawing Inspector
 
@@ -108,18 +300,24 @@ namespace ElementalEditor.Editor.Panels
                     bool a = true;
 
                     UI.BeginPropertyGrid("OBJECT PROPS");
-                    UI.BeginProperty("Object Properties");
+
+                    UI.BeginProperty("Add Component");
                     if (UI.DrawButton("Add " + MaterialDesign.Add))
                     {
                         openPopupTemp = true;
                     }
                     UI.EndProperty();
+
+                    UI.BeginProperty("Name");
+                    UI.PropertyString(ref SelectedObject.Name, false);
+                    UI.EndProperty();
+                    
                     UI.EndPropertyGrid();
 
                     if (openPopupTemp)
                     {
                         ImGui.OpenPopup("Component Menu");
-                        ImGui.SetNextWindowPos(new Vector2(Screen.Size.X / 2 - ImGui.GetWindowSize().X / 2, Screen.Size.Y / 2 - ImGui.GetWindowSize().Y / 2));
+                        ImGui.SetNextWindowPos(new Vector2(ImGui.GetWindowPos().X - ImGui.GetWindowSize().X / 2, ImGui.GetWindowPos().Y - ImGui.GetWindowSize().Y / 2));
                         openPopupTemp = false;
                         
                     }
@@ -157,16 +355,73 @@ namespace ElementalEditor.Editor.Panels
                     }
                     ImGui.PopStyleVar(2);
                     ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 6);
+                    List<Component> componentsToRemove = new();
+
                     for (int i = 0; i < SelectedObject.Components.Count; i++)
                     {
                         Component component = SelectedObject.Components[i];
+                        Type componentType = component.GetType();
+
+                        bool isTransform = componentType == typeof(Transform);
                         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 5));
-                        ImGui.PushID(component.GetType().Name + i);
-                        if (ImGui.CollapsingHeader(component.GetType() == typeof(Transform) ? MaterialDesign.Flip_to_front + " " + component.Type : component.Type))
+                        ImGui.PushID(componentType.Name + i);
+
+                        string headerLabel = isTransform
+                            ? MaterialDesign.Flip_to_front + " " + component.Type
+                            : component.Type;
+
+                        // Collapsing header
+                        bool open = ImGui.CollapsingHeader(headerLabel, ImGuiTreeNodeFlags.DefaultOpen);
+
+                        // === Context Menu ===
+                        if (!isTransform && ImGui.BeginPopupContextItem("ComponentContext"))
                         {
-                            Type componentType = component.GetType();
+                            if (ImGui.MenuItem("Remove Component"))
+                            {
+                                componentsToRemove.Add(component);
+                            }
+                            ImGui.EndPopup();
+                        }
+
+                        // === Drag Source ===
+                        if (!isTransform && ImGui.BeginDragDropSource())
+                        {
+                            ImGui.SetDragDropPayload("COMPONENT_DRAG", IntPtr.Zero, 0); // dummy payload
+                            activeDragComponentIndex = i;
+                            ImGui.Text($"Move {component.Type}");
+                            ImGui.EndDragDropSource();
+                        }
+
+                        // === Drop Target ===
+                        if (!isTransform && ImGui.BeginDragDropTarget())
+                        {
+                            unsafe
+                            {
+                                ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("COMPONENT_DRAG");
+                                if (payload.NativePtr != null && activeDragComponentIndex.HasValue && activeDragComponentIndex.Value != i)
+                                {
+                                    var dragged = SelectedObject.Components[activeDragComponentIndex.Value];
+
+                                    int insertIndex = i;
+                                    if (activeDragComponentIndex.Value < insertIndex)
+                                        insertIndex--;
+
+                                    SelectedObject.Components.RemoveAt(activeDragComponentIndex.Value);
+                                    SelectedObject.Components.Insert(insertIndex, dragged);
+
+                                    activeDragComponentIndex = null; // clear it
+                                }
+                            }
+                            ImGui.EndDragDropTarget();
+                        }
+
+
+                        // === Component UI ===
+                        if (open)
+                        {
                             UI.BeginPropertyGrid("##" + i);
                             ImGui.TreePush();
+
                             if (customEditorMap.TryGetValue(componentType, out var editorType))
                             {
                                 editorType.component = component;
@@ -174,16 +429,25 @@ namespace ElementalEditor.Editor.Panels
                             }
                             else
                             {
-                                // Default UI fallback
                                 UI.DrawComponentProperty(componentType.GetProperties(), component);
                                 UI.DrawComponentField(componentType.GetFields(), component);
                             }
+
                             ImGui.TreePop();
                             UI.EndPropertyGrid();
                         }
-                        ImGui.PopStyleVar();
+
                         ImGui.PopID();
+                        ImGui.PopStyleVar();
                     }
+
+                    // Apply deletions
+                    foreach (var comp in componentsToRemove)
+                    {
+                        SelectedObject.RemoveComponent(comp);
+                    }
+
+
 
 
                     ImGui.PopStyleVar(1);

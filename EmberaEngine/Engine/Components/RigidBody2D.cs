@@ -21,9 +21,9 @@ namespace EmberaEngine.Engine.Components
 
         public override void OnStart()
         {
-            body = gameObject.scene.PhysicsManager2D.CreateBox(BodyType, new Vector2(gameObject.transform.position.X / PhysicsManager2D.PPM, gameObject.transform.position.Y / PhysicsManager2D.PPM), MathHelper.DegreesToRadians(gameObject.transform.rotation.X), (gameObject.transform.scale.X / PhysicsManager2D.PPM * 2), (gameObject.transform.scale.Y / PhysicsManager2D.PPM * 2), 1f, Vector2.Zero);
+            body = gameObject.Scene.PhysicsManager2D.CreateBox(BodyType, new Vector2(gameObject.transform.Position.X / PhysicsManager2D.PPM, gameObject.transform.Position.Y / PhysicsManager2D.PPM), MathHelper.DegreesToRadians(gameObject.transform.Rotation.X), (gameObject.transform.Scale.X / PhysicsManager2D.PPM * 2), (gameObject.transform.Scale.Y / PhysicsManager2D.PPM * 2), 1f, Vector2.Zero);
 
-            //gameObject.transform.scale = new Vector3((gameObject.transform.scale.X / PhysicsManager2D.PPM) / 2, (gameObject.transform.scale.Y / PhysicsManager2D.PPM) / 2, 1);
+            //gameObject.transform.Scale = new Vector3((gameObject.transform.Scale.X / PhysicsManager2D.PPM) / 2, (gameObject.transform.Scale.Y / PhysicsManager2D.PPM) / 2, 1);
         }
 
         public void ApplyImpulse(Vector2 impulse)
@@ -54,7 +54,7 @@ namespace EmberaEngine.Engine.Components
 
         public void Rotate(float angle)
         {
-            gameObject.transform.rotation.X = angle;
+            gameObject.transform.Rotation = new Vector3(angle, gameObject.transform.Rotation.Y, gameObject.transform.Rotation.Z);
             body.Rotation = MathHelper.DegreesToRadians(angle);
         }
 
@@ -67,12 +67,11 @@ namespace EmberaEngine.Engine.Components
             }
 
 
-            gameObject.transform.position.X = (body.Position.X * PhysicsManager2D.PPM);// + gameObject.transform.scale.X * 2;
-            gameObject.transform.position.Y = (body.Position.Y * PhysicsManager2D.PPM);// + gameObject.transform.scale.Y * 2;
+            gameObject.transform.Position = new (body.Position.X * PhysicsManager2D.PPM, (body.Position.Y * PhysicsManager2D.PPM), gameObject.transform.Position.Z);// + gameObject.transform.Scale.X * 2;
 
             if (!freezeRotation)
             {
-                gameObject.transform.rotation.X = MathHelper.RadiansToDegrees(body.Rotation);
+                gameObject.transform.Rotation = new Vector3(MathHelper.RadiansToDegrees(body.Rotation), gameObject.transform.Rotation.Y, gameObject.transform.Rotation.Z);
             }
 
         }

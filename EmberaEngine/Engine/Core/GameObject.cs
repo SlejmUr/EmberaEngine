@@ -9,11 +9,11 @@ namespace EmberaEngine.Engine.Core
     public class GameObject
     {
 
-        public string Name { get; set; }
+        public string Name;
 
         public Transform transform { get; private set; }
 
-        public Scene scene;
+        private Scene scene;
 
         public GameObject parentObject;
         public List<GameObject> children;
@@ -21,6 +21,16 @@ namespace EmberaEngine.Engine.Core
         public List<Component> Components;
 
         private bool DestroyOnLoad = true;
+
+        public Scene Scene
+        {
+            get { return scene; }
+            set
+            {
+                scene = value;
+                SetScene(value);
+            }
+        }
 
         public GameObject()
         {
@@ -39,7 +49,7 @@ namespace EmberaEngine.Engine.Core
             T _component = new();
             _component.gameObject = this;
             Components.Add(_component);
-            scene.ComponentAdded(_component);
+            scene?.ComponentAdded(_component);
             return _component;
         }
 
@@ -48,7 +58,7 @@ namespace EmberaEngine.Engine.Core
             Component _component = component;
             _component.gameObject = this;
             Components.Add(_component);
-            scene.ComponentAdded(_component);
+            scene?.ComponentAdded(_component);
             return _component;
         }
 
@@ -70,7 +80,8 @@ namespace EmberaEngine.Engine.Core
             {
                 if (typeof(T) == Components[i].GetType())
                 {
-                    scene.ComponentRemoved(Components[i]);
+                    scene?.ComponentRemoved(Components[i]);
+                    Components[i].OnDestroy();
                     Components.RemoveAt(i);
                 }
             }
@@ -80,15 +91,55 @@ namespace EmberaEngine.Engine.Core
         {
             if (Components.Contains(component))
             {
-                scene.ComponentRemoved(component);
+                scene?.ComponentRemoved(component);
+                component.OnDestroy();
                 Components.Remove(component);
             }
 
         }
 
+        public void SetScene(Scene scene)
+        {
+            if (children.Count == 0) { return; }
+
+            for (int i = 0; i < children.Count; i++)
+            {
+                children[i].Scene = scene;
+            }
+        }
+
         public List<Component> GetComponents()
         {
             return Components;
+        }
+
+        public List<Component> GetComponentsRecursive()
+        {
+            List<Component> result = new List<Component>();
+            CollectComponentsRecursive(this, result);
+            return result;
+        }
+
+        private void CollectComponentsRecursive(GameObject obj, List<Component> list)
+        {
+            list.AddRange(obj.Components);
+
+            foreach (var child in obj.children)
+            {
+                CollectComponentsRecursive(child, list);
+            }
+        }
+
+
+        public void AddChild(GameObject gameObject)
+        {
+            gameObject.SetParent(this);
+            this.children.Add(gameObject);
+        }
+
+        public void SetParent(GameObject gameObject)
+        {
+            this.parentObject = gameObject;
         }
 
         public void OnStart()
@@ -104,6 +155,15 @@ namespace EmberaEngine.Engine.Core
             for (int i = 0; i < Components.Count; i++)
             {
                 Components[i].OnUpdate(dt);
+            }
+
+
+            if (children.Count > 0)
+            {
+                for (int i = 0; i < children.Count; i++)
+                {
+                    children[i].OnUpdate(dt);
+                }
             }
         }
 

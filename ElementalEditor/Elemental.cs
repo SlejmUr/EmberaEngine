@@ -3,6 +3,9 @@ using EmberaEngine.Engine.Core;
 
 namespace ElementalEditor
 {
+
+
+
     public class Elemental
     {
         public Elemental()
@@ -10,7 +13,7 @@ namespace ElementalEditor
 
         }
 
-        public void Run()
+        public void Run(string projectFilePath)
         {
             Application app = new Application();
 
@@ -26,6 +29,7 @@ namespace ElementalEditor
             };
 
             EditorLayer layer = new EditorLayer();
+            layer.projectPath = projectFilePath;
             layer.app = app;
 
             app.Create(specification);
