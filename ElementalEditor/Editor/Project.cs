@@ -1,4 +1,5 @@
-﻿using EmberaEngine.Engine.Core;
+﻿using ElementalEditor.Editor.AssetHandling;
+using EmberaEngine.Engine.Core;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,8 @@ namespace ElementalEditor.Editor
         public static string PROJECT_ASSET_THUMBNAIL_DIRECTORY = "Asset Thumbnails";
         public static string PROJECT_METADATA_DIRECTORY = "Metadata";
         public static string PROJECT_GAME_FILES_DIRECTORY = "GameFiles";
+
+        public static FileSystemWatcher ProjectDirectoryWatcher;
 
         public static void SetupProject(string projectPath)
         {
@@ -52,12 +55,10 @@ namespace ElementalEditor.Editor
 
             VirtualFileSystem.Mount(new DirectoryAssetSource(gameFilesDirectory));
 
+            AssetWatcher.SetupWatcher(gameFilesDirectory);
+
             //LoadProjectGameFiles(projectPath, metadataCreated);
 
-
-            TextureReference texture = (TextureReference)AssetLoader.Load<Texture>("a.png");
-            Console.WriteLine("Asked to load");
-            texture.OnLoad += (Texture value) => { Console.WriteLine("Loaded!"); };
         }
 
         public static bool CreateDirectoryIfNotExist(string path)
@@ -81,5 +82,34 @@ namespace ElementalEditor.Editor
 
         }
 
+    }
+
+
+    public class DirectoryAssetSource : IAssetSource
+    {
+        private readonly string _rootPath;
+
+        public DirectoryAssetSource(string rootPath)
+        {
+            _rootPath = rootPath;
+        }
+
+        public bool Exists(string virtualPath)
+            => File.Exists(Path.Combine(_rootPath, virtualPath));
+
+        public byte[] Open(string virtualPath)
+            => File.ReadAllBytes(Path.Combine(_rootPath, virtualPath));
+
+        public Stream OpenStream(string virtualPath)
+            => File.OpenRead(Path.Combine(_rootPath, virtualPath));
+
+        public string ResolvePath(string virtualPath) => Path.Combine(_rootPath, virtualPath);
+
+        public IEnumerable<string> EnumerateCurrentLevel(string path) => Directory.EnumerateFiles(Path.Combine(_rootPath, path), "*")
+            .Select(p => Path.GetRelativePath(_rootPath, p).Replace("\\", "/"));
+
+        public IEnumerable<string> EnumerateFiles(string path)
+            => Directory.EnumerateFiles(Path.Combine(_rootPath, path), "*", SearchOption.AllDirectories)
+                        .Select(p => Path.GetRelativePath(_rootPath, p).Replace("\\", "/"));
     }
 }

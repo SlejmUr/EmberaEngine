@@ -32,11 +32,11 @@ namespace EmberaEngine.Engine.Rendering
         static Framebuffer prefilterMapFB;
 
         static int sizeX = 1024, sizeY = 1024;
-        static Vector2i irradianceMapSize = new Vector2i(16, 16);
+        static Vector2i irradianceMapSize = new Vector2i(128, 128);
 
 
         static Vector2i prefilterMapSize = new Vector2i(1024, 1024);
-        static int maxMipmapCount = 5;
+        static int maxMipmapCount = 10;
 
         static Vector2i brdfLUTSize = new Vector2i(512, 512);
 
@@ -132,6 +132,7 @@ namespace EmberaEngine.Engine.Rendering
                 GraphicsState.SetCulling(false);
                 GraphicsState.SetDepthTest(false);
                 GraphicsState.SetBlending(false);
+                GraphicsState.SetCubemapSeamless(true);
 
                 ConvertHDRIToCubemap();
                 GenerateIrradianceMap();
@@ -205,6 +206,7 @@ namespace EmberaEngine.Engine.Rendering
 
             preFilterMapShader.Use();
             preFilterMapShader.SetInt("SKYBOX_TEXTURE", 0);
+            preFilterMapShader.SetInt("MAX_MIPMAPS", maxMipmapCount);
             preFilterMapShader.SetMatrix4("W_PROJECTION_MATRIX", irradianceProjection);
 
             skyboxTexture.SetActiveUnit(TextureUnit.Texture0);
@@ -253,6 +255,8 @@ namespace EmberaEngine.Engine.Rendering
 
                 CubeMesh.Draw();
             }
+
+            irradianceTexture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
 
             Renderer3D.SetViewportDimensions();
 

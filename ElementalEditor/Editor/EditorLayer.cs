@@ -190,7 +190,7 @@ namespace ElementalEditor.Editor
 
         void LoadTestSandbox()
         {
-            SkyboxManager.LoadHDRI(Helper.loadHDRIAsTex("Engine/Content/Textures/Skyboxes/mudroad.hdr"));
+            SkyboxManager.LoadHDRI(Helper.loadHDRIAsTex("Engine/Content/Textures/Skyboxes/autumn.hdr"));
 
             GameObject cameraObject = EditorCurrentScene.addGameObject("Camera Boiii");
             CameraComponent3D camComp = cameraObject.AddComponent<CameraComponent3D>();
@@ -211,7 +211,7 @@ namespace ElementalEditor.Editor
 
             //ModelData meshLoaderOutput = ModelImporter.LoadModel("res://Sponza/sponza.obj");
 
-            ModelData meshLoaderOutput = ModelImporter.LoadModel("Sponza/sponza.obj");
+            ModelData meshLoaderOutput = ModelImporter.LoadModel("AmbientShadowTesting/ambient_shadow_testing.fbx");
             if (meshLoaderOutput.rootObject == null)
             {
                 return;

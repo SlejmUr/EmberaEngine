@@ -63,14 +63,14 @@ namespace EmberaEngine.Engine.Components
 
         public float InnerCutoff
         {
-            get => innerCutoff;
-            set { innerCutoff = value; OnChangedValue(); }
+            get => MathHelper.RadiansToDegrees(innerCutoff);
+            set { innerCutoff = MathHelper.DegreesToRadians(value); OnChangedValue(); }
         }
 
         public float OuterCutoff
         {
-            get => outerCutoff;
-            set { outerCutoff = value; OnChangedValue(); }
+            get => MathHelper.RadiansToDegrees(outerCutoff);
+            set { outerCutoff = MathHelper.DegreesToRadians(value); OnChangedValue(); }
         }
 
         public LightComponent()

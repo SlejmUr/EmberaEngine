@@ -15,6 +15,7 @@ namespace EmberaEngine.Engine.Components
         private Vector3 position = Vector3.Zero;
         private Vector3 rotation = Vector3.Zero;
         private Vector3 scale = Vector3.One;
+
         
         private Matrix4 localMatrix;
         private Matrix4 worldMatrix;
@@ -90,7 +91,6 @@ namespace EmberaEngine.Engine.Components
             {
                 worldMatrix = localMatrix;
             }
-
 
             // Recursively update children
             foreach (var child in gameObject.children)

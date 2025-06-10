@@ -57,32 +57,4 @@ namespace EmberaEngine.Engine.Core
 
     }
 
-    public class DirectoryAssetSource : IAssetSource
-    {
-        private readonly string _rootPath;
-
-        public DirectoryAssetSource(string rootPath)
-        {
-            _rootPath = rootPath;
-        }
-
-        public bool Exists(string virtualPath)
-            => File.Exists(Path.Combine(_rootPath, virtualPath));
-
-        public byte[] Open(string virtualPath)
-            => File.ReadAllBytes(Path.Combine(_rootPath, virtualPath));
-
-        public Stream OpenStream(string virtualPath)
-            => File.OpenRead(Path.Combine(_rootPath, virtualPath));
-
-        public string ResolvePath(string virtualPath) => Path.Combine(_rootPath, virtualPath);
-
-        public IEnumerable<string> EnumerateCurrentLevel(string path) => Directory.EnumerateFiles(Path.Combine(_rootPath, path), "*")
-            .Select(p => Path.GetRelativePath(_rootPath, p).Replace("\\", "/"));
-
-        public IEnumerable<string> EnumerateFiles(string path)
-            => Directory.EnumerateFiles(Path.Combine(_rootPath, path), "*", SearchOption.AllDirectories)
-                        .Select(p => Path.GetRelativePath(_rootPath, p).Replace("\\", "/"));
-    }
-
 }

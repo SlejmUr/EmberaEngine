@@ -22,14 +22,10 @@ namespace ElementalEditor.Editor.Panels
         static int? activeDragComponentIndex = null;
         private static GameObject DraggedObject = null;
 
-        TextureReference texReference;
-
         public override void OnAttach()
         {
             CacheCustomEditors();
             GetComponents();
-
-            texReference = (TextureReference)AssetLoader.Load<Texture>("a.png");
         }
 
         private bool IsChildOf(GameObject child, GameObject potentialParent)
@@ -217,15 +213,6 @@ namespace ElementalEditor.Editor.Panels
 
             if (ImGui.Begin(MaterialDesign.List + " GameObjects"))
             {
-
-                if (texReference.isLoaded)
-                {
-                    Console.WriteLine(texReference.value.Width);
-                    ImGui.Image(texReference.value.GetRendererID(), new Vector2(100, 100));
-                } else
-                {
-                    ImGui.Button("PLACEHOLDER!");
-                }
 
 
                     // Setup frame/window padding for child

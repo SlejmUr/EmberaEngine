@@ -25,6 +25,7 @@ void main()
     vec3 right = normalize(cross(up, N));
     up         = normalize(cross(N, right));
        
+    //float sampleDelta = 0.025;
     float sampleDelta = 0.025;
     float nrSamples = 0.0;
     for(float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta)
@@ -36,11 +37,14 @@ void main()
             // tangent space to world
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N; 
 
-            irradiance += texture(SKYBOX_TEXTURE, sampleVec).rgb * cos(theta) * sin(theta);
+            vec3 texColor = texture(SKYBOX_TEXTURE, sampleVec).rgb;
+            texColor = min(texColor, vec3(50.0)); // clamp extreme spikes
+            irradiance += texColor * cos(theta) * sin(theta);
             nrSamples++;
         }
     }
     irradiance = PI * irradiance * (1.0 / float(nrSamples));
     
     FragColor = vec4(irradiance, 1.0);
+
 }

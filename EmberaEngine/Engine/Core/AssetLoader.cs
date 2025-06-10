@@ -47,8 +47,18 @@ namespace EmberaEngine.Engine.Core
             var newRef = loader.Load(virtualPath);
 
             AssetCache.Add<T>(virtualPath, newRef);
+            AssetReferenceRegistry.Register(PathUtils.NormalizeVirtualPath(virtualPath), newRef);
+            Console.WriteLine("REGISTER: " + PathUtils.NormalizeVirtualPath(virtualPath));
 
             return newRef;
+        }
+
+        public static IAssetLoader<T> GetLoader<T>() where T : class
+        {
+            if (!_loaders.TryGetValue(typeof(T), out var loaderObj))
+                throw new Exception($"No loader registered for type {typeof(T).FullName}");
+
+            return (IAssetLoader<T>)loaderObj;
         }
 
         public static Type? GuessAssetType(string assetPath)

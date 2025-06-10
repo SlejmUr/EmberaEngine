@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EngineStarter", "EngineStar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElementalEditor", "ElementalEditor\ElementalEditor.csproj", "{B4526623-F077-4C4B-AD2D-2120372ADFDF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevoidShaderBuilder", "DevoidShaderBuilder\DevoidShaderBuilder.csproj", "{F057CA27-5431-4546-989E-744F60B71383}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,14 @@ Global
 		{B4526623-F077-4C4B-AD2D-2120372ADFDF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B4526623-F077-4C4B-AD2D-2120372ADFDF}.Release|x64.ActiveCfg = Release|x64
 		{B4526623-F077-4C4B-AD2D-2120372ADFDF}.Release|x64.Build.0 = Release|x64
+		{F057CA27-5431-4546-989E-744F60B71383}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F057CA27-5431-4546-989E-744F60B71383}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F057CA27-5431-4546-989E-744F60B71383}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F057CA27-5431-4546-989E-744F60B71383}.Debug|x64.Build.0 = Debug|Any CPU
+		{F057CA27-5431-4546-989E-744F60B71383}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F057CA27-5431-4546-989E-744F60B71383}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F057CA27-5431-4546-989E-744F60B71383}.Release|x64.ActiveCfg = Release|Any CPU
+		{F057CA27-5431-4546-989E-744F60B71383}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

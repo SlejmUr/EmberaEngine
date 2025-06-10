@@ -83,6 +83,7 @@
     <None Remove="Engine\Content\Models\Sponza\textures\vase_plant.tga" />
     <None Remove="Engine\Content\Models\Sponza\textures\vase_round.tga" />
     <None Remove="Engine\Content\Models\Sponza\textures\vase_round_ddn.tga" />
+    <None Remove="Engine\Content\Models\Sponza\untitled.obj" />
     <None Remove="Engine\Content\Models\SSAO Test\devoid_logo.obj" />
     <None Remove="Engine\Content\Models\SSAO Test\devoid_scene.mtl" />
     <None Remove="Engine\Content\Models\SSAO Test\devoid_scene.obj" />
@@ -118,9 +119,11 @@
     <None Remove="Engine\Content\Shaders\3D\PBR\clustered_pbr.frag" />
     <None Remove="Engine\Content\Shaders\3D\PBR\clustered_pbr.vert" />
     <None Remove="Engine\Content\Shaders\3D\ScreenShaders\tonemap.frag" />
-    <None Remove="Engine\Content\Shaders\3D\Volumetrics\volumetricLighting.frag" />
+    <None Remove="Engine\Content\Shaders\3D\Volumetrics\fogInjection.comp" />
+    <None Remove="Engine\Content\Shaders\3D\Volumetrics\lightInjection.comp" />
     <None Remove="Engine\Content\Textures\Placeholders\null.png" />
     <None Remove="Engine\Content\Textures\Skyboxes\aperture.hdr" />
+    <None Remove="Engine\Content\Textures\Skyboxes\autumn.hdr" />
     <None Remove="Engine\Content\Textures\Skyboxes\Beach.hdr" />
     <None Remove="Engine\Content\Textures\Skyboxes\circus.hdr" />
     <None Remove="Engine\Content\Textures\Skyboxes\mudroad.hdr" />
@@ -447,13 +450,19 @@
     <Content Include="Engine\Content\Shaders\3D\basic\tonemap.frag">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Engine\Content\Shaders\3D\Volumetrics\volumetricLighting.frag">
+    <Content Include="Engine\Content\Shaders\3D\Volumetrics\fogInjection.comp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\Volumetrics\lightInjection.comp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Textures\Placeholders\null.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Textures\Skyboxes\aperture.hdr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Textures\Skyboxes\autumn.hdr">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Textures\Skyboxes\Beach.hdr">

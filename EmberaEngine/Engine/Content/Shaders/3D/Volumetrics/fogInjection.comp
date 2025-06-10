@@ -1,0 +1,21 @@
+#version 440
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 4) in;
+
+
+layout(rgba16f, binding = 3) writeonly uniform image3D FogData;
+layout(r11f_g11f_b10f, binding = 4) writeonly uniform image3D EmissiveData;
+
+uniform vec3 volumeMin;
+uniform vec3 volumeMax;
+uniform vec3 volumeSize;
+
+void main() {
+    ivec3 coord = ivec3(gl_GlobalInvocationID);
+    vec3 uvw = vec3(coord) / volumeSize;
+    vec3 worldPos = mix(volumeMin, volumeMax, uvw); // where volumeMin and volumeMax are uniforms
+    vec4 fog = vec4(0.02, 0.02, 0.02, 0.05); // Scattering.rgb, Absorption.a
+    vec3 emissive = vec3(0.0);
+    // Optional local fog influence here
+    imageStore(FogData, coord, fog);
+    imageStore(EmissiveData, coord, vec4(emissive, 0.0));
+}

@@ -263,6 +263,11 @@ namespace EmberaEngine.Engine.Core
             GL.BindTexture(target, handle);
         }
 
+        public void BindImageTexture(int unit, TextureAccess access, SizedInternalFormat format)
+        {
+            GL.BindImageTexture(unit, handle, 0, true, 0, access, (OpenTK.Graphics.OpenGL.SizedInternalFormat)format);
+        }
+
         public int GetRendererID()
         {
             return handle;

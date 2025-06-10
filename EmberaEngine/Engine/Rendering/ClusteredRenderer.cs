@@ -83,7 +83,7 @@ namespace EmberaEngine.Engine.Rendering
 
         private IRenderPass GBufferPass;
         private IRenderPass SSAOPass;
-        private IRenderPass AnalyticVolumetricLightingPass;
+        private IRenderPass VolumetricFogPass;
         private IRenderPass BloomPass;
 
         private Shader clusteredPBRShader;
@@ -94,7 +94,12 @@ namespace EmberaEngine.Engine.Rendering
             useBloom = true,
             useSSAO = true,
             tonemapFunction = TonemapFunction.ACES,
-            Exposure = 1f
+            Exposure = 1f,
+            AmbientColor = new Color4(0.1f, 0.1f, 0.1f, 0.1f),
+            useSkybox = true,
+            AmbientFactor = 1f,
+            useIBL = true,
+            useShadows = true
         };
 
         private float oldFOV;
@@ -148,8 +153,8 @@ namespace EmberaEngine.Engine.Rendering
             SSAOPass = new SSAOPass();
             SSAOPass.Initialize(width, height);
 
-            AnalyticVolumetricLightingPass = new AnalyticVolumetricLightingPass();
-            AnalyticVolumetricLightingPass.Initialize(width, height);
+            VolumetricFogPass = new VolumetricFogPass();
+            VolumetricFogPass.Initialize(width, height);
 
             BloomPass = new BloomPass();
             BloomPass.Initialize(width, height);
@@ -176,7 +181,8 @@ namespace EmberaEngine.Engine.Rendering
             GBufferPass.Apply(frameData);
             SSAOPass.Apply(frameData);
 
-            SkyboxManager.Render();
+            if (renderSettings.useSkybox)
+                SkyboxManager.Render();
 
             Renderer3D.GetComposite().Bind();
             Renderer3D.ApplyPerFrameSettings(camera);
@@ -198,7 +204,8 @@ namespace EmberaEngine.Engine.Rendering
 
             List<Mesh> meshes = Renderer3D.GetMeshes();
 
-            SkyboxManager.RenderCube();
+            if (renderSettings.useSkybox)
+                SkyboxManager.RenderCube();
 
             for (int i = 0; i < meshes.Count; i++)
             {
@@ -231,8 +238,9 @@ namespace EmberaEngine.Engine.Rendering
                 Matrix4 model = mesh.worldMatrix;
 
 
-                material.shader.SetFloat("material.ambientFactor", 0.3f);
-                material.shader.SetBool("useIBL", true);
+                material.shader.SetVector3("ambientColor", new Vector3(renderSettings.AmbientColor.R, renderSettings.AmbientColor.G, renderSettings.AmbientColor.B));
+                material.shader.SetFloat("ambientFactor", renderSettings.AmbientFactor);
+                material.shader.SetBool("useIBL", renderSettings.useIBL);
                 material.shader.SetFloat("zFar", camera.farClip);
                 material.shader.SetFloat("zNear", camera.nearClip);
                 material.shader.SetVector3("C_VIEWPOS", camera.position);
@@ -254,7 +262,7 @@ namespace EmberaEngine.Engine.Rendering
             frameData.EffectFrameBuffer = Renderer3D.GetComposite();
 
 
-            AnalyticVolumetricLightingPass.Apply(frameData);
+            VolumetricFogPass.Apply(frameData);
             BloomPass.Apply(frameData);
 
             CombineEffects();
@@ -284,8 +292,8 @@ namespace EmberaEngine.Engine.Rendering
             SSAOPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture2);
             BloomPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
-            GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture3);
-            AnalyticVolumetricLightingPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
+            //GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture3);
+            //VolumetricFogPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
             fullScreenTonemap.Apply();
             Graphics.DrawFullScreenTri();
             GraphicsState.SetDepthTest(true);
@@ -344,7 +352,7 @@ namespace EmberaEngine.Engine.Rendering
 
         public Material GetDefaultMaterial()
         {
-            Material pbrMaterial = new Material(clusteredPBRShader);
+            Material pbrMaterial = new Material(ShaderRegistry.GetShader("CLUSTERED_PBR"));
             pbrMaterial.Set("material.albedo", Vector4.One);
             pbrMaterial.Set("material.emission", Vector3.Zero);
             pbrMaterial.Set("material.emissionStr", 0);
@@ -388,6 +396,8 @@ namespace EmberaEngine.Engine.Rendering
                 GBufferPass,
                 SSAOPass,
                 BloomPass,
+                VolumetricFogPass,
+
             };
         }
 

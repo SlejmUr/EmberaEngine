@@ -1,4 +1,5 @@
 ﻿using EmberaEngine.Engine.Rendering;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,10 @@ namespace EmberaEngine.Engine.Components
         private TonemapFunction tonemapFunction = TonemapFunction.ACES;
         private bool useBloom = true;
         private bool useSSAO = true;
+        private bool useIBL = true;
+        private bool renderSkybox = true;
+        private Color4 ambientColor = Color4.Black;
+        private float ambientFactor = 1f;
 
 
         private RenderSetting renderSetting;
@@ -59,6 +64,46 @@ namespace EmberaEngine.Engine.Components
             }
         }
 
+        public bool UseIBL
+        {
+            get => useIBL;
+            set
+            {
+                useIBL = value;
+                OnChangeValue();
+            }
+        }
+
+        public bool RenderSkybox
+        {
+            get => renderSkybox;
+            set
+            {
+                renderSkybox = value;
+                OnChangeValue();
+            }
+        }
+
+        public Color4 AmbientColor
+        {
+            get => ambientColor;
+            set
+            {
+                ambientColor = value;
+                OnChangeValue();
+            }
+        }
+
+        public float AmbientFactor
+        {
+            get => ambientFactor;
+            set
+            {
+                ambientFactor = value;
+                OnChangeValue();
+            }
+        }
+
 
         public override void OnStart()
         {
@@ -73,6 +118,10 @@ namespace EmberaEngine.Engine.Components
             renderSetting.useSSAO = useSSAO;
             renderSetting.Exposure = exposure;
             renderSetting.tonemapFunction = tonemapFunction;
+            renderSetting.useIBL = useIBL;
+            renderSetting.useSkybox = renderSkybox;
+            renderSetting.AmbientColor = ambientColor;
+            renderSetting.AmbientFactor = ambientFactor;
 
             Renderer3D.ActiveRenderingPipeline.SetRenderSettings(renderSetting);
         }

@@ -65,12 +65,12 @@ namespace ElementalEditor.Editor.CustomEditors
             {
 
                 UI.BeginProperty("Outer Cutoff");
-                if (UI.PropertyFloat(ref outerCutoff))
+                if (UI.PropertyFloat(ref outerCutoff, innerCutoff))
                     lightComponent.OuterCutoff = outerCutoff;
                 UI.EndProperty();
 
                 UI.BeginProperty("Inner Cutoff");
-                if (UI.PropertyFloat(ref innerCutoff))
+                if (UI.PropertyFloat(ref innerCutoff, 0, outerCutoff))
                     lightComponent.InnerCutoff = innerCutoff;
                 UI.EndProperty();
             }

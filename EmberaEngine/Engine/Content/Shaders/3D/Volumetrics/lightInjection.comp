@@ -1,0 +1,127 @@
+﻿// light_inject.comp
+#version 430
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 4) in;
+
+
+#define LIGHT_TYPE_MASK 0xC0000000u // top 2 bits
+#define LIGHT_INDEX_MASK 0x3FFFFFFFu // lower 30 bits
+
+#define TYPE_POINT 0u
+#define TYPE_SPOT  1u
+#define TYPE_DIRECTIONAL 2u
+
+struct LightGrid {
+	uint offset;
+	uint count;
+};
+
+struct DirectionalLight {
+	vec4 direction; // xyz direction w enabled/disabled
+	vec4 color; // xyz color w intensity
+};
+
+struct PointLight {
+	vec4 position;
+	vec4 color;
+	float range;
+};
+
+struct SpotLight {
+	vec4 position;     // xyz = position, w = enabled
+    vec4 color;        // rgb = color, w = intensity
+    vec4 direction;    // xyz = direction, w = range
+    float innerCutoff; // degrees
+    float outerCutoff; // degrees
+};
+
+layout(r11f_g11f_b10f , binding = 4) writeonly uniform image3D LightingTex;
+
+layout (std430, binding = 0) buffer pointLightSSBO {
+	PointLight pointLights[];
+};
+
+layout (std430, binding = 1) buffer spotLightSSBO {
+	SpotLight spotLights[];
+};
+
+layout (std430, binding = 2) buffer directionalLightSSBO {
+	DirectionalLight directionalLight;
+};
+
+layout (std430, binding = 3) buffer lightGridSSBO {
+	LightGrid lightGrids[];
+};
+
+layout(std430, binding = 6) buffer globalLightIndexListSSBO {
+	uint globalLightIndexList[];
+};
+
+layout (std430, binding = 7) buffer screenViewData {
+	mat4 inverseProjectionMatrix;
+	uvec4 tileSizes;
+	uint screenWidth;
+	uint screenHeight;
+	float sliceScaling;
+	float sliceBias;
+};
+
+
+uniform ivec3 volumeSize;
+uniform vec3 volumeMin, volumeMax;
+uniform vec3 cameraPosition;
+
+uniform mat4 W_PROJECTION_MATRIX;
+uniform mat4 W_VIEW_MATRIX;
+uniform vec2 screenDimensions;
+
+vec3 worldToScreen(vec3 worldPos);
+
+void main() {
+	ivec3 coord = ivec3(gl_GlobalInvocationID);
+	if (any(greaterThanEqual(coord, volumeSize))) return;
+	vec3 uvw = vec3(coord) / vec3(volumeSize);
+	vec3 worldPos = mix(volumeMin, volumeMax, uvw);
+
+	float viewDepth = length(worldPos - cameraPosition); // cameraPosition = uniform
+
+	uint zTile = uint(max(log2(viewDepth) * sliceScaling + sliceBias, 0.0));
+	uvec3 tiles = uvec3( uvec2(worldToScreen(worldPos).xy) / tileSizes[3], zTile ); // implement worldToScreen()
+
+	uint tileIndex = tiles.x + tileSizes.x * tiles.y + (tileSizes.x * tileSizes.y) * tiles.z;
+
+	uint lightCount = lightGrids[tileIndex].count;
+	uint lightIndexOffset = lightGrids[tileIndex].offset;
+	vec3 lightColor = vec3(0.0);
+
+	for (uint i = 0; i < lightCount; i++) {
+		uint lightVectorIndex = globalLightIndexList[lightIndexOffset + i];
+
+		uint lightType  = (lightVectorIndex & LIGHT_TYPE_MASK) >> 30;
+		uint lightIndex = (lightVectorIndex & LIGHT_INDEX_MASK);
+
+		if (lightType == TYPE_POINT) {
+			PointLight l = pointLights[lightIndex];
+			vec3 toLight = l.position.xyz - worldPos;
+			float dist = length(toLight);
+			float attenuation = max(0.0, 1.0 - dist / l.range);
+			lightColor += l.color.rgb * attenuation * l.color.a; // intensity in .a
+		} else {
+
+		}
+	}
+
+    imageStore(LightingTex,ivec3(coord), vec4(lightColor, 0.0));
+}
+
+vec3 worldToScreen(vec3 worldPos) {
+    vec4 clipSpace = W_PROJECTION_MATRIX * W_VIEW_MATRIX * vec4(worldPos, 1.0);
+    vec3 ndc = clipSpace.xyz / clipSpace.w; // Perspective divide
+
+    // Convert NDC [-1, 1] to screen coordinates [0, screenSize]
+    vec2 screenXY = ((ndc.xy + 1.0) * 0.5) * screenDimensions;
+
+    // Optional: output depth in [0,1]
+    float screenZ = ndc.z * 0.5 + 0.5;
+
+    return vec3(screenXY, screenZ);
+}

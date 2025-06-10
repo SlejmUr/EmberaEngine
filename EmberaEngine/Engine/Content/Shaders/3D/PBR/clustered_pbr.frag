@@ -59,7 +59,6 @@ struct Material {
 	float emissionStr;
 	float metallic;
 	float roughness;
-	float ambientFactor;
 	int useDiffuseMap;
 	int useNormalMap;
 	int useRoughnessMap;
@@ -101,6 +100,9 @@ uniform vec3 C_VIEWPOS;
 uniform float zNear;
 uniform float zFar;
 
+uniform vec3 ambientColor;
+uniform float ambientFactor;
+
 
 uniform bool useIBL;
 uniform samplerCube irradianceMap;
@@ -133,9 +135,9 @@ void main() {
 	vec3 V = normalize(C_VIEWPOS - WorldPos);
 
 	vec4 diffuseColor = GetDiffuse();
-
-	if (diffuseColor.a == 0) discard;
-
+//
+//	if (diffuseColor.a == 0) discard;
+//
 
 	//diffuseColor.xyz *= (texture(material.AO_TEX, viewportCoords).r);
 
@@ -165,7 +167,7 @@ void main() {
 	uint lightCount = lightGrids[tileIndex].count;
 	uint lightIndexOffset = lightGrids[tileIndex].offset;
 
-	radianceOut = vec3(0);
+	radianceOut = vec3(ambientColor) * ambientFactor;
 
 	radianceOut += CalcDirectionalLight(N, FragPos, viewDirection, albedo, roughnessValue, material.metallic, F0);
 
@@ -183,10 +185,15 @@ void main() {
 	}
 
 	if (useIBL) {
-		radianceOut += CalcIBL(N, V, F0, albedo, R, material.roughness, material.metallic);;
+		radianceOut += CalcIBL(N, V, F0, albedo, R, material.roughness, material.metallic) * ambientFactor;
 	}
+
+
+	vec3 emissive = GetEmission() * material.emissionStr;
+	radianceOut += emissive;
+
 	FragColor = vec4(radianceOut, 1.0);
-	EmissionColor = vec4(GetEmission() * material.emissionStr, 1);
+	EmissionColor = vec4(emissive, 1);
 }
 
 vec3 CalcIBL(vec3 N, vec3 V, vec3 F0, vec3 albedo, vec3 R, float roughness, float metallic) {
@@ -205,7 +212,7 @@ vec3 CalcIBL(vec3 N, vec3 V, vec3 F0, vec3 albedo, vec3 R, float roughness, floa
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-	return (kD * diffuse + specular * 0.4) * material.ambientFactor;
+	return (kD * diffuse + specular * 0.4);
 }
 
 vec3 CalcDirectionalLight(vec3 normal, vec3 fragPos,
@@ -303,8 +310,8 @@ vec3 CalcSpotLight(uint index, vec3 normal, vec3 fragPos,
     // Spotlight properties
     vec3 position   = spotLights[index].position.xyz;
     vec3 direction  = normalize(spotLights[index].direction.xyz);
-    float innerCut  = cos(radians(spotLights[index].innerCutoff));
-    float outerCut  = cos(radians(spotLights[index].outerCutoff));
+    float innerCut  = cos(spotLights[index].innerCutoff);
+    float outerCut  = cos(spotLights[index].outerCutoff);
     float radius    = spotLights[index].direction.w; // w component of direction is range.
 
     // Light vector
@@ -425,7 +432,7 @@ vec3 GetEmission() {
 
 vec3 GetNormal(vec3 N) {
 	mat3 toWorld = mat3(Tangent, BiTangent, N); 
-	vec3 normalMap = texture(material.NORMAL_TEX, texCoords).rgb * 2.0 - 1.0;
+	vec3 normalMap = normalize(texture(material.NORMAL_TEX, texCoords).rgb * 2.0 - 1.0);
 	normalMap = toWorld * normalMap;
 	return mix(N, normalMap, float(material.useNormalMap));
 

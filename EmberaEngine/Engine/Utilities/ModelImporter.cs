@@ -84,6 +84,7 @@ namespace EmberaEngine.Engine.Utilities
             {
                 GameObject currentGO = new GameObject();
                 currentGO.Name = node.Name;
+                currentGO.transform.Position = ToOpenTKMatrix(node.Transform).ExtractTranslation();
                 parentGO.AddChild(currentGO);
 
                 foreach (int meshIdx in node.MeshIndices)
@@ -92,7 +93,7 @@ namespace EmberaEngine.Engine.Utilities
                     var processedMesh = ProcessMesh(assimpMesh, scene, node.Transform, virtualPath);
 
                     var meshGO = new GameObject();
-                    meshGO.Name = assimpMesh.Name != "" ? assimpMesh.Name.Substring(0, 10) : $"Mesh_{meshIdx}";
+                    meshGO.Name = assimpMesh.Name != "" ? assimpMesh.Name.Substring(0, Math.Min(10, assimpMesh.Name.Length)) : $"Mesh_{meshIdx}";
                     var meshRenderer = meshGO.AddComponent<MeshRenderer>();
                     meshRenderer.SetMesh(processedMesh);
 
@@ -115,6 +116,7 @@ namespace EmberaEngine.Engine.Utilities
             foreach (var cam in scene.Cameras)
             {
                 GameObject gameObject = new GameObject();
+                gameObject.Name = cam.Name;
                 var cameraComponent = gameObject.AddComponent<CameraComponent3D>();
 
                 cameraComponent.FarPlane = cam.ClipPlaneFar;
@@ -140,7 +142,7 @@ namespace EmberaEngine.Engine.Utilities
             // Process lights
             foreach (var light in scene.Lights)
             {
-
+                Console.WriteLine("LIGHTS LIGHTS LIGHTS LIGHTS!");
                 LightType lightType;
 
                 switch (light.LightType)
@@ -159,22 +161,35 @@ namespace EmberaEngine.Engine.Utilities
                 }
 
                 GameObject gameObject = new GameObject();
+                gameObject.Name = light.Name;
                 var lightComponent = gameObject.AddComponent<LightComponent>();
-
-                gameObject.transform.Position = new OpenTK.Mathematics.Vector3(light.Position.X, light.Position.Y, light.Position.Z);
-                gameObject.transform.Rotation = new OpenTK.Mathematics.Vector3(light.Direction.X, light.Direction.Y, light.Direction.Z);
 
                 lightComponent.LightType = lightType;
                 lightComponent.Enabled = true;
                 lightComponent.Radius = ComputeLightRange(light);
                 float intensity = 0.2126f * light.ColorDiffuse.R + 0.7152f * light.ColorDiffuse.G + 0.0722f * light.ColorDiffuse.B;
-                lightComponent.Color = new Color4(light.ColorDiffuse.R, light.ColorDiffuse.G, light.ColorDiffuse.B, 1);
-                lightComponent.OuterCutoff = MathHelper.RadiansToDegrees(light.AngleOuterCone);
-                lightComponent.InnerCutoff = MathHelper.RadiansToDegrees(light.AngleInnerCone);
+                lightComponent.Color = new Color4(light.ColorDiffuse.R, light.ColorDiffuse.G, light.ColorDiffuse.B, intensity);
+                lightComponent.OuterCutoff = MathHelper.RadiansToDegrees(light.AngleOuterCone) / 2;
+                lightComponent.InnerCutoff = MathHelper.RadiansToDegrees(light.AngleInnerCone) / 2;
 
                 // Attach to node if exists
                 if (scene.RootNode.FindNode(light.Name) is Node node)
                 {
+                    // --- Fix the direction: transform it by the node's world matrix ---
+                    var direction = new OpenTK.Mathematics.Vector4(light.Direction.X, light.Direction.Y, light.Direction.Z, 0.0f);
+                    var position = new OpenTK.Mathematics.Vector4(light.Position.X, light.Position.Y, light.Position.Z, 0.0f);
+                    var worldTransform = ToOpenTKMatrix(GetNodeWorldTransform(node)); // You'll need to implement this
+                    var transformedDirection = worldTransform * direction; // w = 0 for direction
+                    var transformedPosition = worldTransform * position;
+
+                    // Normalize and assign
+                    var normalizedRotation = new OpenTK.Mathematics.Vector3((float)transformedDirection.X, (float)transformedDirection.Y, (float)transformedDirection.Z);
+                    
+
+                    gameObject.transform.Rotation = normalizedRotation;
+                    gameObject.transform.Position = transformedPosition.Xyz;
+
+
                     // find GO with same name
                     var parent = FindGOByName(rootGO, light.Name);
                     parent?.AddChild(gameObject);
@@ -303,16 +318,30 @@ namespace EmberaEngine.Engine.Utilities
 
         static void SetupTexture(Texture texture, string path, TextureSlot texSlot, Core.Material mat, string uniformName, string useFlag)
         {
+
             texture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
             texture.SetAnisotropy(8f);
             texture.GenerateMipmap();
             SetWrap(texSlot.WrapModeU, texSlot.WrapModeV, texture);
 
-            Console.WriteLine(uniformName);
-
             mat.Set(uniformName, texture);
             mat.Set(useFlag, 1);
         }
+
+        static Assimp.Matrix4x4 GetNodeWorldTransform(Node node)
+        {
+            Assimp.Matrix4x4 transform = node.Transform;
+
+            Node current = node.Parent;
+            while (current != null)
+            {
+                transform = current.Transform * transform;
+                current = current.Parent;
+            }
+
+            return transform;
+        }
+
 
 
 

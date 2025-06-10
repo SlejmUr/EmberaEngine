@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace EmberaEngine.Engine.Core
 {
+
     public interface IAssetReference<T> where T : class
     {
         public bool isLoaded { get; }

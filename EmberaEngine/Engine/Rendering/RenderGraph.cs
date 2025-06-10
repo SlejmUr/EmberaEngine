@@ -18,6 +18,9 @@ namespace EmberaEngine.Engine.Rendering
             GlobalLightIndexCount = 5,
             GlobalLightIndexList = 6,
             ScreenInfoBuffer = 7
+            // VOLUMETRIC FOG TEXTURES
+            // 8, 9, 10
+
         }
 
         // Above this limit, it is best to instance the meshes.

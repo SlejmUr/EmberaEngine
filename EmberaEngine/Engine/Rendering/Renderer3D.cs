@@ -21,7 +21,12 @@ namespace EmberaEngine.Engine.Rendering
         public float Exposure;
         public bool useBloom;
         public bool useSSAO;
+        public bool useSkybox;
+        public bool useIBL;
+        public bool useShadows;
         public TonemapFunction tonemapFunction;
+        public Color4 AmbientColor;
+        public float AmbientFactor;
     }
 
     public interface IRenderPipeline
