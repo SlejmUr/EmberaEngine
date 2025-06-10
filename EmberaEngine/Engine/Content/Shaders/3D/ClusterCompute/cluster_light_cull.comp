@@ -31,13 +31,16 @@ struct Cluster
     vec4 maxPoint;
 };
 
-layout (std430, binding = 0) buffer pointLightSSBO {
-    PointLight pointLights[];
+layout (std430, binding = 0) buffer LightSSBO {
+    uint numPointLights;
+    uint numSpotLights;
+    uint numDirectionalLights;
+    uint _padding;
+
+    PointLight pointLights[4096];
+    SpotLight spotLights[1024];
 };
 
-layout (std430, binding = 1) buffer spotLightSSBO {
-    SpotLight spotLights[];
-};
 
 layout (std430, binding = 3) buffer lightGridSSBO {
     LightGrid lightGrids[];
@@ -70,7 +73,7 @@ float sqDistPointAABB(vec3 point, uint tile);
 void main() {
     globalIndexCount = 0;
     uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
-    uint lightCount = pointLights.length();
+    uint lightCount = numPointLights;
     uint numBatches = (lightCount + threadCount - 1) / threadCount;
 
     uint tileIndex = gl_LocalInvocationIndex + gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z * gl_WorkGroupID.z;
@@ -99,7 +102,7 @@ void main() {
     barrier();
 
     // ==== Spot Lights ====
-    uint spotCount = spotLights.length();
+    uint spotCount = numSpotLights;
     uint spotBatches = (spotCount + threadCount - 1) / threadCount;
 
     for (uint batch = 0; batch < spotBatches; ++batch) {

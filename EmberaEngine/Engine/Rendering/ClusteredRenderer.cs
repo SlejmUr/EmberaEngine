@@ -97,7 +97,7 @@ namespace EmberaEngine.Engine.Rendering
             Exposure = 1f,
             AmbientColor = new Color4(0.1f, 0.1f, 0.1f, 0.1f),
             useSkybox = true,
-            AmbientFactor = 1f,
+            AmbientFactor = 0.1f,
             useIBL = true,
             useShadows = true
         };
@@ -159,9 +159,7 @@ namespace EmberaEngine.Engine.Rendering
             BloomPass = new BloomPass();
             BloomPass.Initialize(width, height);
 
-            LightManager.GetPointLightSSBO().Bind((int)RenderGraph.SSBOBindIndex.PointLightBuffer);
-            LightManager.GetSpotLightSSBO().Bind((int)RenderGraph.SSBOBindIndex.SpotLightBuffer);
-            LightManager.GetDirectionalLightSSBO().Bind((int)RenderGraph.SSBOBindIndex.DirectionalLightBuffer);
+            LightManager.GetLightSSBO().Bind((int)RenderGraph.SSBOBindIndex.LightBuffer);
             lightGridBuffer.Bind((int)RenderGraph.SSBOBindIndex.LightGridBuffer);
             clusterBuffer.Bind((int)RenderGraph.SSBOBindIndex.ClusterBuffer);
             globalIndexCount.Bind((int)RenderGraph.SSBOBindIndex.GlobalLightIndexCount);
@@ -262,7 +260,7 @@ namespace EmberaEngine.Engine.Rendering
             frameData.EffectFrameBuffer = Renderer3D.GetComposite();
 
 
-            VolumetricFogPass.Apply(frameData);
+            //VolumetricFogPass.Apply(frameData);
             BloomPass.Apply(frameData);
 
             CombineEffects();

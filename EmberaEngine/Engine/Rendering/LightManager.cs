@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EmberaEngine.Engine.Utilities;
 using OpenTK.Graphics.OpenGL;
+using System.Runtime.InteropServices;
 
 namespace EmberaEngine.Engine.Rendering
 {
@@ -20,9 +21,10 @@ namespace EmberaEngine.Engine.Rendering
 
         static DirectionalLight directionalLight;
 
-        static BufferObject<GPUDirectionalLight> directionalLightSSBO;
-        static BufferObject<GPUPointLight> pointLightSSBO;
-        static BufferObject<GPUSpotLight> spotLightSSBO;
+        static BufferObject<byte> packedLightSSBO;
+
+        static int headerSize = 16;
+
 
         public static void Initialize()
         {
@@ -34,26 +36,27 @@ namespace EmberaEngine.Engine.Rendering
 
             directionalLight = new DirectionalLight();
 
-            
-            pointLightSSBO = new BufferObject<GPUPointLight>(BufferStorageTarget.ShaderStorageBuffer, new GPUPointLight[RenderGraph.MAX_POINT_LIGHTS], BufferUsageHint.DynamicCopy);
-            spotLightSSBO = new BufferObject<GPUSpotLight>(BufferStorageTarget.ShaderStorageBuffer, new GPUSpotLight[RenderGraph.MAX_SPOT_LIGHTS], BufferUsageHint.DynamicCopy);
-            directionalLightSSBO = new BufferObject<GPUDirectionalLight>(BufferStorageTarget.ShaderStorageBuffer, new GPUDirectionalLight(), BufferUsageHint.DynamicCopy);
+            uint totalSize =  (uint)(16 + RenderGraph.MAX_POINT_LIGHTS * Marshal.SizeOf<GPUPointLight>() + RenderGraph.MAX_SPOT_LIGHTS * Marshal.SizeOf<GPUSpotLight>() + RenderGraph.MAX_DIR_LIGHTS * Marshal.SizeOf<GPUDirectionalLight>());
+
+            packedLightSSBO = new BufferObject<byte>(BufferStorageTarget.ShaderStorageBuffer, totalSize, BufferUsageHint.DynamicCopy);
         }
 
-        public static BufferObject<GPUPointLight> GetPointLightSSBO()
+        public static BufferObject<byte> GetLightSSBO()
         {
-            return pointLightSSBO;
+            return packedLightSSBO;
         }
 
-        public static BufferObject<GPUSpotLight> GetSpotLightSSBO()
-        {
-            return spotLightSSBO;
-        }
+        static int pointLightOffset(int index)
+            => headerSize + index * Marshal.SizeOf<GPUPointLight>();
 
-        public static BufferObject<GPUDirectionalLight> GetDirectionalLightSSBO()
-        {
-            return directionalLightSSBO;
-        }
+        static int spotLightOffset(int index)
+            => headerSize + RenderGraph.MAX_POINT_LIGHTS * Marshal.SizeOf<GPUPointLight>()
+                          + index * Marshal.SizeOf<GPUSpotLight>();
+
+        static int directionalLightOffset()
+            => headerSize
+             + RenderGraph.MAX_POINT_LIGHTS * Marshal.SizeOf<GPUPointLight>()
+             + RenderGraph.MAX_SPOT_LIGHTS * Marshal.SizeOf<GPUSpotLight>();
 
         public static void UpdateLights()
         {
@@ -127,12 +130,13 @@ namespace EmberaEngine.Engine.Rendering
             {
                 int size = sizeof(GPUPointLight);
                 GPUPointLight pointLight = pointLights[index].internalLight;
-                pointLightSSBO.SetData(index * size, size, pointLight);
+                packedLightSSBO.SetData(pointLightOffset(index), size, pointLight);
+                packedLightSSBO.SetData(0, sizeof(uint), pointLights.Count);
             }
-
         }
-    
-        
+
+
+
 
         public static SpotLight AddSpotLight(Vector3 position, Vector3 color, Vector3 direction, float intensity, float radius, float innerCutoff, float outerCutoff)
         {
@@ -180,7 +184,8 @@ namespace EmberaEngine.Engine.Rendering
             {
                 int size = sizeof(GPUSpotLight);
                 GPUSpotLight spotLight = spotLights[index].internalLight;
-                spotLightSSBO.SetData(index * size, size, spotLight);
+                packedLightSSBO.SetData(spotLightOffset(index), size, spotLight);
+                packedLightSSBO.SetData(sizeof(uint), sizeof(uint), spotLights.Count);
             }
         }
 
@@ -212,9 +217,11 @@ namespace EmberaEngine.Engine.Rendering
             {
                 int size = sizeof(GPUDirectionalLight);
                 GPUDirectionalLight light = directionalLight.internalLight;
-                directionalLightSSBO.SetData(0, size, light);
+                packedLightSSBO.SetData(directionalLightOffset(), size, light);
+                packedLightSSBO.SetData(2 * sizeof(uint), sizeof(uint), 1);
             }
         }
+
 
     }
 }

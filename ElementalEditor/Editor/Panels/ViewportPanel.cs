@@ -251,6 +251,7 @@ namespace ElementalEditor.Editor.Panels
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(6, 4));
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(10, 8));
             ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
             ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 3f);
 
             ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.16f, 0.15f, 0.13f, 1f));
@@ -261,7 +262,7 @@ namespace ElementalEditor.Editor.Panels
 
             // Begin tool child panel
             ImGui.SetCursorPos(new Vector2(1.5f, toolbarHeight));
-            ImGui.BeginChild("##VIEWPORT_TOOLS", new Vector2(ImGui.GetContentRegionAvail().X - 1.5f, toolbarHeight), true, ImGuiWindowFlags.NoScrollbar);
+            ImGui.BeginChild("##VIEWPORT_TOOLS", new Vector2(ImGui.GetContentRegionAvail().X - 1.5f, toolbarHeight), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
 
             // --- Resolution dropdown ---
             ImGui.AlignTextToFramePadding();
@@ -276,11 +277,12 @@ namespace ElementalEditor.Editor.Panels
 
             if (ImGui.BeginCombo("##ResCombo", resLabel, ImGuiComboFlags.HeightLargest))
             {
+                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0f, 0f, 0f, 1f));
                 for (int i = 0; i < SupportedResolutions.Count; i++)
                 {
                     var res = SupportedResolutions[i];
                     bool isSelected = selectedResolution.Equals(res) && !freeAspectRatio;
-                    if (ImGui.Selectable($"{res.width}x{res.height} @ {res.refreshRate}Hz", isSelected))
+                    if (ImGui.Selectable($"{res.width}x{res.height}", isSelected))
                     {
                         selectedResolution = res;
                         freeAspectRatio = false;
@@ -302,7 +304,7 @@ namespace ElementalEditor.Editor.Panels
                     Screen.Size.Y = viewportHeight;
                     editor.EditorCurrentScene.OnResize(viewportWidth, viewportHeight);
                 }
-
+                ImGui.PopStyleColor();
                 ImGui.EndCombo();
             }
 
@@ -325,7 +327,7 @@ namespace ElementalEditor.Editor.Panels
 
             // Pop all styles
             ImGui.PopStyleColor(5);
-            ImGui.PopStyleVar(6);
+            ImGui.PopStyleVar(7);
         }
 
 

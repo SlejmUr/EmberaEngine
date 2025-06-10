@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 using SharpFont;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EmberaEngine.Engine.Utilities
 {
@@ -50,6 +51,13 @@ namespace EmberaEngine.Engine.Utilities
             {
                 GL.NamedBufferData(handle, size, (IntPtr)ptr, bufferUsageHint);
             }
+        }
+
+        public BufferObject(BufferStorageTarget target, uint size, BufferUsageHint bufferUsageHint = BufferUsageHint.StaticCopy)
+        {
+            this.target = target;
+            GL.CreateBuffers(1, out handle);
+            GL.NamedBufferData(handle, (int)size, IntPtr.Zero, bufferUsageHint);
         }
 
         public BufferObject(BufferStorageTarget target, uint size, BufferStorageFlags flags = BufferStorageFlags.None)

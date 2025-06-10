@@ -66,17 +66,17 @@ struct Material {
 	bool useIBL;
 };
 
-layout (std430, binding = 0) buffer pointLightSSBO {
-	PointLight pointLights[];
+layout (std430, binding = 0) buffer LightSSBO {
+    uint numPointLights;
+    uint numSpotLights;
+    uint numDirectionalLights;
+    uint _padding;
+
+    PointLight pointLights[4096];
+    SpotLight spotLights[1024];
+    DirectionalLight directionalLight;
 };
 
-layout (std430, binding = 1) buffer spotLightSSBO {
-	SpotLight spotLights[];
-};
-
-layout (std430, binding = 2) buffer directionalLightSSBO {
-	DirectionalLight directionalLight;
-};
 
 layout (std430, binding = 3) buffer lightGridSSBO {
 	LightGrid lightGrids[];
@@ -432,7 +432,7 @@ vec3 GetEmission() {
 
 vec3 GetNormal(vec3 N) {
 	mat3 toWorld = mat3(Tangent, BiTangent, N); 
-	vec3 normalMap = normalize(texture(material.NORMAL_TEX, texCoords).rgb * 2.0 - 1.0);
+	vec3 normalMap = texture(material.NORMAL_TEX, texCoords).rgb * 2.0 - 1.0;
 	normalMap = toWorld * normalMap;
 	return mix(N, normalMap, float(material.useNormalMap));
 

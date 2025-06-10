@@ -6,8 +6,10 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace EmberaEngine.Engine.Core
 {
-    public class Texture
+    public class Texture : IDisposable
     {
+
+        private bool _disposed = false;
 
         private int handle;
         private TextureTarget target;
@@ -245,7 +247,33 @@ namespace EmberaEngine.Engine.Core
 
         ~Texture()
         {
-            GraphicsObjectCollector.AddTexToDispose(this.handle);
+            //GraphicsObjectCollector.AddTexToDispose(this.handle);
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (handle != 0)
+            {
+                int handleToDelete = handle;
+                MainThreadDispatcher.Queue(() =>
+                {
+                    GL.DeleteTexture(handleToDelete);
+                    Console.WriteLine("Disposed Texture: " + handleToDelete);
+                });
+                handle = 0;
+            }
+
+            _disposed = true;
         }
 
         public void SetActiveUnit(TextureUnit unit)
@@ -277,7 +305,6 @@ namespace EmberaEngine.Engine.Core
         {
             return (int)target;
         }
-
     }
 
     public enum TextureTargetCube

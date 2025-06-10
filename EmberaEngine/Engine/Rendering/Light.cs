@@ -203,6 +203,24 @@ namespace EmberaEngine.Engine.Rendering
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    struct GPULightData
+    {
+        public uint numPointLights;
+        public uint numSpotLights;
+        public uint numDirectionalLights;
+        public uint _padding; // Ensure 16-byte alignment
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4096)]
+        public GPUPointLight[] pointLights;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1024)]
+        public GPUSpotLight[] spotLights;
+
+        public GPUDirectionalLight directionalLights;
+    }
+
+
     [StructLayout(LayoutKind.Sequential, Pack = 16)]
     public unsafe struct GPUDirectionalLight
     {

@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using EmberaEngine.Engine.Core;
+using System.Reflection.Metadata;
 
 namespace EmberaEngine.Engine.Rendering
 {
-    public class Framebuffer
+    public class Framebuffer : IDisposable
     {
+        private bool _disposed;
+
         static int currentlyBound;
         
         public bool isBound { get { return currentlyBound == this.rendererID; }}
@@ -112,6 +115,38 @@ namespace EmberaEngine.Engine.Rendering
         public static void Unbind(FramebufferTarget target = FramebufferTarget.Framebuffer)
         {
             GL.BindFramebuffer(target, 0);
+        }
+
+        ~Framebuffer()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            Console.WriteLine("Disposing!");
+
+            if (rendererID != 0)
+            {
+                int handleToDelete = rendererID;
+                MainThreadDispatcher.Queue(() =>
+                {
+                    GL.DeleteFramebuffer(handleToDelete);
+                    Console.WriteLine("Disposed Texture: " + handleToDelete);
+                });
+                rendererID = 0;
+            }
+
+            _disposed = true;
         }
     }
 }

@@ -13,7 +13,8 @@ namespace ElementalEditor.Editor.Utils
         private float _pitch = MathHelper.DegreesToRadians(0.0f);
         private float _yaw = MathHelper.DegreesToRadians(180.0f);
         private float _fovy = MathHelper.DegreesToRadians(45.0f);
-        private int _width, _height;
+        private int width = Screen.Size.X, height = Screen.Size.Y;
+        private int prevWidth, prevHeight;
         private float _farClip, _nearClip;
         private bool _useArcball;
 
@@ -71,6 +72,16 @@ namespace ElementalEditor.Editor.Utils
             }
 
             UpdateView();
+
+            width = Screen.Size.X;
+            height = Screen.Size.Y;
+
+            if (prevWidth != width || prevHeight != height)
+            {
+                prevWidth = width; prevHeight = height;
+                UpdateProjection();
+                Console.WriteLine("Resized");
+            }
         }
 
         private void ArcballRotate(Vector2 delta)
@@ -85,15 +96,15 @@ namespace ElementalEditor.Editor.Utils
 
         public void SetViewportSize(int width, int height)
         {
-            _width = width;
-            _height = height;
+            width = width;
+            height = height;
             UpdateProjection();
         }
 
         public void UpdateProjection()
         {
             Camera.SetProjectionMatrix(
-                Matrix4.CreatePerspectiveFieldOfView(_fovy, (float)_width / _height, _nearClip, _farClip)
+                Matrix4.CreatePerspectiveFieldOfView(_fovy, (float)width / height, _nearClip, _farClip)
             );
         }
 
@@ -128,7 +139,7 @@ namespace ElementalEditor.Editor.Utils
 
         private float[] PanSpeed()
         {
-            float factor = MathF.Min(_width / 1000f, 2.4f);
+            float factor = MathF.Min(width / 1000f, 2.4f);
             float speed = 0.0366f * (factor * factor) - 0.1778f * factor + 0.3021f;
             return new[] { speed, speed };
         }

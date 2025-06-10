@@ -10,9 +10,7 @@ namespace EmberaEngine.Engine.Rendering
     {
         public enum SSBOBindIndex
         {
-            PointLightBuffer = 0,
-            SpotLightBuffer = 1,
-            DirectionalLightBuffer = 2,
+            LightBuffer = 0,
             LightGridBuffer = 3,
             ClusterBuffer = 4,
             GlobalLightIndexCount = 5,
@@ -29,7 +27,7 @@ namespace EmberaEngine.Engine.Rendering
         public static int CURRENT_MESH_COUNT = 0;
 
         public static int MAX_POINT_LIGHTS = 4096;
-        public static int MAX_DIR_LIGHTS = 10;
+        public static int MAX_DIR_LIGHTS = 1;
         public static int MAX_SPOT_LIGHTS = 1024;
 
         public static int MAX_MATERIALS = 10000;

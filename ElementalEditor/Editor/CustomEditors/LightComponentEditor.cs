@@ -55,12 +55,13 @@ namespace ElementalEditor.Editor.CustomEditors
                 lightComponent.Intensity = intensity;
             UI.EndProperty();
 
+            UI.BeginProperty("Radius");
+            if (UI.PropertyFloat(ref radius))
+                lightComponent.Radius = radius;
+            UI.EndProperty();
+
             if (lightComponent.LightType == LightType.PointLight)
             {
-                UI.BeginProperty("Radius");
-                if (UI.PropertyFloat(ref radius))
-                    lightComponent.Radius = radius;
-                UI.EndProperty();
             } else if (lightComponent.LightType == LightType.SpotLight)
             {
 
