@@ -97,7 +97,7 @@ namespace EmberaEngine.Engine.Rendering
             {
                 position = new Vector4(position, 1),
                 color = new Vector4(color, intensity),
-                range = radius
+                range = new Vector4(radius, 0, 0.7f, 1.8f)
             };
             if (emptyPointLights.Count > 0)
             {

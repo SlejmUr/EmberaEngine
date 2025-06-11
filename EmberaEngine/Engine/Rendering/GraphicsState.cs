@@ -137,6 +137,16 @@ namespace EmberaEngine.Engine.Rendering
             GL.PixelStore((OpenTK.Graphics.OpenGL.PixelStoreParameter)ps, val);
         }
 
+        public static void SetLineSmooth(bool value)
+        {
+            if (value)
+            {
+                GL.Enable(EnableCap.LineSmooth);
+            } else
+            {
+                GL.Disable(EnableCap.LineSmooth);
+            }
+        }
     }
 
     public enum BlendEquationMode

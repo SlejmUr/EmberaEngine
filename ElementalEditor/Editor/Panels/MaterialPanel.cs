@@ -67,7 +67,7 @@ namespace ElementalEditor.Editor.Panels
                         UI.EndProperty();
 
                         UI.BeginProperty("Emission Strength");
-                        UI.PropertyFloat(ref emissionStr, 0, 10, 0.1f);
+                        UI.PropertyFloat(ref emissionStr, 0, 100, 0.1f);
                         UI.EndProperty();
 
                         UI.BeginProperty("Roughness");

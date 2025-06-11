@@ -344,7 +344,7 @@ namespace EmberaEngine.Engine.Rendering
 
         public Framebuffer GetOutputFrameBuffer()
         {
-            //return GBufferPass.GetOutputFramebuffer();
+            //return Renderer3D.GetComposite();
             return TonemappedBuffer;
         }
 

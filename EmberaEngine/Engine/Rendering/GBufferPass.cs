@@ -37,9 +37,11 @@ namespace EmberaEngine.Engine.Rendering
             PositionTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             PositionTexture.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
-            DepthTexture = new Texture(TextureTarget2d.Texture2D);
-            DepthTexture.TexImage2D(width, height, PixelInternalFormat.Depth24Stencil8, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
-            DepthTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            DepthTexture = Renderer3D.GetComposite().GetFramebufferTexture(2);
+
+            //DepthTexture = new Texture(TextureTarget2d.Texture2D);
+            //DepthTexture.TexImage2D(width, height, PixelInternalFormat.Depth24Stencil8, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+            //DepthTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
 
             GeometryFB = new Framebuffer("Geometry Buffer");
             GeometryFB.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, NormalTexture);

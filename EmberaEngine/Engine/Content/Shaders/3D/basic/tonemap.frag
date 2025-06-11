@@ -54,7 +54,7 @@ void main() {
 
     tex.rgb *= ao;
     tex.rgb += bloom;
-    tex.rgb += volumetric;
+    //tex.rgb += volumetric;
 
 
     tex.rgb *= EXPOSURE;

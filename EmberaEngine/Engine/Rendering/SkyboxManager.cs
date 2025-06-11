@@ -32,11 +32,11 @@ namespace EmberaEngine.Engine.Rendering
         static Framebuffer prefilterMapFB;
 
         static int sizeX = 1024, sizeY = 1024;
-        static Vector2i irradianceMapSize = new Vector2i(128, 128);
+        static Vector2i irradianceMapSize = new Vector2i(32, 32);
 
 
         static Vector2i prefilterMapSize = new Vector2i(1024, 1024);
-        static int maxMipmapCount = 10;
+        static int maxMipmapCount = 5;
 
         static Vector2i brdfLUTSize = new Vector2i(512, 512);
 
@@ -206,7 +206,6 @@ namespace EmberaEngine.Engine.Rendering
 
             preFilterMapShader.Use();
             preFilterMapShader.SetInt("SKYBOX_TEXTURE", 0);
-            preFilterMapShader.SetInt("MAX_MIPMAPS", maxMipmapCount);
             preFilterMapShader.SetMatrix4("W_PROJECTION_MATRIX", irradianceProjection);
 
             skyboxTexture.SetActiveUnit(TextureUnit.Texture0);
@@ -217,8 +216,8 @@ namespace EmberaEngine.Engine.Rendering
                 Vector2 mipSize = new Vector2((prefilterMapSize.X * (float)Math.Pow(0.5f, mip)), (prefilterMapSize.Y * (float)Math.Pow(0.5f, mip)));
 
                 GraphicsState.SetViewport(0, 0, (int)mipSize.X, (int)mipSize.Y);
-                
-                float roughness = (float)mip/(float)(maxMipmapCount - 1);
+
+                float roughness = (float)mip / (float)(maxMipmapCount - 1);
                 preFilterMapShader.SetFloat("roughness", roughness);
 
                 for (int i = 0; i < 6; ++i)
@@ -231,6 +230,8 @@ namespace EmberaEngine.Engine.Rendering
 
 
             }
+
+            preFilterTexture.GenerateMipmap();
 
             Renderer3D.SetViewportDimensions();
         }
@@ -280,6 +281,8 @@ namespace EmberaEngine.Engine.Rendering
 
                 Graphics.DrawFullScreenTri();
             }
+            skyboxTexture.GenerateMipmap();
+
             Renderer3D.SetViewportDimensions();
         }
 

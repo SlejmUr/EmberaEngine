@@ -232,20 +232,7 @@ namespace ElementalEditor.Editor.Panels
                 ImGui.PopStyleColor();
                 ImGui.PopStyleVar(2); // FramePadding + WindowPadding (from child)
 
-                // Context menu
-                if (ImGui.BeginPopupContextWindow())
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.1f, 0.1f, 0.1f, 1f));
-
-                    ImGui.Text("Context Menu");
-                    if (ImGui.Selectable("Create GameObject"))
-                    {
-                        editor.EditorCurrentScene.addGameObject("GameObject");
-                    }
-
-                    ImGui.PopStyleColor();
-                    ImGui.EndPopup();
-                }
+                ContextMenu.InspectorPanelPopup(this);
 
                 // Push styles for the object list rendering
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 5));

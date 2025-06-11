@@ -48,7 +48,6 @@ namespace EmberaEngine.Engine.Core
 
             AssetCache.Add<T>(virtualPath, newRef);
             AssetReferenceRegistry.Register(PathUtils.NormalizeVirtualPath(virtualPath), newRef);
-            Console.WriteLine("REGISTER: " + PathUtils.NormalizeVirtualPath(virtualPath));
 
             return newRef;
         }

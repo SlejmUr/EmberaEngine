@@ -327,7 +327,7 @@ namespace EmberaEngine.Engine.Imgui
             io.DeltaTime = deltaSeconds; // DeltaTime is in seconds.
             if (io.Fonts.Fonts.Size != FontCount)
             {
-                Console.WriteLine("Remaking Atlas, Font Count " + io.Fonts.Fonts.Size);
+                //Console.WriteLine("Remaking Atlas, Font Count " + io.Fonts.Fonts.Size);
                 RecreateFontDeviceTexture();
                 FontCount = io.Fonts.Fonts.Size;
             }
@@ -540,7 +540,7 @@ namespace EmberaEngine.Engine.Imgui
                     GL.BufferData(BufferTarget.ArrayBuffer, newSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
                     _vertexBufferSize = newSize;
 
-                    Console.WriteLine($"Resized dear imgui vertex buffer to new size {_vertexBufferSize}");
+                    //Console.WriteLine($"Resized dear imgui vertex buffer to new size {_vertexBufferSize}");
                 }
 
                 int indexSize = cmd_list.IdxBuffer.Size * sizeof(ushort);
@@ -550,7 +550,7 @@ namespace EmberaEngine.Engine.Imgui
                     GL.BufferData(BufferTarget.ElementArrayBuffer, newSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
                     _indexBufferSize = newSize;
 
-                    Console.WriteLine($"Resized dear imgui index buffer to new size {_indexBufferSize}");
+                    //Console.WriteLine($"Resized dear imgui index buffer to new size {_indexBufferSize}");
                 }
             }
 

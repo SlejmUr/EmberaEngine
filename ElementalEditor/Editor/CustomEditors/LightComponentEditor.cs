@@ -16,10 +16,12 @@ namespace ElementalEditor.Editor.CustomEditors
     class LightComponentEditor : CustomEditorScript
     {
         string[] lightTypes;
+        string[] attenuationTypes;
 
         public override void OnEnable()
         {
             lightTypes = typeof(LightType).GetEnumNames();
+            attenuationTypes = typeof(LightAttenuationType).GetEnumNames();
         }
 
         public override void OnGUI()
@@ -33,6 +35,9 @@ namespace ElementalEditor.Editor.CustomEditors
             float radius = lightComponent.Radius;
             float innerCutoff = lightComponent.InnerCutoff;
             float outerCutoff = lightComponent.OuterCutoff;
+            float attenuationLinear = lightComponent.LinearFactor;
+            float attenuationQuadratic = lightComponent.QuadraticFactor;
+            int attenuationType = (int)lightComponent.AttenuationFunction;
 
 
             UI.BeginProperty("Light Type");
@@ -62,6 +67,24 @@ namespace ElementalEditor.Editor.CustomEditors
 
             if (lightComponent.LightType == LightType.PointLight)
             {
+                UI.BeginProperty("Attenuation Function");
+                if (UI.PropertyEnum(ref attenuationType, attenuationTypes, attenuationTypes.Length))
+                    lightComponent.AttenuationFunction = (LightAttenuationType)typeof(LightAttenuationType).GetEnumValues().GetValue(attenuationType);
+                UI.EndProperty();
+
+                if (attenuationType == (int)LightAttenuationType.Quadratic)
+                {
+                    UI.BeginProperty("Quadratic Factor");
+                    if (UI.PropertyFloat(ref attenuationQuadratic, 0, 10, 0.001f))
+                        lightComponent.QuadraticFactor = attenuationQuadratic;
+                    UI.EndProperty();
+
+                    UI.BeginProperty("Linear Factor");
+                    if (UI.PropertyFloat(ref attenuationLinear, 0, 10, 0.001f))
+                        lightComponent.LinearFactor = attenuationLinear;
+                    UI.EndProperty();
+                }
+
             } else if (lightComponent.LightType == LightType.SpotLight)
             {
 

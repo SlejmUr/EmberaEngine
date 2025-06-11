@@ -44,10 +44,12 @@ namespace EmberaEngine.Engine.Utilities
                     PostProcessSteps.Triangulate |
                     PostProcessSteps.GenerateNormals |
                     PostProcessSteps.CalculateTangentSpace |
+                    PostProcessSteps.GenerateSmoothNormals |
                     PostProcessSteps.FlipUVs |
                     PostProcessSteps.GenerateUVCoords |
                     PostProcessSteps.OptimizeGraph |
-                    PostProcessSteps.OptimizeMeshes);
+                    PostProcessSteps.OptimizeMeshes
+                );
             }
             catch (Exception e)
             {
@@ -66,8 +68,6 @@ namespace EmberaEngine.Engine.Utilities
             int totalMeshCount = scene.MeshCount;
             int meshProcessed = 0;
 
-            Console.WriteLine("VIRTUAL FILE: " + virtualPath);
-
             // 1. Process materials first
             for (int i = 0; i < scene.MaterialCount; i++)
             {
@@ -82,10 +82,21 @@ namespace EmberaEngine.Engine.Utilities
             // 2. Now process meshes (via node traversal)
             void ProcessNode(Node node, GameObject parentGO)
             {
-                GameObject currentGO = new GameObject();
-                currentGO.Name = node.Name;
-                currentGO.transform.Position = ToOpenTKMatrix(node.Transform).ExtractTranslation();
-                parentGO.AddChild(currentGO);
+                // If the node has meshes and no children, attach meshes directly to the parentGO
+                bool hasMeshes = node.MeshIndices.Count > 0;
+                bool hasChildren = node.Children.Count > 0;
+
+                GameObject currentGO = parentGO;
+
+                node.Transform.DecomposeNoScaling(out Assimp.Quaternion rot, out Vector3D assimpPos);
+
+                // Only create an intermediate node if it has children (for transform hierarchy) or non-mesh purpose
+                if (hasChildren && node.Name != parentGO.Name)
+                {
+                    currentGO = new GameObject();
+                    currentGO.Name = node.Name;
+                    parentGO.AddChild(currentGO);
+                }
 
                 foreach (int meshIdx in node.MeshIndices)
                 {
@@ -94,6 +105,7 @@ namespace EmberaEngine.Engine.Utilities
 
                     var meshGO = new GameObject();
                     meshGO.Name = assimpMesh.Name != "" ? assimpMesh.Name.Substring(0, Math.Min(10, assimpMesh.Name.Length)) : $"Mesh_{meshIdx}";
+
                     var meshRenderer = meshGO.AddComponent<MeshRenderer>();
                     meshRenderer.SetMesh(processedMesh);
 
@@ -101,7 +113,6 @@ namespace EmberaEngine.Engine.Utilities
                     meshObjects.Add(meshGO);
 
                     meshProcessed++;
-                    //Console.WriteLine($"[ModelImporter] Progress: {(meshProcessed / (float)totalMeshCount):P0}");
                 }
 
                 foreach (var child in node.Children)
@@ -110,98 +121,96 @@ namespace EmberaEngine.Engine.Utilities
                 }
             }
 
-            ProcessNode(scene.RootNode, rootGO);
+            foreach (var child in scene.RootNode.Children)
+            {
+                ProcessNode(child, rootGO);
+            }
 
-            // Process cameras
+
             foreach (var cam in scene.Cameras)
             {
-                GameObject gameObject = new GameObject();
-                gameObject.Name = cam.Name;
-                var cameraComponent = gameObject.AddComponent<CameraComponent3D>();
-
-                cameraComponent.FarPlane = cam.ClipPlaneFar;
-                cameraComponent.NearPlane = cam.ClipPlaneNear;
-                cameraComponent.Fov = MathHelper.RadiansToDegrees(cam.FieldOfview);
-                gameObject.transform.Position = new OpenTK.Mathematics.Vector3(cam.Position.X, cam.Position.Y, cam.Position.Z);
-                gameObject.transform.Rotation = new OpenTK.Mathematics.Vector3(cam.Direction.X, cam.Direction.Y, cam.Direction.Z);
-
                 if (scene.RootNode.FindNode(cam.Name) is Node node)
                 {
-                    var parent = FindGOByName(rootGO, cam.Name);
-                    parent?.AddChild(gameObject);
+                    var parentGO = FindGOByName(rootGO, cam.Name);
+                    if (parentGO != null)
+                    {
+                        var cameraComponent = parentGO.AddComponent<CameraComponent3D>();
+                        cameraComponent.FarPlane = cam.ClipPlaneFar;
+                        cameraComponent.NearPlane = cam.ClipPlaneNear;
+                        cameraComponent.Fov = MathHelper.RadiansToDegrees(cam.FieldOfview);
+                        parentGO.transform.Position = new OpenTK.Mathematics.Vector3(cam.Position.X, cam.Position.Y, cam.Position.Z);
+                        parentGO.transform.Rotation = new OpenTK.Mathematics.Vector3(cam.Direction.X, cam.Direction.Y, cam.Direction.Z);
+                        cameras.Add(parentGO);
+                        continue;
+                    }
                 }
-                else
-                {
-                    rootGO.AddChild(gameObject);
-                }
-
+                var gameObject = new GameObject();
+                gameObject.Name = cam.Name;
+                var fallbackCamera = gameObject.AddComponent<CameraComponent3D>();
+                fallbackCamera.FarPlane = cam.ClipPlaneFar;
+                fallbackCamera.NearPlane = cam.ClipPlaneNear;
+                fallbackCamera.Fov = MathHelper.RadiansToDegrees(cam.FieldOfview);
+                gameObject.transform.Position = new OpenTK.Mathematics.Vector3(cam.Position.X, cam.Position.Y, cam.Position.Z);
+                gameObject.transform.Rotation = new OpenTK.Mathematics.Vector3(cam.Direction.X, cam.Direction.Y, cam.Direction.Z);
+                rootGO.AddChild(gameObject);
                 cameras.Add(gameObject);
             }
 
 
-            // Process lights
+
             foreach (var light in scene.Lights)
             {
-                Console.WriteLine("LIGHTS LIGHTS LIGHTS LIGHTS!");
-                LightType lightType;
+                if (!TryGetLightType(light.LightType, out var lightType))
+                    continue;
 
-                switch (light.LightType)
-                {
-                    case LightSourceType.Point:
-                        lightType = LightType.PointLight;
-                        break;
-                    case LightSourceType.Spot:
-                        lightType = LightType.SpotLight;
-                        break;
-                    case LightSourceType.Directional:
-                        lightType = LightType.DirectionalLight;
-                        break;
-                    default:
-                        continue;
-                }
+                GameObject targetGO = null;
 
-                GameObject gameObject = new GameObject();
-                gameObject.Name = light.Name;
-                var lightComponent = gameObject.AddComponent<LightComponent>();
-
-                lightComponent.LightType = lightType;
-                lightComponent.Enabled = true;
-                lightComponent.Radius = ComputeLightRange(light);
-                float intensity = 0.2126f * light.ColorDiffuse.R + 0.7152f * light.ColorDiffuse.G + 0.0722f * light.ColorDiffuse.B;
-                lightComponent.Color = new Color4(light.ColorDiffuse.R, light.ColorDiffuse.G, light.ColorDiffuse.B, intensity);
-                lightComponent.OuterCutoff = MathHelper.RadiansToDegrees(light.AngleOuterCone) / 2;
-                lightComponent.InnerCutoff = MathHelper.RadiansToDegrees(light.AngleInnerCone) / 2;
-
-                // Attach to node if exists
                 if (scene.RootNode.FindNode(light.Name) is Node node)
                 {
-                    // --- Fix the direction: transform it by the node's world matrix ---
-                    var direction = new OpenTK.Mathematics.Vector4(light.Direction.X, light.Direction.Y, light.Direction.Z, 0.0f);
-                    var position = new OpenTK.Mathematics.Vector4(light.Position.X, light.Position.Y, light.Position.Z, 0.0f);
-                    var worldTransform = ToOpenTKMatrix(GetNodeWorldTransform(node)); // You'll need to implement this
-                    var transformedDirection = worldTransform * direction; // w = 0 for direction
-                    var transformedPosition = worldTransform * position;
+                    targetGO = FindGOByName(rootGO, light.Name);
+                    if (targetGO != null)
+                    {
+                        
+                        var worldTransform = ToOpenTKMatrix(GetNodeWorldTransform(node));
+                        var direction = worldTransform * new OpenTK.Mathematics.Vector4(light.Direction.X, light.Direction.Y, light.Direction.Z, 0f);
+                        var position = worldTransform * new OpenTK.Mathematics.Vector4(light.Position.X, light.Position.Y, light.Position.Z, 1f);
 
-                    // Normalize and assign
-                    var normalizedRotation = new OpenTK.Mathematics.Vector3((float)transformedDirection.X, (float)transformedDirection.Y, (float)transformedDirection.Z);
-                    
+                        targetGO.transform.Rotation = direction.Xyz.Normalized();
 
-                    gameObject.transform.Rotation = normalizedRotation;
-                    gameObject.transform.Position = transformedPosition.Xyz;
+                        node.Transform.DecomposeNoScaling(out Assimp.Quaternion rot, out Vector3D assimpPos);
+                        targetGO.transform.Position = new OpenTK.Mathematics.Vector3(assimpPos.X, assimpPos.Y, assimpPos.Z) * 0.02f;
+                    }
 
 
-                    // find GO with same name
-                    var parent = FindGOByName(rootGO, light.Name);
-                    parent?.AddChild(gameObject);
+                    // Fallback: create a new GO if not found
+                    if (targetGO == null)
+                    {
+                        targetGO = new GameObject();
+                        targetGO.Name = light.Name;
+                        node.Transform.DecomposeNoScaling(out Assimp.Quaternion rot, out Vector3D assimpPos);
+                        targetGO.transform.Position = new OpenTK.Mathematics.Vector3(assimpPos.X, assimpPos.Y, assimpPos.Z) * 0.02f;
+                        targetGO.transform.Rotation = new OpenTK.Mathematics.Vector3(light.Direction.X, light.Direction.Y, light.Direction.Z);
+                        rootGO.AddChild(targetGO);
+                    }
+
                 }
-                else
-                {
-                    rootGO.AddChild(gameObject);
-                }
 
+                var lightComponent = targetGO.AddComponent<LightComponent>();
+                lightComponent.LightType = lightType;
+                lightComponent.Enabled = true;
+                lightComponent.Radius = ComputeLightRange(light) * 0.02f;
 
-                lights.Add(gameObject);
+                float intensity = 0.2126f * light.ColorDiffuse.R + 0.7152f * light.ColorDiffuse.G + 0.0722f * light.ColorDiffuse.B;
+                lightComponent.Color = new Color4((float)Math.Clamp(light.ColorDiffuse.R, 0, 1), (float)Math.Clamp(light.ColorDiffuse.G, 0, 1), (float)Math.Clamp(light.ColorDiffuse.B, 0, 1), 1f);
+                lightComponent.Intensity = Math.Max(Math.Max(light.ColorDiffuse.R, light.ColorDiffuse.G), light.ColorDiffuse.B) / 100;
+                lightComponent.OuterCutoff = MathHelper.RadiansToDegrees(light.AngleOuterCone) / 2;
+                lightComponent.InnerCutoff = MathHelper.RadiansToDegrees(light.AngleInnerCone) / 2;
+                lightComponent.LinearFactor = light.AttenuationLinear;
+                lightComponent.QuadraticFactor = light.AttenuationQuadratic;
+
+                lights.Add(targetGO);
             }
+
 
             importer.Dispose();
 
@@ -214,22 +223,58 @@ namespace EmberaEngine.Engine.Utilities
             return new ModelData { rootObject = rootGO, meshObjects = meshObjects, cameras = cameras, lights = lights };
         }
 
+        static bool TryGetLightType(LightSourceType type, out LightType result)
+        {
+            result = type switch
+            {
+                LightSourceType.Point => LightType.PointLight,
+                LightSourceType.Spot => LightType.SpotLight,
+                LightSourceType.Directional => LightType.DirectionalLight,
+                _ => default
+            };
+            return type == LightSourceType.Point || type == LightSourceType.Spot || type == LightSourceType.Directional;
+        }
+
+
         public static Mesh ProcessMesh(Assimp.Mesh mesh, Assimp.Scene scene, Assimp.Matrix4x4 transform, string path = "")
         {
             List<Vertex> vertices = new List<Vertex>();
             int[] indices = mesh.GetIndices();
 
+            OpenTK.Mathematics.Vector3 position = Matrix4.Transpose(ToOpenTKMatrix(transform)).ExtractTranslation();
+
+            Matrix4 modelMatrix = ToOpenTKMatrix(transform) * Matrix4.CreateScale(0.02f);
+
+            // Compute normal matrix (3x3 inverse-transpose of the upper-left model matrix)
+            Matrix3 normalMatrix = new Matrix3(modelMatrix);
+            normalMatrix = Matrix3.Transpose(Matrix3.Invert(normalMatrix));
+
+
             for (int i = 0; i < mesh.VertexCount; i++)
             {
                 Vertex vertex;
-                OpenTK.Mathematics.Vector3 modifiedVertex = (OpenTK.Mathematics.Vector4.TransformColumn(ToOpenTKMatrix(transform), new OpenTK.Mathematics.Vector4(mesh.Vertices[i].X, mesh.Vertices[i].Y, mesh.Vertices[i].Z, 1)) * Matrix4.CreateScale(0.02f)).Xyz;
-                OpenTK.Mathematics.Vector3 modifiedNormals = (OpenTK.Mathematics.Vector4.TransformColumn(ToOpenTKMatrix(transform), new OpenTK.Mathematics.Vector4((mesh.Normals[i].X, mesh.Normals[i].Y, mesh.Normals[i].Z, 1))) * Matrix4.CreateScale(0.02f)).Xyz;
+                OpenTK.Mathematics.Vector3 modifiedVertex = /*new OpenTK.Mathematics.Vector3(mesh.Vertices[i].X, mesh.Vertices[i].Y, mesh.Vertices[i].Z);*/ (OpenTK.Mathematics.Vector4.TransformColumn(ToOpenTKMatrix(transform), new OpenTK.Mathematics.Vector4(mesh.Vertices[i].X, mesh.Vertices[i].Y, mesh.Vertices[i].Z, 1)) * Matrix4.CreateScale(0.02f)).Xyz;
+                //OpenTK.Mathematics.Vector3 modifiedNormals = /*new OpenTK.Mathematics.Vector3(mesh.Normals[i].X, mesh.Normals[i].Y, mesh.Normals[i].Z);*/ (OpenTK.Mathematics.Vector4.TransformColumn(ToOpenTKMatrix(transform), new OpenTK.Mathematics.Vector4((mesh.Normals[i].X, mesh.Normals[i].Y, mesh.Normals[i].Z, 1))) * Matrix4.CreateScale(0.02f)).Xyz;
+                //OpenTK.Mathematics.Vector3 modifiedTangents = new OpenTK.Mathematics.Vector3(mesh.Tangents[i].X, mesh.Tangents[i].Y, mesh.Tangents[i].Z);
+                //OpenTK.Mathematics.Vector3 modifiedBiTangents = new OpenTK.Mathematics.Vector3(mesh.BiTangents[i].X, mesh.BiTangents[i].Y, mesh.BiTangents[i].Z);
+
+                OpenTK.Mathematics.Vector3 originalNormal = new OpenTK.Mathematics.Vector3(mesh.Normals[i].X, mesh.Normals[i].Y, mesh.Normals[i].Z);
+                OpenTK.Mathematics.Vector3 modifiedNormals = OpenTK.Mathematics.Vector3.Normalize(TransformNormal(normalMatrix, originalNormal));
+
+                // Transform tangent (w=0, same treatment as normal)
+                OpenTK.Mathematics.Vector3 originalTangent = new OpenTK.Mathematics.Vector3(mesh.Tangents[i].X, mesh.Tangents[i].Y, mesh.Tangents[i].Z);
+                OpenTK.Mathematics.Vector3 modifiedTangents = OpenTK.Mathematics.Vector3.Normalize(TransformNormal(normalMatrix, originalTangent));
+
+                // Copy bitangent directly, or recompute in shader if using handedness
+                OpenTK.Mathematics.Vector3 originalBiTangent = new OpenTK.Mathematics.Vector3(mesh.BiTangents[i].X, mesh.BiTangents[i].Y, mesh.BiTangents[i].Z);
+                OpenTK.Mathematics.Vector3 modifiedBiTangents = OpenTK.Mathematics.Vector3.Normalize(TransformNormal(normalMatrix, originalBiTangent));
+
                 if (mesh.TextureCoordinateChannels[0].Count != 0)
                 {
                     modifiedNormals.Normalize();
                     if (mesh.Tangents.Count > 0 && mesh.BiTangents.Count > 0)
                     {
-                        vertex = new Vertex(modifiedVertex, modifiedNormals, new OpenTK.Mathematics.Vector2(mesh.TextureCoordinateChannels[0][i].X, mesh.TextureCoordinateChannels[0][i].Y), new OpenTK.Mathematics.Vector3(mesh.Tangents[i].X, mesh.Tangents[i].Y, mesh.Tangents[i].Z), new OpenTK.Mathematics.Vector3(mesh.BiTangents[i].X, mesh.BiTangents[i].Y, mesh.BiTangents[i].Z));
+                        vertex = new Vertex(modifiedVertex, modifiedNormals, new OpenTK.Mathematics.Vector2(mesh.TextureCoordinateChannels[0][i].X, mesh.TextureCoordinateChannels[0][i].Y), modifiedTangents, modifiedBiTangents);
                     }
                     else
                     {
@@ -238,7 +283,7 @@ namespace EmberaEngine.Engine.Utilities
                 }
                 else
                 {
-                    vertex = new Vertex(modifiedVertex, modifiedNormals, OpenTK.Mathematics.Vector2.Zero);
+                    vertex = new Vertex(modifiedVertex, modifiedNormals, OpenTK.Mathematics.Vector2.Zero, modifiedTangents, modifiedBiTangents);
                 }
                 vertices.Add(vertex);
             }
@@ -279,8 +324,7 @@ namespace EmberaEngine.Engine.Utilities
             mat.Set("material.metallic", 0f);
             mat.Set("material.roughness", 1f - assimpMat.Reflectivity);
             mat.Set("material.emission", new OpenTK.Mathematics.Vector3(assimpMat.ColorEmissive.R, assimpMat.ColorEmissive.G, assimpMat.ColorEmissive.B));
-            mat.Set("material.emissionStr", 1f);
-            mat.Set("material.ambient", 0.1f);
+            mat.Set("material.emissionStr", assimpMat.TextureEmissive.BlendFactor);
 
             TrySetTexture(assimpMat, TextureType.Diffuse, "material.DIFFUSE_TEX", "material.useDiffuseMap", mat, baseDir);
             TrySetTexture(assimpMat, TextureType.Normals, "material.NORMAL_TEX", "material.useNormalMap", mat, baseDir);
@@ -340,6 +384,15 @@ namespace EmberaEngine.Engine.Utilities
             }
 
             return transform;
+        }
+
+        public static OpenTK.Mathematics.Vector3 TransformNormal(Matrix3 matrix, OpenTK.Mathematics.Vector3 vector)
+        {
+            return new OpenTK.Mathematics.Vector3(
+                matrix.M11 * vector.X + matrix.M12 * vector.Y + matrix.M13 * vector.Z,
+                matrix.M21 * vector.X + matrix.M22 * vector.Y + matrix.M23 * vector.Z,
+                matrix.M31 * vector.X + matrix.M32 * vector.Y + matrix.M33 * vector.Z
+            );
         }
 
 

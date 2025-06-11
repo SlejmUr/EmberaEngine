@@ -25,6 +25,9 @@ namespace EmberaEngine.Engine.Components
         private float outerCutoff = 1f;
         private float innerCutoff = 1f;
         private LightType lightType = LightType.PointLight;
+        private LightAttenuationType attenuationType = LightAttenuationType.Custom;
+        private float linearFactor = 0.7f;
+        private float quadraticFactor = 1.8f;
 
         public LightType LightType
         {
@@ -59,6 +62,32 @@ namespace EmberaEngine.Engine.Components
         {
             get => intensity;
             set { intensity = value; OnChangedValue(); }
+        }
+
+        public LightAttenuationType AttenuationFunction
+        {
+            get => this.attenuationType;
+            set
+            {
+                this.attenuationType = value;
+                OnChangedValue();
+            }
+        }
+
+        public float LinearFactor
+        {
+            get => linearFactor;
+            set { linearFactor = value; OnChangedValue(); }
+        }
+
+        public float QuadraticFactor
+        {
+            get => quadraticFactor;
+            set
+            {
+                quadraticFactor = value;
+                OnChangedValue();
+            }
         }
 
         public float InnerCutoff
@@ -117,6 +146,8 @@ namespace EmberaEngine.Engine.Components
                 pointLight.range = radius;
                 pointLight.intensity = intensity;
                 pointLight.enabled = enabled;
+                pointLight.attenuationType = (int)attenuationType;
+                pointLight.attenuationParameters = new Vector2(linearFactor, quadraticFactor);
             }
             else if (LightType == LightType.SpotLight)
             {

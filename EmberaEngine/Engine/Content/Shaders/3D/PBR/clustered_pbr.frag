@@ -8,15 +8,10 @@ layout(early_fragment_tests) in;
 
 in vec2 texCoords;
 in vec3 Normal;
-in vec3 Tangent;
+in vec4 Tangent;
 in vec3 BiTangent;
 in vec3 FragPos;
 in vec3 WorldPos;
-
-const vec3 colors[8] = vec3[](
-   vec3(0, 0, 0),    vec3( 0,  0,  1), vec3( 0, 1, 0),  vec3(0, 1,  1),
-   vec3(1,  0,  0),  vec3( 1,  0,  1), vec3( 1, 1, 0),  vec3(1, 1, 1)
-);
 
 struct LightGrid {
 	uint offset;
@@ -38,7 +33,7 @@ struct DirectionalLight {
 struct PointLight {
 	vec4 position;
 	vec4 color;
-	float range;
+	vec4 range;
 };
 
 struct SpotLight {
@@ -63,7 +58,6 @@ struct Material {
 	int useNormalMap;
 	int useRoughnessMap;
 	int useEmissionMap;
-	bool useIBL;
 };
 
 layout (std430, binding = 0) buffer LightSSBO {
@@ -125,13 +119,14 @@ vec3 GammaCorrect(vec3 value);
 vec4 GetDiffuse();
 float GetRoughness();
 float GetMetallic();
-vec3 GetNormal(vec3 N);
+vec3 GetNormal();
 vec3 GetEmission();
+float ComputeAttenuation(PointLight light, float dist);
 
 
 void main() {
 
-	vec3 N = GetNormal(normalize(Normal));
+	vec3 N = GetNormal();
 	vec3 V = normalize(C_VIEWPOS - WorldPos);
 
 	vec4 diffuseColor = GetDiffuse();
@@ -185,7 +180,7 @@ void main() {
 	}
 
 	if (useIBL) {
-		radianceOut += CalcIBL(N, V, F0, albedo, R, material.roughness, material.metallic) * ambientFactor;
+		radianceOut += CalcIBL(N, V, F0, albedo, R, roughnessValue, material.metallic) * ambientFactor;
 	}
 
 
@@ -194,25 +189,29 @@ void main() {
 
 	FragColor = vec4(radianceOut, 1.0);
 	EmissionColor = vec4(emissive, 1);
+
+	//FragColor.rgb = vec3(texture(brdfLUT, vec2(0.5, 1.0)).rg, 1.0);
+	//FragColor.rgb = vec3(GetNormal());
 }
 
 vec3 CalcIBL(vec3 N, vec3 V, vec3 F0, vec3 albedo, vec3 R, float roughness, float metallic) {
-    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-    
-    vec3 kS = F;
-    vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;	  
-    
-    vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse      = irradiance * albedo;
-    
-    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-    const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
-    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+    // Ambient lighting (we now use IBL as the ambient term)
+	vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
 
-	return (kD * diffuse + specular * 0.4);
+	vec3 kS = F;
+	vec3 kD = 1.0 - kS;
+	kD *= 1.0 - metallic;
+
+	vec3 irradiance = texture(irradianceMap, N).rgb;
+	vec3 diffuse = irradiance * albedo;
+
+	// Sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+	const float MAX_REFLECTION_LOD = 4.0;
+	vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+	vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+
+	return (kD * diffuse + specular);
 }
 
 vec3 CalcDirectionalLight(vec3 normal, vec3 fragPos,
@@ -263,7 +262,7 @@ vec3 CalcPointLight(uint index, vec3 normal, vec3 fragPos,
 	//Point light basics
 	vec3 position = pointLights[index].position.xyz;
 	vec3 color    = 10.0 * pointLights[index].color.rgb * pointLights[index].color.w;
-	float radius  = pointLights[index].range;
+	float radius  = pointLights[index].range.x;
 
 	//Stuff common to the BRDF subfunctions 
 	vec3 lightDir = normalize(position - fragPos);
@@ -273,7 +272,7 @@ vec3 CalcPointLight(uint index, vec3 normal, vec3 fragPos,
 
 	//Attenuation calculation that is applied to all
 	float distance    = length(position - fragPos);
-	float attenuation = pow(clamp(1 - pow((distance / radius), 4.0), 0.0, 1.0), 2.0)/(1.0  + (distance * distance) );
+	float attenuation = ComputeAttenuation(pointLights[index], distance);//pow(clamp(1 - pow((distance / radius), 4.0), 0.0, 1.0), 2.0)/(1.0  + (distance * distance) );
 	vec3 radianceIn   = color * attenuation;
 
 	//Cook-Torrance BRDF
@@ -398,7 +397,44 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}   
+}
+
+float ComputeAttenuation(PointLight light, float dist) {
+	float r = light.range.x;
+	vec2 p = light.range.zw;
+
+	float t = clamp(dist / r, 0.0, 1.0); // Normalize distance
+
+	// Ensure everything fades to 0 at t = 1.0
+
+	float attenNone = 1.0 - t;
+
+	float attenLinear = 1.0 - t;
+
+	float attenQuadratic = 1.0 / (1.0 + p.x * dist + p.y * dist * dist);
+	attenQuadratic *= 1.0 - t;
+
+	float attenCustom = pow(1.0 - pow(t, 4.0), 2.0) / (1.0 + dist * dist);
+
+	// Clamp to 0 if beyond radius
+	attenCustom *= step(dist, r);
+	attenQuadratic *= step(dist, r);
+	attenLinear *= step(dist, r);
+	attenNone *= step(dist, r);
+
+	
+	float maskCustom    = float(light.range.y == 0);
+	float maskNone      = float(light.range.y == 1);
+	float maskLinear    = float(light.range.y == 2);
+	float maskQuadratic = float(light.range.y == 3);
+
+	return maskNone      * attenNone +
+	       maskLinear    * attenLinear +
+	       maskQuadratic * attenQuadratic +
+	       maskCustom    * attenCustom;
+}
+
+
 
 
 float linearDepth(float depthSample){
@@ -430,10 +466,17 @@ vec3 GetEmission() {
 }
 
 
-vec3 GetNormal(vec3 N) {
-	mat3 toWorld = mat3(Tangent, BiTangent, N); 
-	vec3 normalMap = texture(material.NORMAL_TEX, texCoords).rgb * 2.0 - 1.0;
-	normalMap = toWorld * normalMap;
-	return mix(N, normalMap, float(material.useNormalMap));
+vec3 GetNormal() {
+    vec3 N = normalize(Normal);
+    vec3 T = normalize(Tangent.xyz);
+    vec3 B = normalize(cross(N, T) * Tangent.w);
+	mat3 TBN = mat3(T, B, N);
 
+    vec3 normalMap = texture(material.NORMAL_TEX, texCoords).rgb;
+	//normalMap.g = 1.0 - normalMap.g; // Flip Y
+	normalMap = normalMap * 2.0 - 1.0;
+
+    normalMap = normalize(TBN * normalMap);
+
+    return mix(N, normalMap, float(material.useNormalMap));
 }

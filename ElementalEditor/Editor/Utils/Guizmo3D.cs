@@ -38,6 +38,7 @@ namespace ElementalEditor.Editor.Utils
 
         public static void RenderCube(Vector3 position, Vector3 scale, Vector3 rotation)
         {
+            GraphicsState.SetLineSmooth(true);
             if (renderCamera == null) { return; }
             Matrix4 modelMatrix = Matrix4.CreateScale(scale);
             modelMatrix *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(rotation.X));
@@ -63,6 +64,7 @@ namespace ElementalEditor.Editor.Utils
 
         public static void RenderLightCircle(Vector3 position, Vector3 scale, Vector3 rotation)
         {
+            GraphicsState.SetLineSmooth(true);
             if (renderCamera == null) { return; }
             scale *= 2;
             Matrix4 modelMatrix = Matrix4.CreateScale(scale);
@@ -109,6 +111,7 @@ namespace ElementalEditor.Editor.Utils
 
         public static void RenderCircle(Vector3 position, Vector3 scale, Vector3 rotation)
         {
+            GraphicsState.SetLineSmooth(true);
             if (renderCamera == null) { return; }
 
             Matrix4 modelMatrix = Matrix4.CreateScale(scale);

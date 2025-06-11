@@ -14,7 +14,7 @@ struct LightGrid {
 struct PointLight {
 	vec4 position;
     vec4 color;
-    float range;
+    vec4 range;
 };
 
 struct SpotLight {
@@ -135,7 +135,7 @@ void main() {
 }
 
 bool testSphereAABB(uint light, uint tile){
-    float radius = sharedPointLights[light].range;
+    float radius = sharedPointLights[light].range.x;
     vec3 center  = vec3(W_VIEW_MATRIX * vec4(sharedPointLights[light].position.xyz, 1.0));
     float squaredDistance = sqDistPointAABB(center, tile);
 

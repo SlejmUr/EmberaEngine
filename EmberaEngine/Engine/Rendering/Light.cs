@@ -15,6 +15,14 @@ namespace EmberaEngine.Engine.Rendering
         DirectionalLight
     }
 
+    public enum LightAttenuationType
+    {
+        Custom = 0,
+        Constant = 1,
+        Linear = 2,
+        Quadratic = 3,
+    }
+
     public class DirectionalLight
     {
         public GPUDirectionalLight internalLight;
@@ -108,10 +116,29 @@ namespace EmberaEngine.Engine.Rendering
 
         public float range
         {
-            get => this.internalLight.range;
+            get => this.internalLight.range.X;
             set
             {
-                this.internalLight.range = value;
+                this.internalLight.range.X = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public int attenuationType
+        {
+            get => (int)this.internalLight.range.Y;
+            set {
+                this.internalLight.range.Y = value;
+                this.needsUpdate = true;
+            }
+        }
+
+        public Vector2 attenuationParameters
+        {
+            get => this.internalLight.range.Zw;
+            set
+            {
+                this.internalLight.range.Zw = value;
                 this.needsUpdate = true;
             }
         }
@@ -234,9 +261,9 @@ namespace EmberaEngine.Engine.Rendering
     {
         public Vector4 position; // 3 floats for position 1 float enabled/disabled
         public Vector4 color; // 3 floats for color 1 float for intensity
-        public float range;
+        public Vector4 range; // 1 float range, 1 float attenuation type, 2 floats attenuation parameters (Linear Factor and QuadraticFactor)
 
-        private fixed byte _padding[12];
+        //private fixed byte _padding[12];
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 16)]

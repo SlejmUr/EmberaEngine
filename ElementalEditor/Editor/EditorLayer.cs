@@ -34,13 +34,13 @@ namespace ElementalEditor.Editor
         {
             AddPanel<MenuBar>();
             AddPanel<ViewportPanel>();
-            AddPanel<GameObjectPanel>();
             AddPanel<ProjectAssetPanel>();
             AddPanel<DebugLogPanel>();
             AddPanel<ExperimentalPanel>();
             AddPanel<PerformancePanel>();
             AddPanel<MaterialPanel>();
             AddPanel<GuizmoPanel>();
+            AddPanel<GameObjectPanel>();
         }
 
         void LoadProject()
