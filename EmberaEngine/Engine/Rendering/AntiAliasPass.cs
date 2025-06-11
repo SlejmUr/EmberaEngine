@@ -1,4 +1,5 @@
 ﻿using EmberaEngine.Engine.Core;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,39 +14,74 @@ namespace EmberaEngine.Engine.Rendering
 
         Texture outputTexture;
 
+        Shader fxaaShader;
+
+        Vector2 screenSize;
+
+        bool isActive;
+
         public void Initialize(int width, int height)
         {
+            screenSize = new Vector2(width, height);
+
             outputTexture = new Texture(TextureTarget2d.Texture2D);
-            outputTexture.TexImage2D(width, height, PixelInternalFormat.Rgb32f, PixelFormat.Rgb, PixelType.Float, IntPtr.Zero);
+            outputTexture.TexImage2D(width, height, PixelInternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
             outputTexture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
+            outputTexture.GenerateMipmap();
 
             fxaaBuffer = new Framebuffer("FXAA Buffer");
             fxaaBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, outputTexture);
+
+            fxaaShader = new Shader("Engine/Content/Shaders/3D/basic/fullscreen.vert", "Engine/Content/Shaders/3D/AA/fxaa.frag");
         }
 
         public void Apply(FrameData frameData)
         {
+            Vector2 texelStep = new Vector2(1.0f /  screenSize.X, 1.0f / screenSize.Y);
+
+            fxaaBuffer.Bind();
+            GraphicsState.Clear(true);
+            GraphicsState.SetCulling(false);
+            GraphicsState.SetDepthTest(false);
+
+            fxaaShader.Use();
+            fxaaShader.SetInt("INPUT_TEXTURE", 0);
+            fxaaShader.SetVector2("TEXEL_STEP", texelStep);
+            fxaaShader.SetInt("FXAA_ON", isActive ?  1 : 0);
+
+            GraphicsState.SetTextureActiveBinding(TextureUnit.Texture0);
+            Renderer3D.GetComposite().GetFramebufferTexture(0).Bind();
+
+            Graphics.DrawFullScreenTri();
+            GraphicsState.SetDepthTest(true);
+            GraphicsState.SetCulling(true);
+
+
 
         }
 
         public Framebuffer GetOutputFramebuffer()
         {
-            throw new NotImplementedException();
+            return fxaaBuffer;
         }
 
         public bool GetState()
         {
-            throw new NotImplementedException();
+            return isActive;
         }
 
         public void Resize(int width, int height)
         {
-            throw new NotImplementedException();
+            screenSize = new Vector2(width, height);
+
+            outputTexture.TexImage2D(width, height, PixelInternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+            outputTexture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
+            outputTexture.GenerateMipmap();
         }
 
         public void SetState(bool value)
         {
-            throw new NotImplementedException();
+            this.isActive = value;
         }
     }
 }

@@ -95,6 +95,7 @@
     <None Remove="Engine\Content\Shaders\2D\nine_slice.frag" />
     <None Remove="Engine\Content\Shaders\2D\sprite2d.frag" />
     <None Remove="Engine\Content\Shaders\2D\sprite2d.vert" />
+    <None Remove="Engine\Content\Shaders\3D\AA\fxaa.frag" />
     <None Remove="Engine\Content\Shaders\3D\AO\ssao.frag" />
     <None Remove="Engine\Content\Shaders\3D\AO\ssao.vert" />
     <None Remove="Engine\Content\Shaders\3D\AO\ssaoBlur.frag" />
@@ -350,6 +351,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Models\SSAO Test\untitled.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Engine\Content\Shaders\3D\AA\fxaa.frag">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Engine\Content\Shaders\3D\AO\ssao.frag">

@@ -21,6 +21,7 @@ namespace EmberaEngine.Engine.Rendering
         public float Exposure;
         public bool useBloom;
         public bool useSSAO;
+        public bool useAntialiasing;
         public bool useSkybox;
         public bool useIBL;
         public bool useShadows;

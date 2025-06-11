@@ -84,7 +84,9 @@ namespace EmberaEngine.Engine.Rendering
         private IRenderPass GBufferPass;
         private IRenderPass SSAOPass;
         private IRenderPass VolumetricFogPass;
+        private IRenderPass FXAAPass;
         private IRenderPass BloomPass;
+        
 
         private Shader clusteredPBRShader;
         private Shader fullScreenTonemap;
@@ -99,7 +101,8 @@ namespace EmberaEngine.Engine.Rendering
             useSkybox = true,
             AmbientFactor = 0.1f,
             useIBL = true,
-            useShadows = true
+            useShadows = true,
+            useAntialiasing = true,
         };
 
         private float oldFOV;
@@ -155,6 +158,9 @@ namespace EmberaEngine.Engine.Rendering
 
             VolumetricFogPass = new VolumetricFogPass();
             VolumetricFogPass.Initialize(width, height);
+
+            FXAAPass = new AntiAliasPass();
+            FXAAPass.Initialize(width, height);
 
             BloomPass = new BloomPass();
             BloomPass.Initialize(width, height);
@@ -259,7 +265,7 @@ namespace EmberaEngine.Engine.Rendering
             FrameData frameData = Renderer3D.GetFrameData();
             frameData.EffectFrameBuffer = Renderer3D.GetComposite();
 
-
+            FXAAPass.Apply(frameData);
             //VolumetricFogPass.Apply(frameData);
             BloomPass.Apply(frameData);
 
@@ -285,7 +291,8 @@ namespace EmberaEngine.Engine.Rendering
             fullScreenTonemap.SetInt("USE_BLOOM", renderSettings.useBloom ? 1 : 0);
             fullScreenTonemap.SetFloat("EXPOSURE", renderSettings.Exposure);
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture0);
-            Renderer3D.GetComposite().GetFramebufferTexture(0).Bind();
+            FXAAPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
+            //Renderer3D.GetComposite().GetFramebufferTexture(0).Bind();
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture1);
             SSAOPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture2);
@@ -380,6 +387,7 @@ namespace EmberaEngine.Engine.Rendering
             GBufferPass.Resize(width, height);
             SSAOPass.Resize(width, height);
             BloomPass.Resize(width, height);
+            FXAAPass.Resize(width, height);
 
             Camera camera = Renderer3D.GetRenderCamera();
             if (camera == null) { return; }
@@ -405,6 +413,7 @@ namespace EmberaEngine.Engine.Rendering
 
             BloomPass.SetState(renderSetting.useBloom);
             SSAOPass.SetState(renderSetting.useSSAO);
+            FXAAPass.SetState(renderSetting.useAntialiasing);
 
         }
 

@@ -17,9 +17,10 @@ namespace EmberaEngine.Engine.Components
         private bool useBloom = true;
         private bool useSSAO = true;
         private bool useIBL = true;
+        private bool useAntialiasing = true;
         private bool renderSkybox = true;
         private Color4 ambientColor = Color4.Black;
-        private float ambientFactor = 1f;
+        private float ambientFactor = 0.1f;
 
 
         private RenderSetting renderSetting;
@@ -74,6 +75,16 @@ namespace EmberaEngine.Engine.Components
             }
         }
 
+        public bool UseAntiAliasing
+        {
+            get => useAntialiasing;
+            set
+            {
+                useAntialiasing = value;
+                OnChangeValue();
+            }
+        }
+
         public bool RenderSkybox
         {
             get => renderSkybox;
@@ -119,6 +130,7 @@ namespace EmberaEngine.Engine.Components
             renderSetting.Exposure = exposure;
             renderSetting.tonemapFunction = tonemapFunction;
             renderSetting.useIBL = useIBL;
+            renderSetting.useAntialiasing = useAntialiasing;
             renderSetting.useSkybox = renderSkybox;
             renderSetting.AmbientColor = ambientColor;
             renderSetting.AmbientFactor = ambientFactor;
