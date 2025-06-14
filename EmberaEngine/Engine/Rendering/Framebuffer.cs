@@ -42,11 +42,23 @@ namespace EmberaEngine.Engine.Rendering
             TextureAttachments.Add(tex);
         }
 
+        public void AttachFramebufferTexture(FramebufferAttachment attachment, TextureTarget textureTarget, Texture tex, int level = 0)
+        {
+            Bind();
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, textureTarget, tex.GetRendererID(), level);
+            TextureAttachments.Add(tex);
+        }
+
         public void AttachFramebufferTextureLayer(FramebufferAttachment attachment, Texture tex, int level = 0, int layer = 0)
         {
             Bind();
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.TextureCubeMapPositiveX + layer, tex.GetRendererID(), level);
             TextureAttachments.Add(tex);
+        }
+
+        public void DetachFrameBufferTexture(int index)
+        {
+            TextureAttachments.RemoveAt(index);
         }
 
         public void SetFramebufferTexture(FramebufferAttachment attachment, Texture tex, int level = 0)
@@ -106,11 +118,30 @@ namespace EmberaEngine.Engine.Rendering
             GL.ClearColor(color.Item1, color.Item2, color.Item3, color.Item4);
         }
 
-        public static void BlitFrameBuffer(Framebuffer buffer1, Framebuffer buffer2, (int,int,int,int)srcXY, (int,int,int,int)dstXY, ClearBufferMask mask, BlitFramebufferFilter filter, ReadBufferMode readBufferMode = ReadBufferMode.ColorAttachment0)
+        public static void BlitFrameBuffer(
+            Framebuffer src, Framebuffer dst,
+            (int, int, int, int) srcXY,
+            (int, int, int, int) dstXY,
+            ClearBufferMask mask,
+            BlitFramebufferFilter filter,
+            ReadBufferMode readBufferMode = ReadBufferMode.ColorAttachment0,
+            DrawBufferMode drawBufferMode = DrawBufferMode.ColorAttachment0)
         {
-            GL.NamedFramebufferReadBuffer(buffer1.GetRendererID(), readBufferMode);
-            GL.BlitNamedFramebuffer(buffer1.GetRendererID(), buffer2.GetRendererID(), srcXY.Item1, srcXY.Item2, srcXY.Item3, srcXY.Item4, dstXY.Item1, dstXY.Item2, dstXY.Item3, dstXY.Item4, mask, filter);
+            // Set source read buffer
+            GL.NamedFramebufferReadBuffer(src.GetRendererID(), readBufferMode);
+
+            // Set destination draw buffer
+            GL.NamedFramebufferDrawBuffer(dst.GetRendererID(), drawBufferMode);
+
+            // Blit from src to dst
+            GL.BlitNamedFramebuffer(
+                src.GetRendererID(), dst.GetRendererID(),
+                srcXY.Item1, srcXY.Item2, srcXY.Item3, srcXY.Item4,
+                dstXY.Item1, dstXY.Item2, dstXY.Item3, dstXY.Item4,
+                mask, filter
+            );
         }
+
 
         public static void Unbind(FramebufferTarget target = FramebufferTarget.Framebuffer)
         {
@@ -140,7 +171,7 @@ namespace EmberaEngine.Engine.Rendering
                 int handleToDelete = rendererID;
                 MainThreadDispatcher.Queue(() =>
                 {
-                    GL.DeleteFramebuffer(handleToDelete);
+                    //GL.DeleteFramebuffer(handleToDelete);
                     Console.WriteLine("Disposed Texture: " + handleToDelete);
                 });
                 rendererID = 0;

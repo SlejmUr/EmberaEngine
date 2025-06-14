@@ -33,13 +33,13 @@ namespace ElementalEditor.Editor
         public EditorLayer()
         {
             AddPanel<MenuBar>();
+            AddPanel<GuizmoPanel>();
             AddPanel<ViewportPanel>();
             AddPanel<ProjectAssetPanel>();
             AddPanel<DebugLogPanel>();
             AddPanel<ExperimentalPanel>();
             AddPanel<PerformancePanel>();
             AddPanel<MaterialPanel>();
-            AddPanel<GuizmoPanel>();
             AddPanel<GameObjectPanel>();
         }
 
@@ -211,15 +211,15 @@ namespace ElementalEditor.Editor
 
             //ModelData meshLoaderOutput = ModelImporter.LoadModel("res://Sponza/sponza.obj");
 
-            ModelData meshLoaderOutput = ModelImporter.LoadModel("AmbientShadowTesting/ambient_shadow_testing.fbx");
-            if (meshLoaderOutput.rootObject == null)
-            {
-                return;
-            }
+            //ModelData meshLoaderOutput = ModelImporter.LoadModel("AmbientShadowTesting/ambient_shadow_testing.fbx");
+            //if (meshLoaderOutput.rootObject == null)
+            //{
+            //    return;
+            //}
 
             //Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/Portal2-Elevator/scene.gltf");
 
-            EditorCurrentScene.addGameObject(meshLoaderOutput.rootObject);
+            //EditorCurrentScene.addGameObject(meshLoaderOutput.rootObject);
         }
 
         GameObject barrelObject;

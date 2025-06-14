@@ -24,6 +24,7 @@ namespace EmberaEngine.Engine.Utilities
         public string name;
         public string fileID;
         public bool Renderable = true;
+        public bool isHighlighted = false ;
 
         internal Matrix4 worldMatrix;
 

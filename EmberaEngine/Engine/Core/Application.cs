@@ -48,6 +48,7 @@ namespace EmberaEngine.Engine.Core
             }
 
             window = new Window(windowSpec);
+            Renderer.Initialize(appSpec.Width, appSpec.Height);
 
             window.Load += OnLoad;
             window.UpdateFrame += OnUpdateFrame;
@@ -65,8 +66,6 @@ namespace EmberaEngine.Engine.Core
             window.MouseLeave += OnMouseLeave;
             window.MouseUp += OnMouseInput;
             window.MouseWheel += OnMouseWheel;
-
-            Renderer.Initialize(appSpec.Width, appSpec.Height);
 
             this.appSpec = appSpec;
         }

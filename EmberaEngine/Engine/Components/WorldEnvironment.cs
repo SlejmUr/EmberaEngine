@@ -21,6 +21,7 @@ namespace EmberaEngine.Engine.Components
         private bool renderSkybox = true;
         private Color4 ambientColor = Color4.Black;
         private float ambientFactor = 0.1f;
+        private MSAA_Samples msaa_samples;
 
 
         private RenderSetting renderSetting;
@@ -115,6 +116,16 @@ namespace EmberaEngine.Engine.Components
             }
         }
 
+        public MSAA_Samples MSAA
+        {
+            get => msaa_samples;
+            set
+            {
+                msaa_samples = value;
+                OnChangeValue();
+            }
+        }
+
 
         public override void OnStart()
         {
@@ -132,6 +143,7 @@ namespace EmberaEngine.Engine.Components
             renderSetting.useIBL = useIBL;
             renderSetting.useAntialiasing = useAntialiasing;
             renderSetting.useSkybox = renderSkybox;
+            renderSetting.MSAA = msaa_samples;
             renderSetting.AmbientColor = ambientColor;
             renderSetting.AmbientFactor = ambientFactor;
 

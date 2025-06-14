@@ -121,18 +121,22 @@ namespace EmberaEngine.Engine.Rendering
                 Matrix4.LookAt(Vector3.Zero, new Vector3( 0.0f,  0.0f, -1.0f), -Vector3.UnitY),  // Backward
             ];
 
-            Console.WriteLine(skyboxTexture.GetRendererID());
+            Console.WriteLine("SKYBOX: " + skyboxTexture.GetRendererID());
             GraphicsState.SetCubemapSeamless(true);
         }
 
+        static int frameCounter = 0;
         public static void Render()
         {
-            if (convertHDRItoCubemap)
+            frameCounter++;
+            if (convertHDRItoCubemap && frameCounter > 1)
             {
+                OpenTK.Graphics.OpenGL.GL.Flush();
+                OpenTK.Graphics.OpenGL.GL.Finish();
                 GraphicsState.SetCulling(false);
                 GraphicsState.SetDepthTest(false);
                 GraphicsState.SetBlending(false);
-                GraphicsState.SetCubemapSeamless(true);
+                //GraphicsState.SetCubemapSeamless(true);
 
                 ConvertHDRIToCubemap();
                 GenerateIrradianceMap();
@@ -149,23 +153,33 @@ namespace EmberaEngine.Engine.Rendering
 
         public static void RenderCube()
         {
+
             Camera camera = Renderer3D.GetRenderCamera();
+
+            // Clear before drawing skybox
+            //GraphicsState.Clear(true, true);
+
+            // Use proper depth testing (test yes, write no)
+            GraphicsState.SetDepthTest(true);
+            GraphicsState.SetDepthMask(false);
+            GraphicsState.SetCulling(false);
 
             skyboxShader.Use();
             skyboxShader.SetMatrix4("W_PROJECTION_MATRIX", camera.GetProjectionMatrix());
             skyboxShader.SetMatrix4("W_VIEW_MATRIX", new Matrix4(new Matrix3(camera.GetViewMatrix())));
             skyboxShader.SetInt("SKYBOX_TEXTURE", 0);
 
+            Console.WriteLine("BINDING!");
             skyboxTexture.SetActiveUnit(TextureUnit.Texture0);
-            skyboxTexture.Bind();
+            skyboxTexture.Bind(OpenTK.Graphics.OpenGL.TextureTarget.TextureCubeMap);
 
-
-            GraphicsState.SetCulling(false);
-            GraphicsState.SetDepthTest(false);
             CubeMesh.Draw();
-            GraphicsState.SetCulling(true);
+
             GraphicsState.SetDepthTest(true);
+            GraphicsState.SetDepthMask(true);
+            GraphicsState.SetCulling(true);
         }
+
 
         public static Texture GetIrradianceMap()
         {
@@ -185,6 +199,7 @@ namespace EmberaEngine.Engine.Rendering
         static void GenerateBRDFLUT()
         {
             prefilterMapFB.Bind();
+            GraphicsState.Clear(true, true);
 
             prefilterMapFB.SetFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, brdfLUTTexture);
 
@@ -200,7 +215,7 @@ namespace EmberaEngine.Engine.Rendering
         static void GeneratePreFilterMap()
         {
             prefilterMapFB.Bind();
-
+            GraphicsState.Clear(true, true);
 
             GraphicsState.SetViewport(0, 0, prefilterMapSize.X, prefilterMapSize.Y);
 
@@ -239,6 +254,7 @@ namespace EmberaEngine.Engine.Rendering
         static void GenerateIrradianceMap()
         {
             irradianceMapFB.Bind();
+            GraphicsState.Clear(true, true);
 
             GraphicsState.SetViewport(0, 0, irradianceMapSize.X, irradianceMapSize.Y);
 
@@ -252,7 +268,7 @@ namespace EmberaEngine.Engine.Rendering
             {
                 irradianceMapShader.SetMatrix4("W_VIEW_MATRIX", irradianceViewMatrices[i]);
 
-                cubemapCreationFB.SetFramebufferTextureLayer(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, irradianceTexture, 0, i);
+                irradianceMapFB.SetFramebufferTextureLayer(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, irradianceTexture, 0, i);
 
                 CubeMesh.Draw();
             }
@@ -266,6 +282,7 @@ namespace EmberaEngine.Engine.Rendering
         static void ConvertHDRIToCubemap()
         {
             cubemapCreationFB.Bind();
+            GraphicsState.Clear(true, true);
 
             GraphicsState.SetViewport(0, 0, sizeX, sizeY);
             panoramaConvertShader.Use();
@@ -276,13 +293,18 @@ namespace EmberaEngine.Engine.Rendering
                 panoramaConvertShader.SetInt("face", i);
                 panoramaConvertShader.SetInt("panoramicTexture", 0);
                 panoramaConvertShader.Apply();
-                loadedTexture.SetActiveUnit(TextureUnit.Texture0);
+                GraphicsState.SetTextureActiveBinding(TextureUnit.Texture0);
                 loadedTexture.Bind();
 
                 Graphics.DrawFullScreenTri();
             }
-            skyboxTexture.GenerateMipmap();
+            Console.WriteLine("CONVERT SHADER");
+            skyboxTexture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
+            //skyboxTexture.GenerateMipmap();
 
+            GraphicsState.CheckFBError();
+
+            Framebuffer.Unbind();
             Renderer3D.SetViewportDimensions();
         }
 

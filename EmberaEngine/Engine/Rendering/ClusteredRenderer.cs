@@ -71,8 +71,6 @@ namespace EmberaEngine.Engine.Rendering
         BufferObject<LightData> lightDataUBO;
         BufferObject<ScreenViewData> screenViewDataSSBO;
 
-
-
         Framebuffer TonemappedBuffer;
 
         Texture TonemappedTexture;
@@ -141,13 +139,13 @@ namespace EmberaEngine.Engine.Rendering
             TonemappedTexture.TexImage2D(width, height, Core.PixelInternalFormat.Rgba16f, Core.PixelFormat.Rgba, Core.PixelType.Float, IntPtr.Zero);
             TonemappedTexture.SetFilter(Core.TextureMinFilter.Linear, Core.TextureMagFilter.Linear);
 
-            TonemappedDepthTexture = new Texture(Core.TextureTarget2d.Texture2D);
-            TonemappedDepthTexture.TexImage2D(width, height, Core.PixelInternalFormat.Depth24Stencil8, Core.PixelFormat.DepthComponent, Core.PixelType.Float, IntPtr.Zero);
-            TonemappedDepthTexture.SetFilter(Core.TextureMinFilter.Nearest, Core.TextureMagFilter.Nearest);
+            //TonemappedDepthTexture = new Texture(Core.TextureTarget2d.Texture2D);
+            //TonemappedDepthTexture.TexImage2D(width, height, Core.PixelInternalFormat.Depth24Stencil8, Core.PixelFormat.DepthComponent, Core.PixelType.Float, IntPtr.Zero);
+            //TonemappedDepthTexture.SetFilter(Core.TextureMinFilter.Nearest, Core.TextureMagFilter.Nearest);
 
             TonemappedBuffer = new Framebuffer("Tonemap FrameBuffer");
             TonemappedBuffer.AttachFramebufferTexture(FramebufferAttachment.ColorAttachment0, TonemappedTexture);
-            TonemappedBuffer.AttachFramebufferTexture(FramebufferAttachment.DepthStencilAttachment, TonemappedDepthTexture);
+            TonemappedBuffer.AttachFramebufferTexture(FramebufferAttachment.DepthStencilAttachment, Renderer3D.GetResolved().GetFramebufferTexture(2));
             TonemappedBuffer.SetDrawBuffers([DrawBuffersEnum.ColorAttachment0]);
 
             GBufferPass = new GBufferPass();
@@ -155,12 +153,6 @@ namespace EmberaEngine.Engine.Rendering
 
             SSAOPass = new SSAOPass();
             SSAOPass.Initialize(width, height);
-
-            VolumetricFogPass = new VolumetricFogPass();
-            VolumetricFogPass.Initialize(width, height);
-
-            FXAAPass = new AntiAliasPass();
-            FXAAPass.Initialize(width, height);
 
             BloomPass = new BloomPass();
             BloomPass.Initialize(width, height);
@@ -186,10 +178,13 @@ namespace EmberaEngine.Engine.Rendering
             SSAOPass.Apply(frameData);
 
             if (renderSettings.useSkybox)
+            {
                 SkyboxManager.Render();
+            }
 
             Renderer3D.GetComposite().Bind();
             Renderer3D.ApplyPerFrameSettings(camera);
+
         }
 
         public void Render()
@@ -198,7 +193,6 @@ namespace EmberaEngine.Engine.Rendering
 
             if (camera.fovy != oldFOV)
             {
-                Console.WriteLine("Called");
                 CreateScreenViewSSBO(camera);
                 oldFOV = camera.fovy;
                 ComputeClusters(camera.nearClip, camera.farClip, camera.GetProjectionMatrix());
@@ -206,10 +200,10 @@ namespace EmberaEngine.Engine.Rendering
 
             CullLights(camera.GetViewMatrix());
 
-            List<Mesh> meshes = Renderer3D.GetMeshes();
-
             if (renderSettings.useSkybox)
                 SkyboxManager.RenderCube();
+
+            List<Mesh> meshes = Renderer3D.GetMeshes();
 
             for (int i = 0; i < meshes.Count; i++)
             {
@@ -257,24 +251,27 @@ namespace EmberaEngine.Engine.Rendering
 
                 mesh.Draw();
             }
+
+            Renderer3D.ResolveCompositeMS();
         }
 
 
         public void EndRender()
         {
             FrameData frameData = Renderer3D.GetFrameData();
-            frameData.EffectFrameBuffer = Renderer3D.GetComposite();
+            frameData.EffectFrameBuffer = Renderer3D.GetResolved();
 
-            FXAAPass.Apply(frameData);
             //VolumetricFogPass.Apply(frameData);
             BloomPass.Apply(frameData);
 
             CombineEffects();
+
+            //Framebuffer.Unbind();
         }
 
         public void CombineEffects()
         {
-            Framebuffer.BlitFrameBuffer(Renderer3D.GetComposite(), TonemappedBuffer, (0, 0, Renderer.Width, Renderer.Height), (0, 0, Renderer.Width, Renderer.Height), ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Nearest);
+            //Framebuffer.BlitFrameBuffer(Renderer3D.GetResolved(), TonemappedBuffer, (0, 0, Renderer.Width, Renderer.Height), (0, 0, Renderer.Width, Renderer.Height), ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Nearest);
 
             TonemappedBuffer.Bind();
             GraphicsState.SetCulling(false);
@@ -291,14 +288,12 @@ namespace EmberaEngine.Engine.Rendering
             fullScreenTonemap.SetInt("USE_BLOOM", renderSettings.useBloom ? 1 : 0);
             fullScreenTonemap.SetFloat("EXPOSURE", renderSettings.Exposure);
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture0);
-            FXAAPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
-            //Renderer3D.GetComposite().GetFramebufferTexture(0).Bind();
+            Renderer3D.GetResolved().GetFramebufferTexture(0).Bind();
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture1);
             SSAOPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture2);
             BloomPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
-            //GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture3);
-            //VolumetricFogPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
+
             fullScreenTonemap.Apply();
             Graphics.DrawFullScreenTri();
             GraphicsState.SetDepthTest(true);
@@ -381,13 +376,12 @@ namespace EmberaEngine.Engine.Rendering
             TonemappedTexture.TexImage2D(width, height, Core.PixelInternalFormat.Rgba16f, Core.PixelFormat.Rgba, Core.PixelType.Float, IntPtr.Zero);
             TonemappedTexture.GenerateMipmap();
 
-            TonemappedDepthTexture.TexImage2D(width, height, Core.PixelInternalFormat.Depth24Stencil8, Core.PixelFormat.DepthComponent, Core.PixelType.Float, IntPtr.Zero);
-            TonemappedDepthTexture.SetFilter(Core.TextureMinFilter.Nearest, Core.TextureMagFilter.Nearest);
+            //TonemappedDepthTexture.TexImage2D(width, height, Core.PixelInternalFormat.Depth24Stencil8, Core.PixelFormat.DepthComponent, Core.PixelType.Float, IntPtr.Zero);
+            //TonemappedDepthTexture.SetFilter(Core.TextureMinFilter.Nearest, Core.TextureMagFilter.Nearest);
 
             GBufferPass.Resize(width, height);
             SSAOPass.Resize(width, height);
             BloomPass.Resize(width, height);
-            FXAAPass.Resize(width, height);
 
             Camera camera = Renderer3D.GetRenderCamera();
             if (camera == null) { return; }
@@ -413,8 +407,10 @@ namespace EmberaEngine.Engine.Rendering
 
             BloomPass.SetState(renderSetting.useBloom);
             SSAOPass.SetState(renderSetting.useSSAO);
-            FXAAPass.SetState(renderSetting.useAntialiasing);
-
+            if (Renderer3D.GetMSAA() != (int)renderSetting.MSAA)
+            {
+                Renderer3D.SetMSAA((int)renderSetting.MSAA);
+            }
         }
 
         public RenderSetting GetRenderSettings()

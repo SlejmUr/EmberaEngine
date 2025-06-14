@@ -17,6 +17,7 @@ namespace EmberaEngine.Engine.Rendering
         Texture NormalTexture;
         Texture DepthTexture;
         Texture PositionTexture;
+        Texture CustomBitFlagBuffer;
 
         Shader gBufferShader;
 
@@ -37,7 +38,13 @@ namespace EmberaEngine.Engine.Rendering
             PositionTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             PositionTexture.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
-            DepthTexture = Renderer3D.GetComposite().GetFramebufferTexture(2);
+            CustomBitFlagBuffer = new Texture(TextureTarget2d.Texture2D);
+            CustomBitFlagBuffer.TexImage2D(width, height, PixelInternalFormat.R8ui, PixelFormat.RedInteger, PixelType.UnsignedByte, IntPtr.Zero);
+            CustomBitFlagBuffer.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            CustomBitFlagBuffer.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
+
+
+            DepthTexture = Renderer3D.GetResolved().GetFramebufferTexture(2);
 
             //DepthTexture = new Texture(TextureTarget2d.Texture2D);
             //DepthTexture.TexImage2D(width, height, PixelInternalFormat.Depth24Stencil8, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
@@ -46,12 +53,14 @@ namespace EmberaEngine.Engine.Rendering
             GeometryFB = new Framebuffer("Geometry Buffer");
             GeometryFB.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, NormalTexture);
             GeometryFB.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment1, PositionTexture);
+            GeometryFB.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment2, CustomBitFlagBuffer);
             GeometryFB.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.DepthStencilAttachment, DepthTexture);
 
             GeometryFB.SetDrawBuffers(
             [
                 OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment0,
-                OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment1
+                OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment1,
+                OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment2
             ]);
 
             gBufferShader = new Shader("Engine/Content/Shaders/3D/basic/gbuffer");
@@ -74,7 +83,8 @@ namespace EmberaEngine.Engine.Rendering
 
                 Matrix4 model = mesh.worldMatrix;
                 gBufferShader.SetMatrix4("W_MODEL_MATRIX", model);
-                gBufferShader.Apply();
+                gBufferShader.SetInt("HIGHLIGHT_BIT", mesh.isHighlighted ? 1 : 0);
+                    gBufferShader.Apply();
                 mesh.Draw();
             }
         }
@@ -93,6 +103,10 @@ namespace EmberaEngine.Engine.Rendering
             PositionTexture.TexImage2D(width, height, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
             PositionTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             PositionTexture.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
+
+            CustomBitFlagBuffer.TexImage2D(width, height, PixelInternalFormat.R8ui, PixelFormat.RedInteger, PixelType.UnsignedByte, IntPtr.Zero);
+            CustomBitFlagBuffer.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            CustomBitFlagBuffer.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
             DepthTexture.TexImage2D(width, height, PixelInternalFormat.Depth24Stencil8, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
             DepthTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);

@@ -154,6 +154,7 @@ namespace EmberaEngine.Engine.Core
             if (IsPlaying)
             {
                 component.OnStart();
+                Console.WriteLine("started");
             }
         }
 

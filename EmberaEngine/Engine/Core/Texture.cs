@@ -124,6 +124,11 @@ namespace EmberaEngine.Engine.Core
 
         public void SetFilter(TextureMinFilter minFilter, TextureMagFilter magFilter)
         {
+            if (target == TextureTarget.TextureCubeMap)
+            {
+                Console.WriteLine("FILTER: " + target);
+            }
+
             GL.TextureParameter(handle, TextureParameterName.TextureMinFilter, (int)minFilter);
             GL.TextureParameter(handle, TextureParameterName.TextureMagFilter, (int)magFilter);
         }
@@ -179,6 +184,16 @@ namespace EmberaEngine.Engine.Core
         {
             GL.BindTexture(target, handle);
             GL.TexImage2D(TextureTarget.Texture2D, 0, (OpenTK.Graphics.OpenGL.PixelInternalFormat)pixelInternalFormat, width, height, 0, (OpenTK.Graphics.OpenGL.PixelFormat)pixelFormat, (OpenTK.Graphics.OpenGL.PixelType)pixelType, pixels);
+            GL.BindTexture(target, 0);
+
+            this.Width = width;
+            this.Height = height;
+        }
+
+        public void TexImageMultisample2D(int width, int height, int samples, PixelInternalFormat pixelInternalFormat, IntPtr pixels)
+        {
+            GL.BindTexture(target, handle);
+            GL.TexImage2DMultisample((TextureTargetMultisample)target, samples, (OpenTK.Graphics.OpenGL.PixelInternalFormat)pixelInternalFormat, width, height, true);
             GL.BindTexture(target, 0);
 
             this.Width = width;
@@ -259,6 +274,7 @@ namespace EmberaEngine.Engine.Core
 
         protected virtual void Dispose(bool disposing)
         {
+            Console.WriteLine("DISPOSING!");
             if (_disposed)
                 return;
 
@@ -267,7 +283,7 @@ namespace EmberaEngine.Engine.Core
                 int handleToDelete = handle;
                 MainThreadDispatcher.Queue(() =>
                 {
-                    GL.DeleteTexture(handleToDelete);
+                    //GL.DeleteTexture(handleToDelete);
                     Console.WriteLine("Disposed Texture: " + handleToDelete);
                 });
                 handle = 0;
@@ -288,6 +304,10 @@ namespace EmberaEngine.Engine.Core
 
         public void Bind(TextureTarget target)
         {
+            if (handle == 25)
+            {
+                Console.WriteLine("BOUND");
+            }
             GL.BindTexture(target, handle);
         }
 

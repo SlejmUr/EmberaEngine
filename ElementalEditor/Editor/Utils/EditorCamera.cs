@@ -55,7 +55,10 @@ namespace ElementalEditor.Editor.Utils
             _initialMousePos = mousePos;
 
             if (Input.IsPressed(MouseButton.Middle) && Input.GetKey(Keys.LeftShift))
+            {
                 MousePan(delta);
+                Console.WriteLine("Panning for some reason");
+            }
             else if (Input.IsPressed(MouseButton.Middle))
             {
                 ArcballRotate(delta);

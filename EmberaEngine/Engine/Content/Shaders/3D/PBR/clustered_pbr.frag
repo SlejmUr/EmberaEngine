@@ -400,8 +400,8 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 }
 
 float ComputeAttenuation(PointLight light, float dist) {
-	float r = light.range.x;
-	vec2 p = light.range.zw;
+	float r = light.range.x; // This is the radius
+	vec2 p = light.range.zw; // linear factor and quadratic factor
 
 	float t = clamp(dist / r, 0.0, 1.0); // Normalize distance
 

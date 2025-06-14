@@ -41,6 +41,9 @@ namespace ElementalEditor.Editor.Panels
         Framebuffer viewportBuffer;
         Framebuffer compositeBuffer;
 
+        Shader viewportBlitShader;
+
+
         int prevViewportHeight, prevViewportWidth;
         int viewportHeight, viewportWidth;
         Vector2 viewportPos;
@@ -58,7 +61,9 @@ namespace ElementalEditor.Editor.Panels
             viewportBuffer = new Framebuffer("VIEWPORT FB");
             viewportBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, viewportBufferTexture);
 
-            // FIX THIS MF, THIS ONLY ACCOUNTS FOR THE FIRST MONITOR!!!
+            viewportBlitShader = new Shader("Engine/Content/Shaders/3D/basic/fullscreen.vert", "Editor/Assets/Shaders/viewportBlitShader.frag");
+
+            // FIX THIS, THIS ONLY ACCOUNTS FOR THE FIRST MONITOR!!!
             MonitorInfo monitorInfoList = Monitors.GetMonitors()[0];
 
             for (int i = 0; i < monitorInfoList.SupportedVideoModes.Count; i++)
@@ -109,15 +114,15 @@ namespace ElementalEditor.Editor.Panels
 
                 viewportBufferTexture.TexImage2D(viewportWidth, viewportHeight, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
                 viewportBufferTexture.GenerateMipmap();
+            
             }
-
-            resizeCoords = CalculateScaleWithScreen(viewportWidth,viewportHeight,selectedResolution.width,selectedResolution.height);
+            resizeCoords = CalculateScaleWithScreen(viewportWidth, viewportHeight, selectedResolution.width, selectedResolution.height);
 
             if (!freeAspectRatio)
             {
                 ClearViewport();
                 Framebuffer.BlitFrameBuffer(compositeBuffer, viewportBuffer, (0, 0, selectedResolution.width, selectedResolution.height), (resizeCoords.Item1, resizeCoords.Item2, resizeCoords.Item3, resizeCoords.Item4), OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit, OpenTK.Graphics.OpenGL.BlitFramebufferFilter.Nearest);
-
+                //RenderViewport();
             } else
             {
                 Framebuffer.BlitFrameBuffer(compositeBuffer, viewportBuffer, (0, 0, selectedResolution.width, selectedResolution.height), (resizeCoords.Item1, resizeCoords.Item2, resizeCoords.Item3, resizeCoords.Item4), OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit, OpenTK.Graphics.OpenGL.BlitFramebufferFilter.Nearest);
@@ -180,7 +185,6 @@ namespace ElementalEditor.Editor.Panels
         {
             if (isMouseOverWindow)
             {
-
                 Input.OnKeyDown(key.Key);
             }
         }
@@ -231,7 +235,6 @@ namespace ElementalEditor.Editor.Panels
         public override void OnRender()
         {
 
-
             if (freeAspectRatio && (prevViewportHeight != viewportHeight || prevViewportWidth != viewportWidth))
             {
                 Screen.Size.X = viewportWidth;
@@ -239,6 +242,49 @@ namespace ElementalEditor.Editor.Panels
                 Renderer.Resize(viewportWidth, viewportHeight);
                 editor.EditorCurrentScene.OnResize(viewportWidth, viewportHeight);
             }
+        }
+
+        public void RenderViewport()
+        {
+            
+            //Framebuffer.BlitFrameBuffer(compositeBuffer, viewportBuffer, (0, 0, selectedResolution.width, selectedResolution.height), (resizeCoords.Item1, resizeCoords.Item2, resizeCoords.Item3, resizeCoords.Item4), OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit, OpenTK.Graphics.OpenGL.BlitFramebufferFilter.Nearest);
+
+            //ClearViewport();
+
+            viewportBuffer.Bind();
+            GraphicsState.SetViewport(0, 0, viewportWidth, viewportHeight);
+            GraphicsState.ClearColor(0, 0, 0, 1);
+            GraphicsState.Clear(true);
+            GraphicsState.SetCulling(false);
+            viewportBlitShader.Use();
+
+            // 🟢 SOURCE — the full texture
+            OpenTK.Mathematics.Vector4 sourceDimensions = new OpenTK.Mathematics.Vector4(
+                0f, 0f,
+                1f, 1f // full texture UVs
+            );
+
+            // 🟢 DESTINATION — the portion of the screen to blit into
+            OpenTK.Mathematics.Vector4 destinationDimensions = new OpenTK.Mathematics.Vector4(
+                resizeCoords.Item1 / (float)viewportWidth,
+                resizeCoords.Item2 / (float)viewportHeight,
+                resizeCoords.Item3 / (float)viewportWidth,
+                resizeCoords.Item4 / (float)viewportHeight
+            );
+
+
+            viewportBlitShader.SetVector4("sourceDimensions", sourceDimensions);
+            viewportBlitShader.SetVector4("destinationDimensions", destinationDimensions);
+            viewportBlitShader.SetInt("INPUT_TEXTURE", 0);
+
+            GraphicsState.SetTextureActiveBinding(TextureUnit.Texture0);
+            Renderer3D.GetOutputFrameBuffer().GetFramebufferTexture(0).Bind();
+
+            Graphics.DrawFullScreenTri();
+
+            //GraphicsState.SetDepthTest(true);
+            GraphicsState.SetCulling(true);
+            Framebuffer.Unbind();
         }
 
         public void DrawViewportTools()

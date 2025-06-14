@@ -22,7 +22,7 @@ namespace ElementalEditor
                 Name = "Devoid Engine - Elemental Editor",
                 Height = (int)(1080 * 1.5f),
                 Width = (int)(1920 * 1.5f),
-                forceVsync = true,
+                forceVsync = false,
                 useImGui = true,
                 useImGuiDock = true,
                 useCustomTitlebar = false

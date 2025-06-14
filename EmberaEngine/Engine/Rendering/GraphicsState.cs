@@ -147,6 +147,15 @@ namespace EmberaEngine.Engine.Rendering
                 GL.Disable(EnableCap.LineSmooth);
             }
         }
+
+        public static void CheckFBError()
+        {
+            FramebufferErrorCode framebufferStatus = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+            if (framebufferStatus != FramebufferErrorCode.FramebufferComplete)
+            {
+                Console.WriteLine(framebufferStatus);
+            }
+        }
     }
 
     public enum BlendEquationMode

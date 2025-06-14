@@ -4,6 +4,7 @@ using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +17,15 @@ namespace EmberaEngine.Engine.Rendering
         Reinhard = 2
     }
 
+    public enum MSAA_Samples
+    {
+        Disabled = 1,
+        X2 = 2,
+        X4 = 4,
+        X8 = 8,
+        X16 = 16
+    }
+
     public struct RenderSetting
     {
         public float Exposure;
@@ -25,9 +35,10 @@ namespace EmberaEngine.Engine.Rendering
         public bool useSkybox;
         public bool useIBL;
         public bool useShadows;
-        public TonemapFunction tonemapFunction;
         public Color4 AmbientColor;
         public float AmbientFactor;
+        public TonemapFunction tonemapFunction;
+        public MSAA_Samples MSAA;
     }
 
     public interface IRenderPipeline
@@ -68,6 +79,7 @@ namespace EmberaEngine.Engine.Rendering
                                               // its just a way to send to the effect what framebuffer/texture you want as input.
                                               // i implemented this for bloom, as i had no other way to send a input texture.
         public Texture EffectTexture;
+        public int selectedObjectCustombitflag;
     }
 
 
@@ -78,26 +90,49 @@ namespace EmberaEngine.Engine.Rendering
 
         public static IRenderPipeline ActiveRenderingPipeline;
 
+        static Texture MSCompositeBufferTexture;
+        static Texture MSCompositeBufferEmissionTexture;
+        static Texture MSDepthBufferTexture;
+
         static Texture CompositeBufferTexture;
         static Texture CompositeBufferEmissionTexture;
-
-        static Texture NormalBufferTexture;
         static Texture DepthBufferTexture;
-        static Texture GeometryBufferTexture;
 
         static Framebuffer CompositeBuffer;
-        static Framebuffer GeometryBuffer;
+        static Framebuffer ResolvedBuffer;
 
         static List<Mesh> meshes;
 
         static FrameData frameData;
 
+        static int numSamples = 8;
+        static bool useMSAA = false;
+
         public static void Initialize(int width, int height)
         {
+            Console.WriteLine("INITIALIZE CALLED");
             //cameras = new List<Camera>();
             meshes = new List<Mesh>();
 
             // Setting up composite buffer
+            MSCompositeBufferTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSCompositeBufferTexture.TexImageMultisample2D(width, height, numSamples, PixelInternalFormat.Rgba16f, IntPtr.Zero);
+            MSCompositeBufferTexture.GenerateMipmap();
+
+            MSCompositeBufferEmissionTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSCompositeBufferEmissionTexture.TexImageMultisample2D(width, height, numSamples, PixelInternalFormat.Rgba16f, IntPtr.Zero);
+
+            MSDepthBufferTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSDepthBufferTexture.TexImageMultisample2D(width, height, numSamples, PixelInternalFormat.Depth24Stencil8, IntPtr.Zero);
+
+
+            CompositeBuffer = new Framebuffer("Renderer3D_MSAA_Composite_Framebuffer");
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0,  OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample , MSCompositeBufferTexture);
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment1, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample , MSCompositeBufferEmissionTexture);
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.DepthStencilAttachment, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample, MSDepthBufferTexture);
+            CompositeBuffer.SetDrawBuffers([OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment0, OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment1]);
+
+
             CompositeBufferTexture = new Texture(TextureTarget2d.Texture2D);
             CompositeBufferTexture.TexImage2D(width, height, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
             CompositeBufferTexture.GenerateMipmap();
@@ -111,11 +146,11 @@ namespace EmberaEngine.Engine.Rendering
             DepthBufferTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
 
 
-            CompositeBuffer = new Framebuffer("Renderer3D_Composite_Framebuffer");
-            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, CompositeBufferTexture);
-            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment1, CompositeBufferEmissionTexture);
-            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.DepthStencilAttachment, DepthBufferTexture);
-            CompositeBuffer.SetDrawBuffers([OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment0, OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment1]);
+            ResolvedBuffer = new Framebuffer("Renderer3D_Composite_Framebuffer");
+            ResolvedBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, CompositeBufferTexture);
+            ResolvedBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment1, CompositeBufferEmissionTexture);
+            ResolvedBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.DepthStencilAttachment, DepthBufferTexture);
+            ResolvedBuffer.SetDrawBuffers([OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment0, OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment1]);
 
             frameData = new();
 
@@ -223,6 +258,22 @@ namespace EmberaEngine.Engine.Rendering
 
         public static void Resize(int width, int height)
         {
+            Console.WriteLine("RESIZING INI");
+            CompositeBuffer.DetachFrameBufferTexture(0);
+            CompositeBuffer.DetachFrameBufferTexture(0);
+            CompositeBuffer.DetachFrameBufferTexture(0);
+
+            Console.WriteLine("WIDTH: " + width);
+            MSCompositeBufferTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSCompositeBufferTexture.TexImageMultisample2D(width, height, numSamples, PixelInternalFormat.Rgba16f, IntPtr.Zero);
+
+            MSCompositeBufferEmissionTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSCompositeBufferEmissionTexture.TexImageMultisample2D(width, height, numSamples, PixelInternalFormat.Rgba16f, IntPtr.Zero);
+
+            MSDepthBufferTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSDepthBufferTexture.TexImageMultisample2D(width, height, numSamples, PixelInternalFormat.Depth24Stencil8, IntPtr.Zero);
+
+
             CompositeBufferTexture.TexImage2D(width, height, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
             CompositeBufferTexture.GenerateMipmap();
 
@@ -232,12 +283,80 @@ namespace EmberaEngine.Engine.Rendering
             DepthBufferTexture.TexImage2D(width, height, PixelInternalFormat.Depth24Stencil8, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
             DepthBufferTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
 
+
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample, MSCompositeBufferTexture);
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment1, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample, MSCompositeBufferEmissionTexture);
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.DepthStencilAttachment, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample, MSDepthBufferTexture);
+            CompositeBuffer.SetDrawBuffers([OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment0, OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment1]);
+
+            if (OpenTK.Graphics.OpenGL.GL.CheckNamedFramebufferStatus(CompositeBuffer.GetRendererID(), OpenTK.Graphics.OpenGL.FramebufferTarget.Framebuffer) != OpenTK.Graphics.OpenGL.FramebufferStatus.FramebufferComplete)
+            {
+                Console.WriteLine("INCORRECT FBO");
+            }
+
             ActiveRenderingPipeline.Resize(width, height);
+        }
+
+        public static void SetMSAA(int samples)
+        {
+            if (samples == 1)
+            {
+                useMSAA = false;
+                return;
+            } else
+            {
+                useMSAA = true;
+            }
+                numSamples = samples;
+
+            CompositeBuffer.DetachFrameBufferTexture(0);
+            CompositeBuffer.DetachFrameBufferTexture(0);
+            CompositeBuffer.DetachFrameBufferTexture(0);
+
+            MSCompositeBufferTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSCompositeBufferTexture.TexImageMultisample2D(Renderer.Width, Renderer.Height, numSamples, PixelInternalFormat.Rgba16f, IntPtr.Zero);
+
+            MSCompositeBufferEmissionTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSCompositeBufferEmissionTexture.TexImageMultisample2D(Renderer.Width, Renderer.Height, numSamples, PixelInternalFormat.Rgba16f, IntPtr.Zero);
+
+            MSDepthBufferTexture = new Texture(TextureTargetd.Texture2DMultisample);
+            MSDepthBufferTexture.TexImageMultisample2D(Renderer.Width, Renderer.Height, numSamples, PixelInternalFormat.Depth24Stencil8, IntPtr.Zero);
+
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample, MSCompositeBufferTexture);
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment1, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample, MSCompositeBufferEmissionTexture);
+            CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.DepthStencilAttachment, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample, MSDepthBufferTexture);
+            CompositeBuffer.SetDrawBuffers([OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment0, OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment1]);
+
+        }
+
+        public static int GetMSAA()
+        {
+            return numSamples;
+        }
+
+        public static void ResolveCompositeMS()
+        {
+            if (!useMSAA)
+            {
+                return;
+            }
+            ResolvedBuffer.Bind();
+            GraphicsState.SetDepthTest(true);
+            GraphicsState.SetViewport(0, 0, Renderer.Width, Renderer.Height);
+
+            Framebuffer.BlitFrameBuffer(CompositeBuffer, ResolvedBuffer, (0, 0, Renderer.Width, Renderer.Height), (0, 0, Renderer.Width, Renderer.Height), OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit, OpenTK.Graphics.OpenGL.BlitFramebufferFilter.Nearest, OpenTK.Graphics.OpenGL.ReadBufferMode.ColorAttachment0, OpenTK.Graphics.OpenGL.DrawBufferMode.ColorAttachment0);
+            Framebuffer.BlitFrameBuffer(CompositeBuffer, ResolvedBuffer, (0, 0, Renderer.Width, Renderer.Height), (0, 0, Renderer.Width, Renderer.Height), OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit, OpenTK.Graphics.OpenGL.BlitFramebufferFilter.Nearest, OpenTK.Graphics.OpenGL.ReadBufferMode.ColorAttachment1, OpenTK.Graphics.OpenGL.DrawBufferMode.ColorAttachment1);
+            Framebuffer.BlitFrameBuffer(CompositeBuffer, ResolvedBuffer, (0, 0, Renderer.Width, Renderer.Height), (0, 0, Renderer.Width, Renderer.Height), OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit, OpenTK.Graphics.OpenGL.BlitFramebufferFilter.Nearest);
         }
 
         public static Framebuffer GetComposite()
         {
-            return CompositeBuffer;
+            return useMSAA ? CompositeBuffer : ResolvedBuffer;
+        }
+
+        public static Framebuffer GetResolved()
+        {
+            return ResolvedBuffer;
         }
 
         public static Framebuffer GetOutputFrameBuffer()
