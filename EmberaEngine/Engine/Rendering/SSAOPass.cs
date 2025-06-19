@@ -35,7 +35,7 @@ namespace EmberaEngine.Engine.Rendering
 
         public void Initialize(int width, int height)
         {
-            screenDimensions = new Vector2(width * renderScale, height * renderScale);
+            screenDimensions = new Vector2(width, height);
 
             Vector3[] RandomizedNoise = Helper.GenerateNoise(16);
             SampleKernelValues = GenerateKernel(SampleKernelSize).ToArray();
@@ -47,11 +47,11 @@ namespace EmberaEngine.Engine.Rendering
             NoiseTexture.GenerateMipmap();
 
             SSAOTexture = new Texture();
-            SSAOTexture.TexImage2D((int)screenDimensions.X, (int)screenDimensions.Y, PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
+            SSAOTexture.TexImage2D((int)(screenDimensions.X * renderScale), (int)(screenDimensions.Y * renderScale), PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
             SSAOTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
 
             SSAOBlurTexture = new Texture();
-            SSAOBlurTexture.TexImage2D((int)screenDimensions.X, (int)screenDimensions.Y, PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
+            SSAOBlurTexture.TexImage2D((int)(screenDimensions.X * renderScale), (int)(screenDimensions.Y * renderScale), PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
             SSAOBlurTexture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
 
             SSAOFB = new Framebuffer("SSAO Framebuffer");
@@ -85,8 +85,15 @@ namespace EmberaEngine.Engine.Rendering
         public void Apply(FrameData frameData)
         {
             if (!isActive) return;
+
+            if (renderScale != ((int)Renderer3D.ActiveRenderingPipeline.GetRenderSettings().occlusionScale) * 0.25f)
+            {
+                renderScale = (int)Renderer3D.ActiveRenderingPipeline.GetRenderSettings().occlusionScale * 0.25f;
+                Resize((int)screenDimensions.X, (int)screenDimensions.Y);
+            }
+
             SSAOFB.Bind();
-            GraphicsState.SetViewport(0, 0, (int)screenDimensions.X, (int)screenDimensions.Y);
+            GraphicsState.SetViewport(0, 0, (int)(screenDimensions.X * renderScale), (int)(screenDimensions.Y * renderScale));
             GraphicsState.Clear(true, true);
             GraphicsState.SetCulling(false);
             GraphicsState.SetBlending(false);
@@ -112,7 +119,7 @@ namespace EmberaEngine.Engine.Rendering
             Graphics.DrawFullScreenTri();
 
             SSAOBlurFB.Bind();
-            GraphicsState.SetViewport(0, 0, (int)screenDimensions.X, (int)screenDimensions.Y);
+            GraphicsState.SetViewport(0, 0, (int)(screenDimensions.X * renderScale), (int)(screenDimensions.Y * renderScale));
             GraphicsState.Clear(true, true);
 
             SSAOBlurShader.Use();
@@ -164,14 +171,16 @@ namespace EmberaEngine.Engine.Rendering
 
         public void Resize(int width, int height)
         {
-            screenDimensions = new Vector2(width * renderScale, height * renderScale);
-            SSAOShader.Set("screenDimensions", screenDimensions);
+            screenDimensions = new Vector2(width, height);
+            SSAOShader.Set("screenDimensions", screenDimensions * renderScale);
 
-            SSAOTexture.TexImage2D((int)screenDimensions.X, (int)screenDimensions.Y, PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
+            SSAOTexture.TexImage2D((int)(screenDimensions.X * renderScale), (int)(screenDimensions.Y * renderScale), PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
             SSAOTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
 
-            SSAOBlurTexture.TexImage2D((int)screenDimensions.X, (int)screenDimensions.Y, PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
+            SSAOBlurTexture.TexImage2D((int)(screenDimensions.X * renderScale), (int)(screenDimensions.Y * renderScale), PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
             SSAOBlurTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         }
+
+
     }
 }

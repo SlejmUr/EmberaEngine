@@ -22,6 +22,8 @@ namespace ElementalEditor.Editor
 
         public ImFontPtr interBoldFont;
 
+        public ImFontPtr materialIcon24;
+
         public string projectPath;
 
         public List<Panel> Panels = new List<Panel>();
@@ -41,6 +43,7 @@ namespace ElementalEditor.Editor
             AddPanel<PerformancePanel>();
             AddPanel<MaterialPanel>();
             AddPanel<GameObjectPanel>();
+            AddPanel<TimelinePanel>();
         }
 
         void LoadProject()
@@ -59,6 +62,7 @@ namespace ElementalEditor.Editor
             
             app.ImGuiLayer.SetIconFont("Editor/Assets/Fonts/forkawesome-webfont.ttf", 25, (FontAwesome.ForkAwesome.IconMin, FontAwesome.ForkAwesome.IconMax16));
             app.ImGuiLayer.SetIconFont("Editor/Assets/Fonts/MaterialIcons-Regular.ttf", 25, (MaterialDesign.IconMin, MaterialDesign.IconMax16));
+            materialIcon24 = app.ImGuiLayer.SetIconFont("Editor/Assets/Fonts/MaterialIcons-Regular.ttf", 128, (MaterialDesign.IconMin, MaterialDesign.IconMax16));
             app.ImGuiLayer.RecreateFontDevice();
 
 
@@ -178,7 +182,6 @@ namespace ElementalEditor.Editor
         {
             for (int i = 0; i < Panels.Count; i++)
             {
-                Console.WriteLine(Panels[i].GetType().Name);
                 if (typeof(T) == Panels[i].GetType())
                 {
                     return (T)Panels[i];
@@ -203,23 +206,26 @@ namespace ElementalEditor.Editor
             lightObject.AddComponent<LightComponent>();
 
 
+            NewModelImporter.Load("AmbientShadowTesting/ambient_shadow_testing.fbx");
+
             //barrelObject = EditorCurrentScene.addGameObject("Barrel");
             //MeshRenderer barrelMeshRenderer = barrelObject.AddComponent<MeshRenderer>();
             //barrelObject.transform.Scale = Vector3.One * 1;
 
             //Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/SSAO Test/sphere.obj");
 
-            //ModelData meshLoaderOutput = ModelImporter.LoadModel("res://Sponza/sponza.obj");
+            ModelData meshLoaderOutput = ModelImporter.LoadModel("Sponza/sponza.obj");
 
             //ModelData meshLoaderOutput = ModelImporter.LoadModel("AmbientShadowTesting/ambient_shadow_testing.fbx");
-            //if (meshLoaderOutput.rootObject == null)
-            //{
-            //    return;
-            //}
+            //ModelData meshLoaderOutput = ModelImporter.LoadModel("ShooterTest/file.fbx");
+            if (meshLoaderOutput.rootObject == null)
+            {
+                return;
+            }
 
             //Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/Portal2-Elevator/scene.gltf");
 
-            //EditorCurrentScene.addGameObject(meshLoaderOutput.rootObject);
+            EditorCurrentScene.addGameObject(meshLoaderOutput.rootObject);
         }
 
         GameObject barrelObject;

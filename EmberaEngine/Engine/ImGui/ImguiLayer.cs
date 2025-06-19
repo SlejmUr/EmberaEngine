@@ -44,9 +44,14 @@ namespace EmberaEngine.Engine.Imgui
             imguiAPI._CurrentFont = ptr;
         }
 
-        public void SetIconFont(string path, int size, (ushort, ushort) range)
+        public ImFontPtr SetIconFont(string path, int size, (ushort, ushort) range)
         {
-            ImguiAPI.LoadIconFont(path, size, range);
+            return ImguiAPI.LoadIconFont(path, size, range);
+        }
+
+        public ImFontPtr AddIconFont(string path, int size, (ushort, ushort) range)
+        {
+            return ImguiAPI.LoadIconFont(path, size, range);
         }
 
         public void RecreateFontDevice()

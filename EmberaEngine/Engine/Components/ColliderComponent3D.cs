@@ -1,10 +1,4 @@
-﻿using EmberaEngine.Engine.Core;
-using OpenTK.Mathematics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using OpenTK.Mathematics;
 
 namespace EmberaEngine.Engine.Components
 {
@@ -21,20 +15,19 @@ namespace EmberaEngine.Engine.Components
     {
         public override string Type => nameof(ColliderComponent3D);
 
-        private ColliderShapeType colliderShape;
+        private ColliderShapeType colliderShape = ColliderShapeType.Box;
         private Vector3 size = Vector3.One;
-        private float radius = 1.0f;
-
-        private PhysicsObjectHandle physicsObjectHandle;
-
-        public Action OnColliderPropertyChanged = () => {};
+        private float radius = 0.5f;
+        private float height = 2.0f; // For capsule
+        private Action onColliderChanged = () => { };
 
         public ColliderShapeType ColliderShape
         {
             get => colliderShape;
             set
             {
-                OnColliderPropertyChanged.Invoke();
+                colliderShape = value;
+                onColliderChanged.Invoke();
             }
         }
 
@@ -44,7 +37,7 @@ namespace EmberaEngine.Engine.Components
             set
             {
                 size = value;
-                OnColliderPropertyChanged.Invoke();
+                onColliderChanged.Invoke();
             }
         }
 
@@ -54,20 +47,24 @@ namespace EmberaEngine.Engine.Components
             set
             {
                 radius = value;
-                OnColliderPropertyChanged.Invoke();
+                onColliderChanged.Invoke();
             }
         }
 
-
-        public override void OnStart()
+        public float Height
         {
-            
+            get => height;
+            set
+            {
+                height = value;
+                onColliderChanged.Invoke();
+            }
         }
 
-        public override void OnUpdate(float dt)
+        public Action OnColliderPropertyChanged
         {
-
+            get => onColliderChanged;
+            set => onColliderChanged = value;
         }
-
     }
 }

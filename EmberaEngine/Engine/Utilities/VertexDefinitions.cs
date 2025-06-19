@@ -240,6 +240,7 @@ namespace EmberaEngine.Engine.Utilities
         public readonly Vector2 TexCoord;
         public readonly Vector3 Tangent;
         public readonly Vector3 BiTangent;
+        public readonly Vector2 SecondaryTexCoord;
 
         public static readonly VertexInfo VertexInfo = new VertexInfo(
             typeof(Vertex),
@@ -247,7 +248,8 @@ namespace EmberaEngine.Engine.Utilities
             new VertexAttribute("Normal", 1, 3, 3 * sizeof(float)),
             new VertexAttribute("TexCoord", 2, 2, 6 * sizeof(float)),
             new VertexAttribute("Tangent", 3, 3, 8 * sizeof(float)),
-            new VertexAttribute("BiTangent", 4, 3, 11 * sizeof(float))
+            new VertexAttribute("BiTangent", 4, 3, 11 * sizeof(float)),
+            new VertexAttribute("TexCoord2", 5, 2, 14 * sizeof(float))
             );
 
         public Vertex(Vector3 position, Vector3 normal, Vector2 texcoord)
@@ -257,6 +259,7 @@ namespace EmberaEngine.Engine.Utilities
             this.TexCoord = texcoord;
             this.Tangent = Vector3.Zero;
             this.BiTangent = Vector3.Zero;
+            this.SecondaryTexCoord = texcoord;
         }
 
         public Vertex(Vector3 position, Vector3 normal, Vector2 texcoord, Vector3 tangent, Vector3 bitangent)
@@ -266,6 +269,7 @@ namespace EmberaEngine.Engine.Utilities
             this.TexCoord = texcoord;
             this.Tangent = tangent;
             this.BiTangent = bitangent;
+            this.SecondaryTexCoord = texcoord;
         }
 
     }

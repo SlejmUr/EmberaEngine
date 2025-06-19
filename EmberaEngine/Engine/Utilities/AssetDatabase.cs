@@ -37,7 +37,6 @@ namespace EmberaEngine.Engine.Utilities
 
         public static int Add(Shader shader, string filename, int uuid)
         {
-            Console.WriteLine(System.IO.Path.GetFileNameWithoutExtension(filename));
 
             int UUID = CreateRandomNum();
             ShaderAssets.Add(new ShaderAsset()
@@ -55,7 +54,6 @@ namespace EmberaEngine.Engine.Utilities
             {
                 if (asset.filename == filename)
                 {
-                    Console.WriteLine("Found");
                     return asset.Shader;
                 }
             }

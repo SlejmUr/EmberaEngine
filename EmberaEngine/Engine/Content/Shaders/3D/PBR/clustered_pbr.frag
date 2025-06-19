@@ -189,9 +189,6 @@ void main() {
 
 	FragColor = vec4(radianceOut, 1.0);
 	EmissionColor = vec4(emissive, 1);
-
-	//FragColor.rgb = vec3(texture(brdfLUT, vec2(0.5, 1.0)).rg, 1.0);
-	//FragColor.rgb = vec3(GetNormal());
 }
 
 vec3 CalcIBL(vec3 N, vec3 V, vec3 F0, vec3 albedo, vec3 R, float roughness, float metallic) {

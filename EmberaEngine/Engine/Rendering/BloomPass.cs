@@ -56,7 +56,7 @@ namespace EmberaEngine.Engine.Rendering
                 bloomMip.size = (Vector2i)currentMipSize;
 
                 Texture mipTex = new Texture(TextureTarget2d.Texture2D);
-                mipTex.TexImage2D(bloomMip.size.X, bloomMip.size.Y, PixelInternalFormat.R11fG11fB10f, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
+                mipTex.TexImage2D(bloomMip.size.X, bloomMip.size.Y, PixelInternalFormat.Rgb16f, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
                 mipTex.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
                 mipTex.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
@@ -176,7 +176,7 @@ namespace EmberaEngine.Engine.Rendering
                 bloomMip.size = (Vector2i)currentMipSize;
 
                 Texture mipTex = bloomMip.texture;
-                mipTex.TexImage2D(bloomMip.size.X, bloomMip.size.Y, PixelInternalFormat.R11fG11fB10f, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
+                mipTex.TexImage2D(bloomMip.size.X, bloomMip.size.Y, PixelInternalFormat.Rgb16f, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
                 mipTex.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
                 mipTex.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 

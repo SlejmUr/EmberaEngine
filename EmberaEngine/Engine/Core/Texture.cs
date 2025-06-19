@@ -124,11 +124,6 @@ namespace EmberaEngine.Engine.Core
 
         public void SetFilter(TextureMinFilter minFilter, TextureMagFilter magFilter)
         {
-            if (target == TextureTarget.TextureCubeMap)
-            {
-                Console.WriteLine("FILTER: " + target);
-            }
-
             GL.TextureParameter(handle, TextureParameterName.TextureMinFilter, (int)minFilter);
             GL.TextureParameter(handle, TextureParameterName.TextureMagFilter, (int)magFilter);
         }
@@ -274,7 +269,6 @@ namespace EmberaEngine.Engine.Core
 
         protected virtual void Dispose(bool disposing)
         {
-            Console.WriteLine("DISPOSING!");
             if (_disposed)
                 return;
 
@@ -283,8 +277,7 @@ namespace EmberaEngine.Engine.Core
                 int handleToDelete = handle;
                 MainThreadDispatcher.Queue(() =>
                 {
-                    //GL.DeleteTexture(handleToDelete);
-                    Console.WriteLine("Disposed Texture: " + handleToDelete);
+                    GL.DeleteTexture(handleToDelete);
                 });
                 handle = 0;
             }
@@ -304,10 +297,6 @@ namespace EmberaEngine.Engine.Core
 
         public void Bind(TextureTarget target)
         {
-            if (handle == 25)
-            {
-                Console.WriteLine("BOUND");
-            }
             GL.BindTexture(target, handle);
         }
 

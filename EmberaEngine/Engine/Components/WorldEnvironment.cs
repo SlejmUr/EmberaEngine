@@ -13,6 +13,7 @@ namespace EmberaEngine.Engine.Components
         public override string Type => nameof(WorldEnvironment);
 
         private float exposure = 1f;
+        private float bloomIntensity = 1f;
         private TonemapFunction tonemapFunction = TonemapFunction.ACES;
         private bool useBloom = true;
         private bool useSSAO = true;
@@ -21,7 +22,8 @@ namespace EmberaEngine.Engine.Components
         private bool renderSkybox = true;
         private Color4 ambientColor = Color4.Black;
         private float ambientFactor = 0.1f;
-        private MSAA_Samples msaa_samples;
+        private MSAA_Samples msaa_samples = MSAA_Samples.Disabled;
+        private AmbientOcclusionScale occlusion_scale = AmbientOcclusionScale.Low;
 
 
         private RenderSetting renderSetting;
@@ -32,6 +34,16 @@ namespace EmberaEngine.Engine.Components
             set
             {
                 exposure = value;
+                OnChangeValue();
+            }
+        }
+
+        public float BloomIntensity
+        {
+            get => bloomIntensity;
+            set
+            {
+                bloomIntensity = value;
                 OnChangeValue();
             }
         }
@@ -126,6 +138,15 @@ namespace EmberaEngine.Engine.Components
             }
         }
 
+        public AmbientOcclusionScale AO_Scale
+        {
+            get => occlusion_scale;
+            set
+            {
+                occlusion_scale = value;
+                OnChangeValue();
+            }
+        }
 
         public override void OnStart()
         {
@@ -139,6 +160,7 @@ namespace EmberaEngine.Engine.Components
             renderSetting.useBloom = useBloom;
             renderSetting.useSSAO = useSSAO;
             renderSetting.Exposure = exposure;
+            renderSetting.bloomIntensity = bloomIntensity;
             renderSetting.tonemapFunction = tonemapFunction;
             renderSetting.useIBL = useIBL;
             renderSetting.useAntialiasing = useAntialiasing;
@@ -146,6 +168,7 @@ namespace EmberaEngine.Engine.Components
             renderSetting.MSAA = msaa_samples;
             renderSetting.AmbientColor = ambientColor;
             renderSetting.AmbientFactor = ambientFactor;
+            renderSetting.occlusionScale = occlusion_scale;
 
             Renderer3D.ActiveRenderingPipeline.SetRenderSettings(renderSetting);
         }

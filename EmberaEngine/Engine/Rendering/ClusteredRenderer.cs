@@ -95,12 +95,14 @@ namespace EmberaEngine.Engine.Rendering
             useSSAO = true,
             tonemapFunction = TonemapFunction.ACES,
             Exposure = 1f,
+            bloomIntensity = 1f,
             AmbientColor = new Color4(0.1f, 0.1f, 0.1f, 0.1f),
             useSkybox = true,
             AmbientFactor = 0.1f,
             useIBL = true,
             useShadows = true,
             useAntialiasing = true,
+            occlusionScale = AmbientOcclusionScale.Low,
         };
 
         private float oldFOV;
@@ -282,11 +284,11 @@ namespace EmberaEngine.Engine.Rendering
             fullScreenTonemap.SetInt("SCREEN_TEXTURE", 0);
             fullScreenTonemap.SetInt("AO_TEXTURE", 1);
             fullScreenTonemap.SetInt("BLOOM_TEXTURE", 2);
-            fullScreenTonemap.SetInt("VOLUMETRIC_TEXTURE", 3);
             fullScreenTonemap.SetInt("TONEMAP_FUNCTION", (int)renderSettings.tonemapFunction);
             fullScreenTonemap.SetInt("USE_AO", renderSettings.useSSAO ? 1 : 0);
             fullScreenTonemap.SetInt("USE_BLOOM", renderSettings.useBloom ? 1 : 0);
             fullScreenTonemap.SetFloat("EXPOSURE", renderSettings.Exposure);
+            fullScreenTonemap.SetFloat("BLOOM_INTENSITY", renderSettings.bloomIntensity);
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture0);
             Renderer3D.GetResolved().GetFramebufferTexture(0).Bind();
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture1);
@@ -374,7 +376,6 @@ namespace EmberaEngine.Engine.Rendering
         public void Resize(int width, int height)
         {
             TonemappedTexture.TexImage2D(width, height, Core.PixelInternalFormat.Rgba16f, Core.PixelFormat.Rgba, Core.PixelType.Float, IntPtr.Zero);
-            TonemappedTexture.GenerateMipmap();
 
             //TonemappedDepthTexture.TexImage2D(width, height, Core.PixelInternalFormat.Depth24Stencil8, Core.PixelFormat.DepthComponent, Core.PixelType.Float, IntPtr.Zero);
             //TonemappedDepthTexture.SetFilter(Core.TextureMinFilter.Nearest, Core.TextureMagFilter.Nearest);

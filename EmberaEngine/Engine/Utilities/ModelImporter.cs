@@ -46,9 +46,9 @@ namespace EmberaEngine.Engine.Utilities
                     PostProcessSteps.CalculateTangentSpace |
                     PostProcessSteps.GenerateSmoothNormals |
                     PostProcessSteps.FlipUVs |
-                    PostProcessSteps.GenerateUVCoords |
-                    PostProcessSteps.OptimizeGraph |
-                    PostProcessSteps.OptimizeMeshes
+                    PostProcessSteps.GenerateUVCoords
+                    //PostProcessSteps.OptimizeGraph |
+                    //PostProcessSteps.OptimizeMeshes
                 );
             }
             catch (Exception e)
@@ -363,7 +363,7 @@ namespace EmberaEngine.Engine.Utilities
         static void SetupTexture(Texture texture, string path, TextureSlot texSlot, Core.Material mat, string uniformName, string useFlag)
         {
 
-            texture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
+            texture.SetFilter(TextureMinFilter.LinearMipmapLinear, TextureMagFilter.Linear);
             texture.SetAnisotropy(8f);
             texture.GenerateMipmap();
             SetWrap(texSlot.WrapModeU, texSlot.WrapModeV, texture);

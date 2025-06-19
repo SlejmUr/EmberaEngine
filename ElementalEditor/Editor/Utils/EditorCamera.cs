@@ -17,6 +17,7 @@ namespace ElementalEditor.Editor.Utils
         private int prevWidth, prevHeight;
         private float _farClip, _nearClip;
         private bool _useArcball;
+        private bool _lockCamera = false;
 
         public Camera Camera { get; private set; } = new Camera();
         public float Speed { get; set; } = 2.0f;
@@ -31,6 +32,12 @@ namespace ElementalEditor.Editor.Utils
                 _fovy = MathHelper.DegreesToRadians(value);
                 UpdateProjection();
             }
+        }
+
+        public bool LockCamera
+        {
+            get => _lockCamera;
+            set => _lockCamera = value;
         }
 
         public EditorCamera(float fov, int width, int height, float farClip, float nearClip)
@@ -50,6 +57,8 @@ namespace ElementalEditor.Editor.Utils
 
         public void Update(float deltaTime)
         {
+            if (_lockCamera) return;
+
             Vector2 mousePos = Input.mousePosition;
             Vector2 delta = (mousePos - _initialMousePos) * 0.005f;
             _initialMousePos = mousePos;
@@ -57,7 +66,6 @@ namespace ElementalEditor.Editor.Utils
             if (Input.IsPressed(MouseButton.Middle) && Input.GetKey(Keys.LeftShift))
             {
                 MousePan(delta);
-                Console.WriteLine("Panning for some reason");
             }
             else if (Input.IsPressed(MouseButton.Middle))
             {
@@ -83,7 +91,6 @@ namespace ElementalEditor.Editor.Utils
             {
                 prevWidth = width; prevHeight = height;
                 UpdateProjection();
-                Console.WriteLine("Resized");
             }
         }
 

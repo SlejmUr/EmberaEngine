@@ -1,8 +1,10 @@
 ﻿using BepuPhysics;
+using EmberaEngine.Engine.Components;
 using EmberaEngine.Engine.Core;
 using EmberaEngine.Engine.Utilities;
+
 using OpenTK.Mathematics;
-using System;
+using System.Reflection.Metadata;
 
 namespace EmberaEngine.Engine.Components
 {
@@ -17,27 +19,22 @@ namespace EmberaEngine.Engine.Components
     {
         public override string Type => nameof(RigidBody3D);
 
-        private Rigidbody3DType rigidBodyType;
-        private float velocity;
+        private Rigidbody3DType type = Rigidbody3DType.Dynamic;
         private float mass = 1f;
-        private Vector3 gravity = Helper.ToVector3(PhysicsManager3D.GlobalGravity);
-        private ColliderComponent3D collider;
-        private PhysicsObjectHandle physicsObjectHandle;
+        private float friction = 0.5f;
+        private float restitution = 0.1f;
 
-        public Rigidbody3DType Rigidbody3DType
+        private ColliderComponent3D collider;
+        private PhysicsObjectHandle handle;
+
+        public Rigidbody3DType RigidbodyType
         {
-            get => rigidBodyType;
+            get => type;
             set
             {
-                rigidBodyType = value;
-                OnValueChanged();
+                type = value;
+                RecreateHandle();
             }
-        }
-
-        public float Velocity
-        {
-            get => velocity;
-            set => velocity = value;
         }
 
         public float Mass
@@ -45,86 +42,122 @@ namespace EmberaEngine.Engine.Components
             get => mass;
             set
             {
-                mass = value;
-                OnValueChanged();
+                mass = Math.Max(0.0001f, value);
+                RecreateHandle();
             }
         }
 
-        public Vector3 Gravity
+        public float Friction
         {
-            get => gravity;
-            set => gravity = value;
+            get => friction;
+            set
+            {
+                friction = value;
+                RecreateHandle();
+            }
+        }
+
+        public float Restitution
+        {
+            get => restitution;
+            set
+            {
+                restitution = value;
+                RecreateHandle();
+            }
         }
 
         public override void OnStart()
         {
             collider = gameObject.GetComponent<ColliderComponent3D>();
+            if (collider != null)
+                collider.OnColliderPropertyChanged += RecreateHandle;
 
             gameObject.Scene.OnComponentAdded += OnComponentAddedCallback;
             gameObject.Scene.OnComponentRemoved += OnComponentRemovedCallback;
 
-            if (collider != null)
-            {
-                collider.OnColliderPropertyChanged += OnValueChanged;
-                physicsObjectHandle = gameObject.Scene.PhysicsManager3D
-                    .AddPhysicsObject(gameObject.transform, this, collider);
-            }
+            RecreateHandle();
         }
 
         public override void OnUpdate(float dt)
         {
-            if (collider == null) return;
-            if (physicsObjectHandle.IsStatic && gameObject.transform.hasMoved)
+            if (handle.IsStatic && gameObject.transform.hasMoved)
             {
-                OnValueChanged();
-            } else if (!physicsObjectHandle.IsStatic)
+                RecreateHandle();
+                return;
+            }
+
+            var body = handle.BodyReference;
+            if (body.Exists)
             {
-                var pose = physicsObjectHandle.BodyReference.Pose;
+                var pose = body.Pose;
                 gameObject.transform.Position = Helper.ToVector3(pose.Position);
                 gameObject.transform.Rotation = Helper.ToDegrees(Helper.ToEulerAngles(pose.Orientation));
             }
         }
 
-        private void OnValueChanged()
+        public void ApplyForce(Vector3 force)
         {
-            if (collider == null) return;
-
-            var physicsManager = gameObject.Scene.PhysicsManager3D;
-
-            if (!physicsObjectHandle.IsStatic &&
-                physicsManager.DynamicExists(physicsObjectHandle.BodyHandle))
-            {
-                physicsManager.RemovePhysicsObject(physicsObjectHandle);
-            }
-            else if (physicsObjectHandle.IsStatic &&
-                     physicsManager.StaticExists(physicsObjectHandle.StaticHandle))
-            {
-                physicsManager.RemovePhysicsObject(physicsObjectHandle);
-            }
-
-            physicsObjectHandle = physicsManager.AddPhysicsObject(gameObject.transform, this, collider);
+            this.gameObject.Scene.PhysicsManager3D.ApplyForce(handle.BodyHandle, new System.Numerics.Vector3(force.X, force.Y, force.Z));
         }
 
-        private void OnComponentAddedCallback(Component component)
+        public void ApplyImpulse(Vector3 impulse)
         {
-            if (component.gameObject != gameObject ||
-                component.Type != nameof(ColliderComponent3D))
-                return;
-
-            collider = (ColliderComponent3D)component;
-            collider.OnColliderPropertyChanged += OnValueChanged;
-
-            physicsObjectHandle = gameObject.Scene.PhysicsManager3D
-                .AddPhysicsObject(gameObject.transform, this, collider);
+            this.gameObject.Scene.PhysicsManager3D.ApplyImpulse(handle.BodyHandle, new System.Numerics.Vector3(impulse.X, impulse.Y, impulse.Z));
         }
 
-        private void OnComponentRemovedCallback(Component component)
+        public void ApplyTorque(Vector3 torque)
         {
-            if (component.gameObject != gameObject ||
-                component.Type != nameof(ColliderComponent3D))
+            this.gameObject.Scene.PhysicsManager3D.ApplyTorque(handle.BodyHandle, new System.Numerics.Vector3(torque.X, torque.Y, torque.Z));
+        }
+
+        public void SetVelocity(Vector3 velocity)
+        {
+            this.gameObject.Scene.PhysicsManager3D.SetVelocity(handle.BodyHandle, new System.Numerics.Vector3(velocity.X, velocity.Y, velocity.Z));
+        }
+
+        public Vector3 GetVelocity()
+        {
+            return Helper.ToVector3(this.gameObject.Scene.PhysicsManager3D.GetVelocity(handle.BodyHandle));
+        }
+
+        private void RecreateHandle()
+        {
+            var pm = gameObject.Scene?.PhysicsManager3D;
+            if (pm == null || collider == null)
                 return;
 
-            collider = null;
+            if ((handle.IsStatic && pm.StaticExists(handle.StaticHandle))
+                || (!handle.IsStatic && pm.DynamicExists(handle.BodyHandle)))
+            {
+                pm.RemovePhysicsObject(handle);
+            }
+
+            handle = pm.AddPhysicsObject(gameObject.transform, this, collider);
+        }
+
+        private void OnComponentAddedCallback(Component comp)
+        {
+            if (comp.gameObject != gameObject)
+                return;
+            if (comp is ColliderComponent3D newCol)
+            {
+                collider = newCol;
+                collider.OnColliderPropertyChanged += RecreateHandle;
+                RecreateHandle();
+            }
+        }
+
+        private void OnComponentRemovedCallback(Component comp)
+        {
+            if (comp.gameObject != gameObject)
+                return;
+            if (comp is ColliderComponent3D oldCol)
+            {
+                oldCol.OnColliderPropertyChanged -= RecreateHandle;
+                collider = null;
+                gameObject.Scene?.PhysicsManager3D.RemovePhysicsObject(handle);
+            }
         }
     }
 }

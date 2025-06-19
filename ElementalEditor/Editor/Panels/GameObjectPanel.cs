@@ -214,23 +214,48 @@ namespace ElementalEditor.Editor.Panels
             if (ImGui.Begin(MaterialDesign.List + " GameObjects"))
             {
 
-
-                    // Setup frame/window padding for child
-                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 5));
+                // Setup padding and background for search bar section
+                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 5));
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 5));
-                ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.18f, 0.20f, 0.23f, 1f));
+                ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.18f, 0.20f, 0.23f, 0f));
 
-                if (ImGui.BeginChild("gameobject_child_window", new Vector2(ImGui.GetContentRegionAvail().X, 40), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
+                if (ImGui.BeginChild("gameobject_child_window", new Vector2(ImGui.GetContentRegionAvail().X, 50), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
                 {
-                    string searchBuffer1 = "";
-                    ImGui.Text("Search");
+                    // Unified style
+                    ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.12f, 0.13f, 0.15f, 1f));
+                    ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0.3f, 0.3f, 0.3f, 1f));
+                    ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f);
+                    ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 1f);
+
+                    // Start a group so the icon and input share layout
+                    ImGui.BeginGroup();
+
+                    // Icon with background matching input
+                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.12f, 0.13f, 0.15f, 1f));
+                    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.15f, 0.16f, 0.18f, 1f));
+                    ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.12f, 0.13f, 0.15f, 1f));
+                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(6, 5));
+
+                    ImGui.Button(MaterialDesign.Search); // Icon as a button (for spacing and consistency)
+                    ImGui.PopStyleVar();
+                    ImGui.PopStyleColor(3);
+
                     ImGui.SameLine();
-                    ImGui.InputText("##goSearch", ref searchBuffer, 20);
+
+                    // Input field with hint and full remaining width
+                    ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
+                    ImGui.InputTextWithHint("##goSearch", "Search...", ref searchBuffer, 100);
+
+                    ImGui.EndGroup();
+
+                    ImGui.PopStyleVar(2);     // FrameRounding + FrameBorderSize
+                    ImGui.PopStyleColor(2);   // FrameBg + Border
                     ImGui.EndChild();
                 }
 
-                ImGui.PopStyleColor();
-                ImGui.PopStyleVar(2); // FramePadding + WindowPadding (from child)
+                ImGui.PopStyleColor();  // ChildBg
+                ImGui.PopStyleVar(2);   // FramePadding + WindowPadding
+
 
                 ContextMenu.InspectorPanelPopup(this);
 

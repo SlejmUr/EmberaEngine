@@ -10,36 +10,6 @@ using System.Threading.Tasks;
 
 namespace EmberaEngine.Engine.Rendering
 {
-    public enum TonemapFunction
-    {
-        ACES = 0,
-        Filmic = 1,
-        Reinhard = 2
-    }
-
-    public enum MSAA_Samples
-    {
-        Disabled = 1,
-        X2 = 2,
-        X4 = 4,
-        X8 = 8,
-        X16 = 16
-    }
-
-    public struct RenderSetting
-    {
-        public float Exposure;
-        public bool useBloom;
-        public bool useSSAO;
-        public bool useAntialiasing;
-        public bool useSkybox;
-        public bool useIBL;
-        public bool useShadows;
-        public Color4 AmbientColor;
-        public float AmbientFactor;
-        public TonemapFunction tonemapFunction;
-        public MSAA_Samples MSAA;
-    }
 
     public interface IRenderPipeline
     {
@@ -135,11 +105,13 @@ namespace EmberaEngine.Engine.Rendering
 
             CompositeBufferTexture = new Texture(TextureTarget2d.Texture2D);
             CompositeBufferTexture.TexImage2D(width, height, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-            CompositeBufferTexture.GenerateMipmap();
+            CompositeBufferTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            //CompositeBufferTexture.GenerateMipmap();
 
             CompositeBufferEmissionTexture = new Texture(TextureTarget2d.Texture2D);
             CompositeBufferEmissionTexture.TexImage2D(width, height, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-            CompositeBufferEmissionTexture.GenerateMipmap();
+            CompositeBufferEmissionTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            //CompositeBufferEmissionTexture.GenerateMipmap();
 
             DepthBufferTexture = new Texture(TextureTarget2d.Texture2D);
             DepthBufferTexture.TexImage2D(width, height, PixelInternalFormat.Depth24Stencil8, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
@@ -258,12 +230,10 @@ namespace EmberaEngine.Engine.Rendering
 
         public static void Resize(int width, int height)
         {
-            Console.WriteLine("RESIZING INI");
             CompositeBuffer.DetachFrameBufferTexture(0);
             CompositeBuffer.DetachFrameBufferTexture(0);
             CompositeBuffer.DetachFrameBufferTexture(0);
 
-            Console.WriteLine("WIDTH: " + width);
             MSCompositeBufferTexture = new Texture(TextureTargetd.Texture2DMultisample);
             MSCompositeBufferTexture.TexImageMultisample2D(width, height, numSamples, PixelInternalFormat.Rgba16f, IntPtr.Zero);
 
@@ -275,10 +245,11 @@ namespace EmberaEngine.Engine.Rendering
 
 
             CompositeBufferTexture.TexImage2D(width, height, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-            CompositeBufferTexture.GenerateMipmap();
+            CompositeBufferTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
 
             CompositeBufferEmissionTexture.TexImage2D(width, height, PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-            CompositeBufferEmissionTexture.GenerateMipmap();
+            CompositeBufferEmissionTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            CompositeBufferEmissionTexture.SetWrapMode(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
 
             DepthBufferTexture.TexImage2D(width, height, PixelInternalFormat.Depth24Stencil8, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
             DepthBufferTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
@@ -289,11 +260,6 @@ namespace EmberaEngine.Engine.Rendering
             CompositeBuffer.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.DepthStencilAttachment, OpenTK.Graphics.OpenGL.TextureTarget.Texture2DMultisample, MSDepthBufferTexture);
             CompositeBuffer.SetDrawBuffers([OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment0, OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment1]);
 
-            if (OpenTK.Graphics.OpenGL.GL.CheckNamedFramebufferStatus(CompositeBuffer.GetRendererID(), OpenTK.Graphics.OpenGL.FramebufferTarget.Framebuffer) != OpenTK.Graphics.OpenGL.FramebufferStatus.FramebufferComplete)
-            {
-                Console.WriteLine("INCORRECT FBO");
-            }
-
             ActiveRenderingPipeline.Resize(width, height);
         }
 
@@ -302,6 +268,7 @@ namespace EmberaEngine.Engine.Rendering
             if (samples == 1)
             {
                 useMSAA = false;
+                Console.WriteLine("Rendering without MSAA");
                 return;
             } else
             {

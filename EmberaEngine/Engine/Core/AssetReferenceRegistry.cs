@@ -19,7 +19,6 @@ namespace EmberaEngine.Engine.Core
 
         public static void Reload(string path)
         {
-            Console.WriteLine("HOT RELOADING PATH: " + path);
             path = PathUtils.NormalizeVirtualPath(path);
 
             if (!references.TryGetValue(path, out var entry))

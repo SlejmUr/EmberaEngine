@@ -121,7 +121,6 @@ namespace EmberaEngine.Engine.Rendering
                 Matrix4.LookAt(Vector3.Zero, new Vector3( 0.0f,  0.0f, -1.0f), -Vector3.UnitY),  // Backward
             ];
 
-            Console.WriteLine("SKYBOX: " + skyboxTexture.GetRendererID());
             GraphicsState.SetCubemapSeamless(true);
         }
 
@@ -129,7 +128,7 @@ namespace EmberaEngine.Engine.Rendering
         public static void Render()
         {
             frameCounter++;
-            if (convertHDRItoCubemap && frameCounter > 1)
+            if (convertHDRItoCubemap && frameCounter > 0)
             {
                 OpenTK.Graphics.OpenGL.GL.Flush();
                 OpenTK.Graphics.OpenGL.GL.Finish();
@@ -168,8 +167,6 @@ namespace EmberaEngine.Engine.Rendering
             skyboxShader.SetMatrix4("W_PROJECTION_MATRIX", camera.GetProjectionMatrix());
             skyboxShader.SetMatrix4("W_VIEW_MATRIX", new Matrix4(new Matrix3(camera.GetViewMatrix())));
             skyboxShader.SetInt("SKYBOX_TEXTURE", 0);
-
-            Console.WriteLine("BINDING!");
             skyboxTexture.SetActiveUnit(TextureUnit.Texture0);
             skyboxTexture.Bind(OpenTK.Graphics.OpenGL.TextureTarget.TextureCubeMap);
 
@@ -298,7 +295,6 @@ namespace EmberaEngine.Engine.Rendering
 
                 Graphics.DrawFullScreenTri();
             }
-            Console.WriteLine("CONVERT SHADER");
             skyboxTexture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
             //skyboxTexture.GenerateMipmap();
 

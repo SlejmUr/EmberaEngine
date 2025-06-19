@@ -109,7 +109,6 @@ namespace EmberaEngine.Engine.Core
 
         public static bool GetKeyDown(Keys key)
         {
-            Console.WriteLine(keysPressedThisFrame.Contains(key));
             return keysPressedThisFrame.Contains(key);
         }
 
@@ -123,6 +122,7 @@ namespace EmberaEngine.Engine.Core
         /// </summary>
         public static void Update()
         {
+            mouseDelta = new Vector2(0);
             mouseScrollDelta = Vector2.Zero;
             keysPressedThisFrame.Clear();
             keysReleasedThisFrame.Clear();

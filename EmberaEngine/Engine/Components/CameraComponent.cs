@@ -27,6 +27,16 @@ namespace EmberaEngine.Engine.Components
         private Vector3 _up = Vector3.UnitY;
         private Vector3 _right = Vector3.UnitX;
 
+        public Vector3 Front
+        {
+            get { return _front; }
+        }
+
+        public Vector3 Right
+        {
+            get { return _right; }
+        }
+
         public float Fov
         {
             get => MathHelper.RadiansToDegrees(_fovy);
@@ -83,7 +93,7 @@ namespace EmberaEngine.Engine.Components
 
         public override void OnUpdate(float dt)
         {
-            camera.position = gameObject.transform.Position;
+            camera.position = gameObject.transform.GlobalPosition;
             camera.SetClearColor(ClearColor);
             camera.nearClip = nearClip;
             camera.farClip = farClip;
@@ -97,7 +107,6 @@ namespace EmberaEngine.Engine.Components
             {
                 prevWidth = width; prevHeight = height;
                 SetCameraProperties();
-                Console.WriteLine("Resized");
             }
         }
 
@@ -133,7 +142,7 @@ namespace EmberaEngine.Engine.Components
             // not be what you need for all cameras so keep this in mind if you do not want a FPS camera.
             _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitY));
             _up = Vector3.Normalize(Vector3.Cross(_right, _front));
-            camera.SetViewMatrix(Matrix4.LookAt(gameObject.transform.Position, gameObject.transform.Position + _front, _up));
+            camera.SetViewMatrix(Matrix4.LookAt(gameObject.transform.GlobalPosition, gameObject.transform.GlobalPosition + _front, _up));
         }
 
     }

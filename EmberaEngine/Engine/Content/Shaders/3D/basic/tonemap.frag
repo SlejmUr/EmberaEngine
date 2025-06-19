@@ -9,13 +9,13 @@ layout (location = 0) out vec4 FragColor;
 uniform sampler2D SCREEN_TEXTURE;
 uniform sampler2D AO_TEXTURE;
 uniform sampler2D BLOOM_TEXTURE;
-uniform sampler2D VOLUMETRIC_TEXTURE;
 
 uniform int TONEMAP_FUNCTION;
 uniform int USE_AO;
 uniform int USE_BLOOM;
 
-uniform float EXPOSURE = 0.05;
+uniform float EXPOSURE;
+uniform float BLOOM_INTENSITY;
 
 float luminance(vec3 v) {
     return dot(v, vec3(0.2126f, 0.7152f, 0.0722f));
@@ -50,12 +50,9 @@ void main() {
 
     float ao = USE_AO != 0 ? texture(AO_TEXTURE, texCoords).r : 1.0;
     vec3 bloom = USE_BLOOM != 0 ? texture(BLOOM_TEXTURE, texCoords).rgb : vec3(0.0);
-    vec3 volumetric = texture(VOLUMETRIC_TEXTURE, texCoords).rgb;
 
     tex.rgb *= ao;
-    tex.rgb += bloom;
-    //tex.rgb += volumetric;
-
+    tex.rgb += bloom * BLOOM_INTENSITY;
 
     tex.rgb *= EXPOSURE;
 
@@ -67,8 +64,7 @@ void main() {
         tex.rgb = reinhard(tex.rgb);
     }
 
-    tex.rgb = pow(tex.rgb, vec3(1.0/GAMMA)); // gamma correction AFTER
+    tex.rgb = pow(tex.rgb, vec3(1.0 / GAMMA)); // Gamma correction
 
-    
     FragColor = tex;
 }

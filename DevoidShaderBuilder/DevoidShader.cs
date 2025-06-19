@@ -18,8 +18,6 @@
             AddSampler2D();
 
             Build();
-
-            Console.WriteLine(GetSource());
         }
 
         public string GetSource()

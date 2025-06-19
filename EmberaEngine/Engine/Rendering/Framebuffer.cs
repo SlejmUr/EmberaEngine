@@ -164,15 +164,13 @@ namespace EmberaEngine.Engine.Rendering
             if (_disposed)
                 return;
 
-            Console.WriteLine("Disposing!");
 
             if (rendererID != 0)
             {
                 int handleToDelete = rendererID;
                 MainThreadDispatcher.Queue(() =>
                 {
-                    //GL.DeleteFramebuffer(handleToDelete);
-                    Console.WriteLine("Disposed Texture: " + handleToDelete);
+                    GL.DeleteFramebuffer(handleToDelete);
                 });
                 rendererID = 0;
             }
