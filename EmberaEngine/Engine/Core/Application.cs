@@ -16,6 +16,7 @@ namespace EmberaEngine.Engine.Core
         public bool useImGui;
         public bool useImGuiDock;
         public bool useCustomTitlebar;
+        public string customTitlebarLogo;
         public bool useFullscreen;
     }
 
@@ -44,6 +45,7 @@ namespace EmberaEngine.Engine.Core
                 ImGuiLayer = new ImguiLayer();
                 ImguiLayer.UseDockspace = appSpec.useImGuiDock;
                 ImguiLayer.customTitlebar = appSpec.useCustomTitlebar;
+                ImguiLayer.customTitlebarLogo = appSpec.customTitlebarLogo;
                 LayerHandler.AddLayer(ImGuiLayer);
             }
 

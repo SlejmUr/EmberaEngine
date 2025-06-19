@@ -26,6 +26,7 @@ namespace ElementalEditor.Editor.GizmoAddons
         public override void OnRender(Component component)
         {
             LightComponent lComponent = (LightComponent)component;
+            if (!lComponent.Enabled) { return; }
             if (lComponent.LightType == EmberaEngine.Engine.Rendering.LightType.PointLight)
             {
                 Guizmo3D.RenderTexture(pointLightTexture, component.gameObject.transform.Position, Vector3.One);

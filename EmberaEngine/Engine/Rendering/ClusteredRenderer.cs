@@ -210,17 +210,16 @@ namespace EmberaEngine.Engine.Rendering
             for (int i = 0; i < meshes.Count; i++)
             {
                 Mesh mesh = meshes[i];
-                Material material = MaterialManager.GetMaterial(mesh.MaterialIndex);
+                PBRMaterial material = (PBRMaterial)MaterialManager.GetMaterial(mesh.MaterialIndex);
 
                 //if (i == 0)
                 //{
                 //    material.shader.Use();
                 //}
 
-                material.shader.Use();
                 material.Apply();
 
-                int textureStartIndex = 5;
+                int textureStartIndex = material.textureUnitCount;
 
                 material.shader.SetInt("irradianceMap", textureStartIndex);
                 material.shader.SetInt("prefilterMap", textureStartIndex + 1);
@@ -247,9 +246,6 @@ namespace EmberaEngine.Engine.Rendering
                 material.shader.SetMatrix4("W_MODEL_MATRIX", model);
                 material.shader.SetMatrix4("W_VIEW_MATRIX", camera.GetViewMatrix());
                 material.shader.SetMatrix4("W_PROJECTION_MATRIX", camera.GetProjectionMatrix());
-
-
-                material.shader.Apply();
 
                 mesh.Draw();
             }
@@ -296,7 +292,6 @@ namespace EmberaEngine.Engine.Rendering
             GraphicsState.SetTextureActiveBinding(Core.TextureUnit.Texture2);
             BloomPass.GetOutputFramebuffer().GetFramebufferTexture(0).Bind();
 
-            fullScreenTonemap.Apply();
             Graphics.DrawFullScreenTri();
             GraphicsState.SetDepthTest(true);
         }
@@ -354,21 +349,8 @@ namespace EmberaEngine.Engine.Rendering
 
         public Material GetDefaultMaterial()
         {
-            Material pbrMaterial = new Material(ShaderRegistry.GetShader("CLUSTERED_PBR"));
-            pbrMaterial.Set("material.albedo", Vector4.One);
-            pbrMaterial.Set("material.emission", Vector3.Zero);
-            pbrMaterial.Set("material.emissionStr", 0);
-            pbrMaterial.Set("material.metallic", 0);
-            pbrMaterial.Set("material.roughness", 1f);
-            pbrMaterial.Set("material.useDiffuseMap", 0);
-            pbrMaterial.Set("material.useRoughnessMap", 0);
-            pbrMaterial.Set("material.useNormalMap", 0);
-            pbrMaterial.Set("material.useEmissionMap", 0);
-
-            pbrMaterial.Set("material.DIFFUSE_TEX", Texture.GetWhite2D());
-            pbrMaterial.Set("material.NORMAL_TEX", Texture.GetWhite2D());
-            pbrMaterial.Set("material.ROUGHNESS_TEX", Texture.GetWhite2D());
-            pbrMaterial.Set("material.EMISSION_TEX", Texture.GetBlack2D());
+            PBRMaterial pbrMaterial = new PBRMaterial();
+            pbrMaterial.SetDefaults();
 
             return pbrMaterial;
         }

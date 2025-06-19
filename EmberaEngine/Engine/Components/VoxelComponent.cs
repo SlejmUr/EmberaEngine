@@ -77,8 +77,8 @@ namespace EmberaEngine.Engine.Components
 
             Mesh mesh = new Mesh();
             mesh.SetVertexArrayObject(VAO);
-            Material mat = Renderer3D.ActiveRenderingPipeline.GetDefaultMaterial();
-            mat.Set("material.albedo", new Vector3(UtilRandom.GetFloat(), UtilRandom.GetFloat(), UtilRandom.GetFloat()));
+            PBRMaterial mat = (PBRMaterial)Renderer3D.ActiveRenderingPipeline.GetDefaultMaterial();
+            mat.Albedo =  new Color4(UtilRandom.GetFloat(), UtilRandom.GetFloat(), UtilRandom.GetFloat(), 1);
             mesh.MaterialIndex = MaterialManager.AddMaterial(mat);
 
             mr.SetMesh(mesh);

@@ -73,11 +73,9 @@ namespace EmberaEngine.Engine.Rendering
 
             upsampleShader.Use();
             upsampleShader.SetInt("INPUT_TEXTURE", 0);
-            upsampleShader.Apply();
 
             downsampleShader.Use();
             downsampleShader.SetInt("INPUT_TEXTURE", 0);
-            downsampleShader.Apply();
         }
 
         public void Apply(FrameData frameData)
@@ -120,7 +118,6 @@ namespace EmberaEngine.Engine.Rendering
 
                 GraphicsState.SetViewport(0, 0, bloomMip.size.X, bloomMip.size.Y);
                 bloomFB.SetFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, bloomMip.texture);
-                downsampleShader.Apply();
                 Graphics.DrawFullScreenTri();
                 downsampleShader.SetVector2("srcResolution", bloomMip.size);
                 bloomMip.texture.Bind();

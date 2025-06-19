@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using EmberaEngine.Engine.Rendering;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,244 +8,236 @@ using System.Threading.Tasks;
 
 namespace EmberaEngine.Engine.Core
 {
-    public class Material
+    [Flags]
+    public enum MaterialFeatures
     {
-        public Shader shader;
+        None = 0,
+        EnvironmentLighting = 1 << 0,
+        Shadows = 1 << 1,
+    }
 
-        Dictionary<string, int> propertyInts;
-        Dictionary<string, float> propertyFloats;
-        Dictionary<string, bool> propertyBools;
-        Dictionary<string, Vector2> propertyVec2;
-        Dictionary<string, Vector3> propertyVec3;
-        Dictionary<string, Vector4> propertyVec4;
-        Dictionary<string, Matrix3> propertyMat3;
-        Dictionary<string, Matrix4> propertyMat4;
-        Dictionary<string, Texture> propertyTextures;
 
-        public Material(Shader shader)
+    public interface IMaterial
+    {
+        Shader shader { get; }
+        void Apply();
+    }
+    public abstract class Material : IMaterial
+    {
+        public Shader shader { get; set; }
+        public Dictionary<string, object> properties = new Dictionary<string, object>();
+
+        public MaterialFeatures features;
+        public int textureUnitCount;
+
+        public void SetProperty(string name, object value) => properties[name] = value;
+
+        public virtual void Apply()
         {
-            this.shader = shader;
+            shader.Use();
 
-            propertyInts = new Dictionary<string, int>();
-            propertyFloats = new Dictionary<string, float>();
-            propertyBools = new Dictionary<string, bool>();
-            propertyVec2 = new Dictionary<string, Vector2>();
-            propertyVec3 = new Dictionary<string, Vector3>();
-            propertyVec4 = new Dictionary<string, Vector4>();
-            propertyMat3 = new Dictionary<string, Matrix3>();
-            propertyMat4 = new Dictionary<string, Matrix4>();
-            propertyTextures = new Dictionary<string, Texture>();
+            foreach (KeyValuePair<string, object> kvp in properties)
+            {
+                shader.Set(kvp.Key, kvp.Value);
+            }
+        }
+    }
+
+
+    public class PBRMaterial : Material
+    {
+        private Vector4 albedo;
+        private Vector3 emissionColor;
+        private float emissionStrength;
+        private float metallic;
+        private float roughness;
+
+        private Texture diffuseTexture;
+        private Texture normalTexture;
+        private Texture roughnessTexture;
+        private Texture emissionTexture;
+
+        private bool isDiffuseSet;
+        private bool isNormalSet;
+        private bool isSpecularSet;
+        private bool isRoughnessSet;
+        private bool isEmissionSet;
+
+        #region PROPERTIES
+        public Color4 Albedo
+        {
+            get => new Color4(albedo.X, albedo.Y, albedo.Z, albedo.W);
+            set
+            {
+                albedo = new Vector4(value.R, value.G, value.B, value.A);
+                OnChangeValue();
+            }
         }
 
-        public Material()
+        public Color4 Emission
         {
-            propertyInts = new Dictionary<string, int>();
-            propertyFloats = new Dictionary<string, float>();
-            propertyBools = new Dictionary<string, bool>();
-            propertyVec2 = new Dictionary<string, Vector2>();
-            propertyVec3 = new Dictionary<string, Vector3>();
-            propertyVec4 = new Dictionary<string, Vector4>();
-            propertyMat3 = new Dictionary<string, Matrix3>();
-            propertyMat4 = new Dictionary<string, Matrix4>();
-            propertyTextures = new Dictionary<string, Texture>();
+            get => new Color4(emissionColor.X , emissionColor.Y, emissionColor.Z, 1);
+            set
+            {
+                emissionColor = new Vector3(value.R, value.G, value.B);
+                OnChangeValue();
+            }
         }
 
-        public void Apply()
+        public float EmissionStrength
         {
-            if (shader == null) { return; }
-
-            foreach (string key in propertyInts.Keys)
+            get => emissionStrength;
+            set
             {
-                shader.Set(key, propertyInts[key]);
-            }
-            foreach (string key in propertyFloats.Keys)
-            {
-                shader.Set(key, propertyFloats[key]);
-            }
-            foreach (string key in propertyBools.Keys)
-            {
-                shader.Set(key, propertyBools[key]);
-            }
-            foreach (string key in propertyVec2.Keys)
-            {
-                shader.Set(key, propertyVec2[key]);
-            }
-            foreach (string key in propertyVec3.Keys)
-            {
-                shader.Set(key, propertyVec3[key]);
-            }
-            foreach (string key in propertyVec4.Keys)
-            {
-                shader.Set(key, propertyVec4[key]);
-            }
-            foreach (string key in propertyMat3.Keys)
-            {
-                shader.Set(key, propertyMat3[key]);
-            }
-            foreach (string key in propertyMat4.Keys)
-            {
-                shader.Set(key, propertyMat4[key]);
-            }
-            int i = 0;
-            foreach (string key in propertyTextures.Keys)
-            {
-                shader.Set(key, i);
-                propertyTextures[key].SetActiveUnit(TextureUnit.Texture0 + i);
-                propertyTextures[key].Bind();
-                i++;
+                emissionStrength = value;
+                OnChangeValue();
             }
         }
 
 
-        public void Set(string name, int value)
+        public float Metallic
         {
-            propertyInts[name] = value;
-        }
-        public void Set(string name, float value)
-        {
-            propertyFloats[name] = value;
-        }
-        public void Set(string name, bool value)
-        {
-            propertyBools[name] = value;
-        }
-        public void Set(string name, Vector2 value)
-        {
-            propertyVec2[name] = value;
-        }
-        public void Set(string name, Vector3 value)
-        {
-            propertyVec3[name] = value;
-        }
-        public void Set(string name, Vector4 value)
-        {
-            propertyVec4[name] = value;
-        }
-        public void Set(string name, Matrix3 value)
-        {
-            propertyMat3[name] = value;
-        }
-        public void Set(string name, Matrix4 value)
-        {
-            propertyMat4[name] = value;
-        }
-
-        public void Set(string name, Texture value)
-        {
-            propertyTextures[name] = value;
-        }
-
-        public int GetInt(string name)
-        {
-            if (propertyInts.TryGetValue(name, out int value))
+            get => metallic;
+            set
             {
-                return value;
-            }
-            else
-            {
-                return 0;
+                metallic = value;
+                OnChangeValue();
             }
         }
 
-        public float GetFloat(string name)
+
+        public float Roughness
         {
-            if (propertyFloats.TryGetValue(name, out float value))
+            get => roughness;
+            set
             {
-                return value;
-            }
-            else
-            {
-                return 0f;
+                roughness = value;
+                OnChangeValue();
             }
         }
 
-        public bool GetBool(string name)
+        public Texture DiffuseTexture
         {
-            if (propertyBools.TryGetValue(name, out bool value))
+            get => diffuseTexture;
+            set
             {
-                return value;
-            }
-            else
-            {
-                return false;
+                diffuseTexture = value;
+                isDiffuseSet = true;
+                OnChangeValue();
             }
         }
 
-        public Vector2 GetVector2(string name)
+        public Texture NormalTexture
         {
-            if (propertyVec2.TryGetValue(name, out Vector2 value))
+            get => normalTexture;
+            set
             {
-                return value;
-            }
-            else
-            {
-                return Vector2.Zero;
+                normalTexture = value;
+                isNormalSet = true;
+                OnChangeValue();
             }
         }
 
-        public Vector3 GetVector3(string name)
+        public Texture RoughnessTexture
         {
-            if (propertyVec3.TryGetValue(name, out Vector3 value))
+            get => roughnessTexture;
+            set
             {
-                return value;
-            }
-            else
-            {
-                return Vector3.Zero;
+                roughnessTexture = value;
+                isRoughnessSet = true;
+                OnChangeValue();
             }
         }
 
-        public Vector4 GetVector4(string name)
+        public Texture EmissionTexture
         {
-            if (propertyVec4.TryGetValue(name, out Vector4 value))
+            get => emissionTexture;
+            set
             {
-                return value;
+                emissionTexture = value;
+                isEmissionSet = true;
+                OnChangeValue();
             }
-            else
+        }
+        #endregion
+
+
+
+        public PBRMaterial()
+        {
+            base.shader = ShaderRegistry.GetShader("CLUSTERED_PBR");
+        }
+
+        public PBRMaterial(Shader shader)
+        {
+            base.shader = shader;
+        }
+
+        public void SetDefaults()
+        {
+            Albedo = Color4.White;
+            Emission = Color4.White;
+            EmissionStrength = 0f;
+            Metallic = 0f;
+            Roughness = 1f;
+            isDiffuseSet = false;
+            isEmissionSet = false;
+            isNormalSet = false;
+            isRoughnessSet = false;
+            textureUnitCount = 4;
+
+
+            features = MaterialFeatures.EnvironmentLighting | MaterialFeatures.Shadows;
+        }
+
+        public override void Apply()
+        {
+            base.Apply();
+
+            shader.Set("material.DIFFUSE_TEX", 0);
+            shader.Set("material.NORMAL_TEX", 1);
+            shader.Set("material.ROUGHNESS_TEX", 2);
+            shader.Set("material.EMISSION_TEX", 3);
+
+            shader.Set("material.useDiffuseMap", isDiffuseSet ? 1 : 0);
+            shader.Set("material.useNormalMap", isNormalSet ? 1 : 0);
+            shader.Set("material.useRoughnessMap", isRoughnessSet ? 1 : 0);
+            shader.Set("material.useEmissionMap", isEmissionSet ? 1 : 0);
+
+            if (isDiffuseSet)
             {
-                return Vector4.Zero;
+                GraphicsState.SetTextureActiveBinding(TextureUnit.Texture0);
+                diffuseTexture.Bind();
+            }
+
+            if (isNormalSet)
+            {
+                GraphicsState.SetTextureActiveBinding(TextureUnit.Texture1);
+                normalTexture.Bind();
+            }
+
+            if (isRoughnessSet)
+            {
+                GraphicsState.SetTextureActiveBinding(TextureUnit.Texture2);
+                roughnessTexture.Bind();
+
+            }
+
+            if (isEmissionSet)
+            {
+                GraphicsState.SetTextureActiveBinding(TextureUnit.Texture3);
+                emissionTexture.Bind();
             }
         }
 
-        public Matrix3 GetMatrix3(string name)
+        public void OnChangeValue()
         {
-            if (propertyMat3.TryGetValue(name, out Matrix3 value))
-            {
-                return value;
-            }
-            else
-            {
-                return Matrix3.Identity;
-            }
-        }
+            SetProperty("material.albedo", albedo);
+            SetProperty("material.emission", emissionColor);
+            SetProperty("material.emissionStr", emissionStrength);
+            SetProperty("material.metallic", metallic);
+            SetProperty("material.roughness", roughness);
 
-        public Matrix4 GetMatrix4(string name)
-        {
-            if (propertyMat4.TryGetValue(name, out Matrix4 value))
-            {
-                return value;
-            }
-            else
-            {
-                return Matrix4.Identity;
-            }
-        }
-
-        public Texture GetTexture(string name)
-        {
-            if (propertyTextures.TryGetValue(name, out Texture value))
-            {
-                return value;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public int GetTextureCount()
-        {
-            return propertyTextures.Count;
         }
 
     }

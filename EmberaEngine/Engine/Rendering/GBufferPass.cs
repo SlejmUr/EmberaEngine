@@ -84,7 +84,6 @@ namespace EmberaEngine.Engine.Rendering
                 Matrix4 model = mesh.worldMatrix;
                 gBufferShader.SetMatrix4("W_MODEL_MATRIX", model);
                 gBufferShader.SetInt("HIGHLIGHT_BIT", mesh.isHighlighted ? 1 : 0);
-                    gBufferShader.Apply();
                 mesh.Draw();
             }
         }

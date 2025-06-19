@@ -289,7 +289,6 @@ namespace EmberaEngine.Engine.Rendering
 
                 panoramaConvertShader.SetInt("face", i);
                 panoramaConvertShader.SetInt("panoramicTexture", 0);
-                panoramaConvertShader.Apply();
                 GraphicsState.SetTextureActiveBinding(TextureUnit.Texture0);
                 loadedTexture.Bind();
 

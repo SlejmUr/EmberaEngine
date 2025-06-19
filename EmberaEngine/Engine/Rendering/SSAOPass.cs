@@ -3,9 +3,6 @@ using EmberaEngine.Engine.Utilities;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EmberaEngine.Engine.Rendering
 {
@@ -25,10 +22,8 @@ namespace EmberaEngine.Engine.Rendering
         Vector3[] SampleKernelValues;
 
         Vector2 screenDimensions;
-
-        bool isActive = true;
-
         float renderScale = 0.25f;
+        bool isActive = true;
 
         public bool GetState() => isActive;
         public void SetState(bool value) => isActive = value;
@@ -36,7 +31,6 @@ namespace EmberaEngine.Engine.Rendering
         public void Initialize(int width, int height)
         {
             screenDimensions = new Vector2(width, height);
-
             Vector3[] RandomizedNoise = Helper.GenerateNoise(16);
             SampleKernelValues = GenerateKernel(SampleKernelSize).ToArray();
 
@@ -62,33 +56,22 @@ namespace EmberaEngine.Engine.Rendering
             SSAOBlurFB.AttachFramebufferTexture(OpenTK.Graphics.OpenGL.FramebufferAttachment.ColorAttachment0, SSAOBlurTexture);
             SSAOBlurFB.SetDrawBuffers([OpenTK.Graphics.OpenGL.DrawBuffersEnum.ColorAttachment0]);
 
-
-
             SSAOShader = new Shader("Engine/Content/Shaders/3D/AO/ssao");
 
-            SSAOShader.Set("gPosition", 0);
-            SSAOShader.Set("gNormal", 1);
-            SSAOShader.Set("texNoise", 2);
-            SSAOShader.Set("gDepth", 3);
-            SSAOShader.Set("screenDimensions", screenDimensions);
+            for (int i = 0; i < SampleKernelSize; i++)
+                SSAOShader.Set($"samples[{i}]", SampleKernelValues[i]);
 
             SSAOBlurShader = new Shader("Engine/Content/Shaders/3D/AO/ssao.vert", "Engine/Content/Shaders/3D/AO/ssaoBlur.frag");
-            SSAOBlurShader.Set("INPUT_TEXTURE", 0);
-
-            for (int i = 0; i < SampleKernelSize; i++)
-            {
-                SSAOShader.Set("samples[" + i + "]", SampleKernelValues[i]);
-            }
         }
 
-        // Ensure Geometry pass is run before this pass as it makes use of normal texture & position texture
         public void Apply(FrameData frameData)
         {
             if (!isActive) return;
 
-            if (renderScale != ((int)Renderer3D.ActiveRenderingPipeline.GetRenderSettings().occlusionScale) * 0.25f)
+            float desiredScale = (int)Renderer3D.ActiveRenderingPipeline.GetRenderSettings().occlusionScale * 0.25f;
+            if (Math.Abs(renderScale - desiredScale) > 0.001f)
             {
-                renderScale = (int)Renderer3D.ActiveRenderingPipeline.GetRenderSettings().occlusionScale * 0.25f;
+                renderScale = desiredScale;
                 Resize((int)screenDimensions.X, (int)screenDimensions.Y);
             }
 
@@ -99,44 +82,43 @@ namespace EmberaEngine.Engine.Rendering
             GraphicsState.SetBlending(false);
 
             SSAOShader.Use();
-            SSAOShader.SetMatrix4("W_PROJECTION_MATRIX", frameData.Camera.GetProjectionMatrix());
-            SSAOShader.SetMatrix4("W_INVERSE_VIEW_MATRIX", Matrix4.Invert(frameData.Camera.GetViewMatrix()));
-            SSAOShader.SetMatrix4("W_VIEW_MATRIX", frameData.Camera.GetViewMatrix());
+            SSAOShader.Set("W_PROJECTION_MATRIX", frameData.Camera.GetProjectionMatrix());
+            SSAOShader.Set("W_INVERSE_VIEW_MATRIX", Matrix4.Invert(frameData.Camera.GetViewMatrix()));
+            SSAOShader.Set("W_VIEW_MATRIX", frameData.Camera.GetViewMatrix());
+            SSAOShader.Set("gPosition", 0);
+            SSAOShader.Set("gNormal", 1);
+            SSAOShader.Set("texNoise", 2);
+            SSAOShader.Set("gDepth", 3);
+            SSAOShader.Set("screenDimensions", screenDimensions * renderScale);
 
-            Texture positionTexture = frameData.GBuffer.GetFramebufferTexture(1);
-            Texture normalTexture = frameData.GBuffer.GetFramebufferTexture(0);
+            for (int i = 0; i < SampleKernelSize; i++)
+                SSAOShader.Set($"samples[{i}]", SampleKernelValues[i]);
 
-            positionTexture.SetActiveUnit(TextureUnit.Texture0);
-            positionTexture.Bind();
+            GraphicsState.SetTextureActiveBinding(TextureUnit.Texture0);
+            frameData.GBuffer.GetFramebufferTexture(1).Bind(); // position
 
-            normalTexture.SetActiveUnit(TextureUnit.Texture1);
-            normalTexture.Bind();
+            GraphicsState.SetTextureActiveBinding(TextureUnit.Texture1);
+            frameData.GBuffer.GetFramebufferTexture(0).Bind(); // normal
 
-            NoiseTexture.SetActiveUnit(TextureUnit.Texture2);
+            GraphicsState.SetTextureActiveBinding(TextureUnit.Texture2);
             NoiseTexture.Bind();
 
-            SSAOShader.Apply();
             Graphics.DrawFullScreenTri();
 
+            // SSAO Blur pass
             SSAOBlurFB.Bind();
             GraphicsState.SetViewport(0, 0, (int)(screenDimensions.X * renderScale), (int)(screenDimensions.Y * renderScale));
             GraphicsState.Clear(true, true);
 
             SSAOBlurShader.Use();
-
-            SSAOTexture.SetActiveUnit(TextureUnit.Texture0);
+            SSAOBlurShader.Set("INPUT_TEXTURE", 0);
+            GraphicsState.SetTextureActiveBinding(TextureUnit.Texture0);
             SSAOTexture.Bind();
 
-            SSAOBlurShader.Apply();
-
             Graphics.DrawFullScreenTri();
-
         }
 
-        static float ourLerp(float a, float b, float f)
-        {
-            return a + f * (b - a);
-        }
+        static float ourLerp(float a, float b, float f) => a + f * (b - a);
 
         public static List<Vector3> GenerateKernel(int kernelSize = 64)
         {
@@ -148,14 +130,13 @@ namespace EmberaEngine.Engine.Rendering
                 Vector3 sample = new Vector3(
                     (float)(random.NextDouble() * 2.0 - 1.0),
                     (float)(random.NextDouble() * 2.0 - 1.0),
-                    (float)(random.NextDouble())
+                    (float)random.NextDouble()
                 );
 
                 sample = Vector3.Normalize(sample);
                 sample *= (float)random.NextDouble();
 
-                float scale = (float)i / kernelSize;
-                scale = ourLerp(0.1f, 1.0f, scale * scale);
+                float scale = ourLerp(0.1f, 1.0f, ((float)i / kernelSize) * ((float)i / kernelSize));
                 sample *= scale;
 
                 ssaoKernel.Add(sample);
@@ -164,10 +145,7 @@ namespace EmberaEngine.Engine.Rendering
             return ssaoKernel;
         }
 
-        public Framebuffer GetOutputFramebuffer()
-        {
-            return SSAOBlurFB;
-        }
+        public Framebuffer GetOutputFramebuffer() => SSAOBlurFB;
 
         public void Resize(int width, int height)
         {
@@ -178,9 +156,7 @@ namespace EmberaEngine.Engine.Rendering
             SSAOTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
 
             SSAOBlurTexture.TexImage2D((int)(screenDimensions.X * renderScale), (int)(screenDimensions.Y * renderScale), PixelInternalFormat.R16f, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
-            SSAOBlurTexture.SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            SSAOBlurTexture.SetFilter(TextureMinFilter.Linear, TextureMagFilter.Linear);
         }
-
-
     }
 }

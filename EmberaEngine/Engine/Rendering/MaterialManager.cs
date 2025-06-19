@@ -19,7 +19,7 @@ namespace EmberaEngine.Engine.Rendering
         {
             materials = new Dictionary<uint, Material>();
 
-            nullMaterial = new Material(new Shader("Engine/Content/Shaders/3D/basic/base"));
+            //nullMaterial = new Material(new Shader("Engine/Content/Shaders/3D/basic/base"));
         }
 
         public static Material GetMaterial(uint materialId)

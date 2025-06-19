@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using EmberaEngine.Engine.Utilities;
 
 namespace EmberaEngine.Engine.Core
 {
@@ -14,352 +12,194 @@ namespace EmberaEngine.Engine.Core
         public bool requiresTime;
     }
 
-    public class Shader
+    public class Shader : IDisposable
     {
-
         public static List<Shader> Shaders = new List<Shader>();
-
+        public static int CurrentlyBound = -1;
         public Dictionary<string, int> UniformPositions = new Dictionary<string, int>();
 
-        private Dictionary<string, int> uniformInts = new Dictionary<string, int>();
-        private Dictionary<string, float> uniformFloats = new Dictionary<string, float>();
-        private Dictionary<string, bool> uniformBools = new Dictionary<string, bool>();
-        private Dictionary<string, Vector2> uniformVec2 = new Dictionary<string, Vector2>();
-        private Dictionary<string, Vector3> uniformVec3 = new Dictionary<string, Vector3>();
-        private Dictionary<string, Vector4> uniformVec4 = new Dictionary<string, Vector4>();
-        private Dictionary<string, Matrix3> uniformMat3 = new Dictionary<string, Matrix3>();
-        private Dictionary<string, Matrix4> uniformMat4 = new Dictionary<string, Matrix4>();
-
-        int Handle;
-
-        string vPath, fPath;
-
+        private int Handle;
+        private string vPath, fPath;
         private bool disposedValue = false;
+        
 
         public ShaderProperties ShaderProperties = new ShaderProperties();
 
         public Shader(string vertexPath, string fragmentPath, string geometryPath = "")
         {
+            int vertexShader = LoadShader(vertexPath, ShaderType.VertexShader, out string vertexSource);
+            int fragmentShader = LoadShader(fragmentPath, ShaderType.FragmentShader, out string fragmentSource);
+            int geometryShader = 0;
 
-            int VertexShader;
-            int FragmentShader;
-            int GeometryShader = 0;
-
-            string VertexShaderSource;
-            string FragmentShaderSource;
-            string GeometryShaderSource;
-
-            using (StreamReader reader = new StreamReader(vertexPath, Encoding.UTF8))
-            {
-                VertexShaderSource = reader.ReadToEnd();
-            }
-
-            using (StreamReader reader = new StreamReader(fragmentPath, Encoding.UTF8))
-            {
-                FragmentShaderSource = reader.ReadToEnd();
-            }
-
-            if (geometryPath != "")
-            {
-                using ( StreamReader reader = new StreamReader(geometryPath, Encoding.UTF8))
-                {
-                    GeometryShaderSource = reader.ReadToEnd();
-                    GeometryShader = GL.CreateShader(ShaderType.GeometryShader);
-                    GL.ShaderSource(GeometryShader, GeometryShaderSource);
-                }
-            }
+            if (!string.IsNullOrEmpty(geometryPath))
+                geometryShader = LoadShader(geometryPath, ShaderType.GeometryShader, out _);
 
             vPath = vertexPath;
             fPath = fragmentPath;
 
-            VertexShader = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(VertexShader, VertexShaderSource);
-
-            FragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(FragmentShader, FragmentShaderSource);
-
-            CompileSource(VertexShader, FragmentShader, GeometryShader);
+            CompileSource(vertexShader, fragmentShader, geometryShader);
         }
 
-        public Shader(string Path)
+        public Shader(string path)
+            : this(path + ".vert", path + ".frag") { }
+
+        private int LoadShader(string path, ShaderType type, out string source)
         {
-
-            int VertexShader;
-            int FragmentShader;
-
-            string VertexShaderSource;
-            string FragmentShaderSource;
-
-            using (StreamReader reader = new StreamReader(Path + ".vert", Encoding.UTF8))
-            {
-                VertexShaderSource = reader.ReadToEnd();
-            }
-
-            using (StreamReader reader = new StreamReader(Path + ".frag", Encoding.UTF8))
-            {
-                FragmentShaderSource = reader.ReadToEnd();
-            }
-
-            vPath = Path + ".vert";
-            fPath = Path + ".frag";
-
-            VertexShader = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(VertexShader, VertexShaderSource);
-
-            FragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(FragmentShader, FragmentShaderSource);
-
-            CompileSource(VertexShader, FragmentShader);
+            source = File.ReadAllText(path, Encoding.UTF8);
+            int shader = GL.CreateShader(type);
+            GL.ShaderSource(shader, source);
+            return shader;
         }
 
-        public void CompileSource(int handleV, int handleF, int handleG = 0)
+        private void CompileSource(int vs, int fs, int gs = 0)
         {
-            // Compiling the shaders
-            GL.CompileShader(handleV);
-            GL.CompileShader(handleF);
-            if (handleG != 0)
-                GL.CompileShader(handleG);
+            GL.CompileShader(vs);
+            GL.CompileShader(fs);
+            if (gs != 0) GL.CompileShader(gs);
 
-            // Getting Shader logs and printing
-            string infoVertLog = GL.GetShaderInfoLog(handleV);
-            string infoFragLog = GL.GetShaderInfoLog(handleF);
-            if (infoVertLog != System.String.Empty) System.Console.WriteLine(infoVertLog);
-            if (infoFragLog != System.String.Empty) System.Console.WriteLine(infoFragLog);
+            LogShaderCompilation(vs);
+            LogShaderCompilation(fs);
+            if (gs != 0) LogShaderCompilation(gs);
 
-            // Creating Shader Program
             Handle = GL.CreateProgram();
-
-            // Attaching Frag and Vert shader to program
-            GL.AttachShader(Handle, handleV);
-            GL.AttachShader(Handle, handleF);
-            if (handleG != 0)
-                GL.AttachShader(Handle, handleG);
+            GL.AttachShader(Handle, vs);
+            GL.AttachShader(Handle, fs);
+            if (gs != 0) GL.AttachShader(Handle, gs);
 
             GL.LinkProgram(Handle);
 
-            // Discarding Useless Resources
-            GL.DetachShader(Handle, handleV);
-            GL.DetachShader(Handle, handleF);
-            if (handleG != 0)
-                GL.DetachShader(Handle, handleG);
-            GL.DeleteShader(handleV);
-            GL.DeleteShader(handleF);
-            if (handleG != 0)
-                GL.DeleteShader(handleG);
-            Shaders.Add(this);
+            GL.DetachShader(Handle, vs);
+            GL.DetachShader(Handle, fs);
+            if (gs != 0) GL.DetachShader(Handle, gs);
 
+            GL.DeleteShader(vs);
+            GL.DeleteShader(fs);
+            if (gs != 0) GL.DeleteShader(gs);
+
+            Shaders.Add(this);
             ShaderProperties.requiresTime = UniformExists("E_TIME");
         }
 
-        public bool ExistsInAssetDB(string path)
+        private void LogShaderCompilation(int shader)
         {
-            Shader shader = AssetDatabase.Get(System.IO.Path.GetFileNameWithoutExtension(path));
-            if (shader != null)
-            {
-                return true;
-            }
-            return false;
+            string log = GL.GetShaderInfoLog(shader);
+            if (!string.IsNullOrEmpty(log))
+                Console.WriteLine(log);
         }
+
+        public void Use()
+        {
+            if (CurrentlyBound == Handle) return;
+            GL.UseProgram(Handle);
+
+            CurrentlyBound = Handle;
+        }
+        public int GetRendererID() => Handle;
+
+        public void ReCompile()
+        {
+            int vs = LoadShader(vPath, ShaderType.VertexShader, out _);
+            int fs = LoadShader(fPath, ShaderType.FragmentShader, out _);
+
+            Shaders.Remove(this);
+            CompileSource(vs, fs);
+        }
+
+        public int GetAttribLocation(string name) => GL.GetAttribLocation(Handle, name);
+
+        public int GetUniformLocation(string name)
+        {
+            if (!UniformPositions.TryGetValue(name, out int location))
+            {
+                location = GL.GetUniformLocation(Handle, name);
+                UniformPositions[name] = location;
+            }
+            return location;
+        }
+
+        public bool UniformExists(string name) => GetUniformLocation(name) != -1;
+
+        // Uniform Setters
+        public void Set(string name, object value)
+        {
+            switch (value)
+            {
+                case int i:
+                    SetInt(name, i);
+                    break;
+                case float f:
+                    SetFloat(name, f);
+                    break;
+                case bool b:
+                    SetBool(name, b);
+                    break;
+                case Vector2 v2:
+                    SetVector2(name, v2);
+                    break;
+                case Vector3 v3:
+                    SetVector3(name, v3);
+                    break;
+                case Vector4 v4:
+                    SetVector4(name, v4);
+                    break;
+                case Matrix4 m4:
+                    SetMatrix4(name, m4);
+                    break;
+                default:
+                    throw new ArgumentException($"Unsupported uniform type: {value.GetType().Name}", nameof(value));
+            }
+        }
+
 
 
         public void SetInt(string name, int value)
         {
-            int location = this.GetUniformLocation(name);
-            if (location == -1) { return; }
-            GL.Uniform1(location, value);
+            int location = GetUniformLocation(name);
+            if (location != -1) GL.Uniform1(location, value);
         }
 
         public void SetIntArray(string name, int[] value)
         {
             for (int i = 0; i < value.Length; i++)
             {
-                int location = this.GetUniformLocation(name + "["+i+"]");
-                if (location == -1) { return; }
-                GL.Uniform1(location, value[i]);
+                int location = GetUniformLocation($"{name}[{i}]");
+                if (location != -1) GL.Uniform1(location, value[i]);
             }
         }
 
         public void SetFloat(string name, float value)
         {
-            int location = this.GetUniformLocation(name);
-            if (location == -1) { return; }
-            GL.Uniform1(location, value);
+            int location = GetUniformLocation(name);
+            if (location != -1) GL.Uniform1(location, value);
         }
 
-        public void SetBool(string name, bool value)
-        {
-            int location = this.GetUniformLocation(name);
-            if (location == -1) { return; }
-            GL.Uniform1(location, value ? 1 : 0);
-        }
+        public void SetBool(string name, bool value) => SetInt(name, value ? 1 : 0);
 
-        public void SetMatrix4(string name, Matrix4 value, bool transpose = false)
+        public void SetVector2(string name, Vector2 value)
         {
-            int location = this.GetUniformLocation(name);
-            if (location == -1) { return; }
-            GL.UniformMatrix4(location, transpose, ref value);
-        }
-
-        public void SetVector4(string name, Vector4 value)
-        {
-            int location = this.GetUniformLocation(name);
-            if (location == -1) { return; }
-            GL.Uniform4(location, value);
+            int location = GetUniformLocation(name);
+            if (location != -1) GL.Uniform2(location, value);
         }
 
         public void SetVector3(string name, Vector3 value)
         {
-            int location = this.GetUniformLocation(name);
-            if (location == -1) { return; }
-            GL.Uniform3(location, value);
+            int location = GetUniformLocation(name);
+            if (location != -1) GL.Uniform3(location, value);
         }
 
-        public void SetVector2(string name, Vector2 value)
+        public void SetVector4(string name, Vector4 value)
         {
-            int location = this.GetUniformLocation(name);
-            if (location == -1) { return; }
-            GL.Uniform2(location, value);
+            int location = GetUniformLocation(name);
+            if (location != -1) GL.Uniform4(location, value);
         }
 
-        public void Use()
+        public void SetMatrix4(string name, Matrix4 value, bool transpose = false)
         {
-            GL.UseProgram(Handle);
+            int location = GetUniformLocation(name);
+            if (location != -1) GL.UniformMatrix4(location, transpose, ref value);
         }
 
-        public int GetRendererID()
-        {
-            return Handle;
-        }
-
-        public void ReCompile()
-        {
-            //Console.WriteLine("Recompiling: ", Handle);
-            int VertexShader;
-            int FragmentShader;
-
-            string VertexShaderSource;
-            string FragmentShaderSource;
-
-            using (StreamReader reader = new StreamReader(vPath, Encoding.UTF8))
-            {
-                VertexShaderSource = reader.ReadToEnd();
-            }
-
-            using (StreamReader reader = new StreamReader(fPath, Encoding.UTF8))
-            {
-                FragmentShaderSource = reader.ReadToEnd();
-            }
-
-            VertexShader = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(VertexShader, VertexShaderSource);
-
-            FragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(FragmentShader, FragmentShaderSource);
-
-            Shaders.Remove(this);
-            CompileSource(VertexShader, FragmentShader);
-        }
-
-        public int GetAttribLocation(string AttribName)
-        {
-            return GL.GetAttribLocation(Handle, AttribName);
-        }
-
-        public int GetUniformLocation(string UniformName)
-        {
-            if (UniformPositions.ContainsKey(UniformName))
-            {
-                return UniformPositions[UniformName];
-            } else
-            {
-                UniformPositions.Add(UniformName, GL.GetUniformLocation(Handle, UniformName));
-            }
-            return GL.GetUniformLocation(Handle, UniformName);
-        }
-
-        public bool UniformExists(string name)
-        {
-            if (GetUniformLocation(name) != -1)
-                return true;
-            return false;
-        }
-
-        public void Set(string name, int value)
-        {
-            uniformInts[name] = value;
-        }
-        public void Set(string name, float value)
-        {
-            uniformFloats[name] = value;
-        }
-        public void Set(string name, bool value)
-        {
-            uniformBools[name] = value;
-        }
-        public void Set(string name, Vector2 value)
-        {
-            uniformVec2[name] = value;
-        }
-        public void Set(string name, Vector3 value)
-        {
-            uniformVec3[name] = value;
-        }
-        public void Set(string name, Vector4 value)
-        {
-            uniformVec4[name] = value;
-        }
-        public void Set(string name, Matrix3 value)
-        {
-            uniformMat3[name] = value;
-        }
-        public void Set(string name, Matrix4 value)
-        {
-            uniformMat4[name] = value;
-        }
-
-        public void Apply()
-        {
-            foreach (string key in uniformInts.Keys)
-            {
-                SetInt(key, uniformInts[key]);
-            }
-            foreach (string key in uniformFloats.Keys)
-            {
-                SetFloat(key, uniformFloats[key]);
-            }
-            foreach (string key in uniformBools.Keys)
-            {
-                SetBool(key, uniformBools[key]);
-            }
-            foreach (string key in uniformVec2.Keys)
-            {
-                SetVector2(key, uniformVec2[key]);
-            }
-            foreach (string key in uniformVec3.Keys)
-            {
-                SetVector3(key, uniformVec3[key]);
-            }
-            foreach (string key in uniformVec4.Keys)
-            {
-                SetVector4(key, uniformVec4[key]);
-            }
-            foreach (string key in uniformMat4.Keys)
-            {
-                SetMatrix4(key, uniformMat4[key]);
-            }
-        }
-
-        public void Clear()
-        {
-            uniformInts.Clear();
-            uniformFloats.Clear();
-            uniformBools.Clear();
-            uniformVec2.Clear();
-            uniformVec3.Clear();
-            uniformVec4.Clear();
-            uniformMat4.Clear();
-        }
-
+        // Disposal
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -369,12 +209,10 @@ namespace EmberaEngine.Engine.Core
             }
         }
 
-
-
         ~Shader()
         {
-            if (!GL.IsProgram(Handle)) { return; }
-            GL.DeleteProgram(Handle);
+            if (GL.IsProgram(Handle))
+                GL.DeleteProgram(Handle);
         }
 
         public void Dispose()
@@ -382,6 +220,5 @@ namespace EmberaEngine.Engine.Core
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
     }
 }

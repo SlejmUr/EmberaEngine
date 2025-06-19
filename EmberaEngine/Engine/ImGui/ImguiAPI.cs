@@ -239,6 +239,7 @@ namespace EmberaEngine.Engine.Imgui
 
         void HandleCursorWrap(NativeWindow window)
         {
+            return;
             var io = ImGui.GetIO();
             Vector2 screenSize = new(window.Size.X, window.Size.Y);
             Vector2 screenPoint = window.MousePosition;
@@ -646,62 +647,104 @@ namespace EmberaEngine.Engine.Imgui
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus /*| ImGuiWindowFlags.NoBackground*/ | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.DockNodeHost;
         bool firstFrame = true;
 
-        public void SetUpDockspace(bool customTitlebar = false)
+        public void SetUpDockspace(bool customTitlebar = false, Core.Texture titlebarLogo = null)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0, 0));
             ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(_GameWindow.Size.X, _GameWindow.Size.Y));
-
-
-            if (customTitlebar)
-            {
-                windowFlags |= ImGuiWindowFlags.MenuBar;
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(0, 5));
-            }
+            ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar |
+                                            ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize |
+                                            ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus |
+                                            ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoBackground |
+                                            ImGuiWindowFlags.DockNodeHost;
             ImGui.Begin("Dockspace", windowFlags);
 
+            float titlebarHeight = 90.0f;
+
             if (customTitlebar)
             {
-                System.Numerics.Vector2 pos = ImGui.GetCursorScreenPos();
+                // Titlebar area
+                ImGui.SetCursorScreenPos(new System.Numerics.Vector2(0, 0));
+                ImGui.BeginChild("Titlebar", new System.Numerics.Vector2(_GameWindow.Size.X, titlebarHeight), false, ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize);
 
-                ImGui.SetCursorScreenPos(new System.Numerics.Vector2(ImGui.GetContentRegionMax().X - 96, 2));
+                // Handle dragging on empty area
+                var io = ImGui.GetIO();
+                var region = ImGui.GetContentRegionAvail();
+                var mouse = _GameWindow.MouseState.Position;
 
-                ImGui.PushStyleColor(ImGuiCol.Button, new System.Numerics.Vector4(0, 0, 0, 0));
-                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new System.Numerics.Vector4(0, 0, 0, 0));
-
-                if (ImGui.Button(MaterialDesign.Minimize, new System.Numerics.Vector2(25, 25)))
+                if ((ImGui.IsWindowHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Left)) || _dragging)
                 {
-                    _GameWindow.WindowState = WindowState.Minimized;
+                    if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
+                    {
+                        _dragging = false;
+                    }
+                    if (!_dragging)
+                    {
+                        _dragging = true;
+                        _lastMouseScreen1 = mouse;
+                    }
+                    else
+                    {
+                        var deltaX = mouse.X - _lastMouseScreen1.X;
+                        var deltaY = mouse.Y - _lastMouseScreen1.Y;
+
+                        var currentPos = _GameWindow.Location;
+                        _GameWindow.Location = new OpenTK.Mathematics.Vector2i(
+                            currentPos.X + (int)deltaX,
+                            currentPos.Y + (int)deltaY
+                        );
+
+                        _lastMouseScreen = mouse;
+                    }
+                }
+                else
+                {
+                    _dragging = false;
                 }
 
-                ImGui.SetCursorScreenPos(new System.Numerics.Vector2(ImGui.GetContentRegionMax().X - 64, 2));
-                if (ImGui.Button(MaterialDesign.Crop_square, new System.Numerics.Vector2(25, 25)))
+                // Draw your logo (optional)
+                ImGui.SetCursorPos(new System.Numerics.Vector2(10, 10));
+                ImGui.Image(titlebarLogo.GetRendererID(), new System.Numerics.Vector2(160, 61));
+
+                // Draw buttons
+                ImGui.SetCursorPos(new System.Numerics.Vector2(region.X - 130, 10));
+                if (ImGui.Button(MaterialDesign.Minimize))
                 {
-
-                    _GameWindow.WindowState = WindowState.Maximized;
+                    _GameWindow.WindowState = OpenTK.Windowing.Common.WindowState.Minimized;
                 }
-
-
-                ImGui.SetCursorScreenPos(new System.Numerics.Vector2(ImGui.GetContentRegionMax().X - 32, 2));
-                if (ImGui.Button(MaterialDesign.Close, new System.Numerics.Vector2(25, 25)))
+                ImGui.SameLine();
+                if (ImGui.Button(MaterialDesign.Fullscreen))
+                {
+                    _GameWindow.WindowState = _GameWindow.WindowState == OpenTK.Windowing.Common.WindowState.Maximized
+                        ? OpenTK.Windowing.Common.WindowState.Normal
+                        : OpenTK.Windowing.Common.WindowState.Maximized;
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(MaterialDesign.Close))
                 {
                     _GameWindow.Close();
                 }
 
-                ImGui.PopStyleColor(2);
+                ImGui.EndChild();
 
-                ImGui.PopStyleVar();
-
-                ImGui.SetCursorScreenPos(pos);
+                ImGui.SetCursorScreenPos(new System.Numerics.Vector2(0, titlebarHeight));
             }
 
-            if (firstFrame) { DockspaceID = ImGui.GetID("Dockspace"); firstFrame = false; }
+            if (firstFrame)
+            {
+                DockspaceID = ImGui.GetID("Dockspace");
+                firstFrame = false;
+            }
 
-            ImGui.DockSpace(ImGui.GetID("Dockspace"));
-            //ImGui.End();
+
+            ImGui.DockSpace(DockspaceID);
+            ImGui.End();
             ImGui.PopStyleVar();
         }
 
+        // internal state
+        bool _dragging = false;
+        Vector2 _lastMouseScreen1;
 
 
         /// <summary>

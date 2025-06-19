@@ -46,9 +46,9 @@ namespace EmberaEngine.Engine.Utilities
                     PostProcessSteps.CalculateTangentSpace |
                     PostProcessSteps.GenerateSmoothNormals |
                     PostProcessSteps.FlipUVs |
-                    PostProcessSteps.GenerateUVCoords
+                    PostProcessSteps.GenerateUVCoords |
                     //PostProcessSteps.OptimizeGraph |
-                    //PostProcessSteps.OptimizeMeshes
+                    PostProcessSteps.OptimizeMeshes
                 );
             }
             catch (Exception e)
@@ -315,61 +315,72 @@ namespace EmberaEngine.Engine.Utilities
             return mesh1;
         }
 
-        static Core.Material SetupMaterial(int matIndex, Assimp.Scene scene, string baseDir)
+        static PBRMaterial SetupMaterial(int matIndex, Assimp.Scene scene, string baseDir)
         {
             var assimpMat = scene.Materials[matIndex];
-            var mat = Renderer3D.ActiveRenderingPipeline.GetDefaultMaterial();
+            var mat = new PBRMaterial();
+            mat.SetDefaults();
 
-            mat.Set("material.albedo", new OpenTK.Mathematics.Vector4(assimpMat.ColorDiffuse.R, assimpMat.ColorDiffuse.G, assimpMat.ColorDiffuse.B, assimpMat.ColorDiffuse.A));
-            mat.Set("material.metallic", 0f);
-            mat.Set("material.roughness", 1f - assimpMat.Reflectivity);
-            mat.Set("material.emission", new OpenTK.Mathematics.Vector3(assimpMat.ColorEmissive.R, assimpMat.ColorEmissive.G, assimpMat.ColorEmissive.B));
-            mat.Set("material.emissionStr", assimpMat.TextureEmissive.BlendFactor);
+            // Directly assign the properties instead of using Set()
+            mat.Albedo = new Color4(
+                assimpMat.ColorDiffuse.R,
+                assimpMat.ColorDiffuse.G,
+                assimpMat.ColorDiffuse.B,
+                assimpMat.ColorDiffuse.A
+            );
 
-            TrySetTexture(assimpMat, TextureType.Diffuse, "material.DIFFUSE_TEX", "material.useDiffuseMap", mat, baseDir);
-            TrySetTexture(assimpMat, TextureType.Normals, "material.NORMAL_TEX", "material.useNormalMap", mat, baseDir);
-            TrySetTexture(assimpMat, TextureType.Shininess, "material.ROUGHNESS_TEX", "material.useRoughnessMap", mat, baseDir);
-            TrySetTexture(assimpMat, TextureType.Emissive, "material.EMISSIVE_TEX", "material.useEmissionMap", mat, baseDir);
+            mat.Metallic = 0f;
+            mat.Roughness = 1f - assimpMat.Reflectivity;
 
+            mat.Emission = new Color4(
+                assimpMat.ColorEmissive.R,
+                assimpMat.ColorEmissive.G,
+                assimpMat.ColorEmissive.B,
+                1.0f
+            );
+            mat.EmissionStrength = assimpMat.TextureEmissive.BlendFactor;
+
+            TrySetTexture(assimpMat, TextureType.Diffuse, tex => mat.DiffuseTexture = tex, baseDir);
+            TrySetTexture(assimpMat, TextureType.Normals, tex => mat.NormalTexture = tex, baseDir);
+            TrySetTexture(assimpMat, TextureType.Shininess, tex => mat.RoughnessTexture = tex, baseDir);
+            TrySetTexture(assimpMat, TextureType.Emissive, tex => mat.EmissionTexture = tex, baseDir);
 
             return mat;
         }
-        static void TrySetTexture(Assimp.Material mat, TextureType type, string uniformName, string useFlag, Core.Material outputMat, string baseDir)
+
+        static void TrySetTexture(
+            Assimp.Material mat,
+            TextureType type,
+            Action<Texture> setTexture,
+            string baseDir)
         {
             if (!mat.GetMaterialTexture(type, 0, out TextureSlot texSlot))
                 return;
 
             string fullPath = Path.Combine(baseDir, texSlot.FilePath);
 
-            // Load or get existing TextureReference
-            TextureReference textureRef = (TextureReference)AssetLoader.Load<Texture>(fullPath);  // returns IAssetReference<Texture>
-
+            var textureRef = (TextureReference)AssetLoader.Load<Texture>(fullPath);
             if (textureRef == null)
                 return;
 
             if (textureRef.isLoaded)
             {
-                SetupTexture(textureRef.value, fullPath, texSlot, outputMat, uniformName, useFlag);
+                SetupTexture(textureRef.value, texSlot, setTexture);
             }
             else
             {
-                textureRef.OnLoad += (tex) =>
-                {
-                    SetupTexture(tex, fullPath, texSlot, outputMat, uniformName, useFlag);
-                };
+                textureRef.OnLoad += tex => SetupTexture(tex, texSlot, setTexture);
             }
         }
 
-        static void SetupTexture(Texture texture, string path, TextureSlot texSlot, Core.Material mat, string uniformName, string useFlag)
+        static void SetupTexture(Texture texture, TextureSlot texSlot, Action<Texture> setTexture)
         {
-
             texture.SetFilter(TextureMinFilter.LinearMipmapLinear, TextureMagFilter.Linear);
             texture.SetAnisotropy(8f);
             texture.GenerateMipmap();
             SetWrap(texSlot.WrapModeU, texSlot.WrapModeV, texture);
 
-            mat.Set(uniformName, texture);
-            mat.Set(useFlag, 1);
+            setTexture(texture);
         }
 
         static Assimp.Matrix4x4 GetNodeWorldTransform(Node node)

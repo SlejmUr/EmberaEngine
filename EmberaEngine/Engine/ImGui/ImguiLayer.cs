@@ -16,8 +16,13 @@ namespace EmberaEngine.Engine.Imgui
 
         IntPtr Context;
         public ImguiAPI imguiAPI;
-        public static bool customTitlebar = true;
+
+
+        public static bool customTitlebar = false;
         public static bool UseDockspace = false;
+        public static string customTitlebarLogo = "";
+
+        Core.Texture titlebarLogo;
 
         public void InitIMGUI(GameWindow window, int width, int height)
         {
@@ -26,6 +31,9 @@ namespace EmberaEngine.Engine.Imgui
             ImGui.SetCurrentContext(Context);
 
             imguiAPI = new ImguiAPI(window, width, height);
+
+
+            titlebarLogo = Helper.loadImageAsTex(customTitlebarLogo, TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         }
 
         public override void OnGUIRender()
@@ -65,7 +73,7 @@ namespace EmberaEngine.Engine.Imgui
             imguiAPI.Update(deltaTime);
             if (ImguiLayer.UseDockspace)
             {
-                imguiAPI.SetUpDockspace();
+                imguiAPI.SetUpDockspace(customTitlebar, titlebarLogo);
             }
         }
         

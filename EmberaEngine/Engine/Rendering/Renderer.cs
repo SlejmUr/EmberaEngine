@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EmberaEngine.Engine.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,8 @@ namespace EmberaEngine.Engine.Rendering
 
             Renderer2D.Initialize(width, height);
             Renderer3D.Initialize(width, height);
+
+            GLDebugLogger.Enable();
         }
 
         public static void BeginFrame()

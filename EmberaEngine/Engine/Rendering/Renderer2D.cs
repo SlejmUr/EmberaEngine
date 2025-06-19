@@ -107,9 +107,6 @@ namespace EmberaEngine.Engine.Rendering
                 model *= Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(elem.rotation + 180));
                 model *= Matrix4.CreateTranslation(elem.dimensions.X + elem.dimensions.Z / 2, elem.dimensions.Y + elem.dimensions.W / 2, 0f);
 
-
-                elem.shader.Apply();
-
                 elem.shader.SetMatrix4("W_MODEL_MATRIX", model);
                 elem.shader.SetMatrix4("W_PROJECTION_MATRIX", Projection);
 

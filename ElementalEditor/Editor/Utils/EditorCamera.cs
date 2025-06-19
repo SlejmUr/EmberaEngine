@@ -57,6 +57,17 @@ namespace ElementalEditor.Editor.Utils
 
         public void Update(float deltaTime)
         {
+            UpdateView();
+
+            width = Screen.Size.X;
+            height = Screen.Size.Y;
+
+            if (prevWidth != width || prevHeight != height)
+            {
+                prevWidth = width; prevHeight = height;
+                UpdateProjection();
+            }
+
             if (_lockCamera) return;
 
             Vector2 mousePos = Input.mousePosition;
@@ -80,17 +91,6 @@ namespace ElementalEditor.Editor.Utils
             {
                 LocalRotate(delta);
                 _useArcball = false;
-            }
-
-            UpdateView();
-
-            width = Screen.Size.X;
-            height = Screen.Size.Y;
-
-            if (prevWidth != width || prevHeight != height)
-            {
-                prevWidth = width; prevHeight = height;
-                UpdateProjection();
             }
         }
 

@@ -39,6 +39,7 @@ namespace ElementalEditor.Editor.Panels
         int viewportHeight, viewportWidth;
 
         bool isMouseOverWindow;
+        bool isFirstFrame;
         bool freeAspectRatio = false;
 
         public override void OnAttach()
