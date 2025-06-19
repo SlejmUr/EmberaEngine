@@ -665,20 +665,26 @@ namespace EmberaEngine.Engine.Imgui
             {
                 // Titlebar area
                 ImGui.SetCursorScreenPos(new System.Numerics.Vector2(0, 0));
-                ImGui.BeginChild("Titlebar", new System.Numerics.Vector2(_GameWindow.Size.X, titlebarHeight), false, ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize);
+                ImGui.BeginChild("Titlebar", new System.Numerics.Vector2(_GameWindow.Size.X, titlebarHeight),
+                    false, ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMove |
+                    ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize);
 
-                // Handle dragging on empty area
-                var io = ImGui.GetIO();
+                var windowPos = ImGui.GetWindowPos(); // top-left of current window
+                var min = System.Numerics.Vector2.Zero;
+                var max = new System.Numerics.Vector2(_GameWindow.Size.X, titlebarHeight);
+
+                bool titlebarHovered = ImGui.IsMouseHoveringRect(min, max);
+
                 var region = ImGui.GetContentRegionAvail();
                 var mouse = _GameWindow.MouseState.Position;
 
-                if ((ImGui.IsWindowHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Left)) || _dragging)
+                if ((titlebarHovered && ImGui.IsMouseDown(ImGuiMouseButton.Left)) || _dragging)
                 {
                     if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
                     {
                         _dragging = false;
                     }
-                    if (!_dragging)
+                    else if (!_dragging)
                     {
                         _dragging = true;
                         _lastMouseScreen1 = mouse;
@@ -713,7 +719,7 @@ namespace EmberaEngine.Engine.Imgui
                     _GameWindow.WindowState = OpenTK.Windowing.Common.WindowState.Minimized;
                 }
                 ImGui.SameLine();
-                if (ImGui.Button(MaterialDesign.Fullscreen))
+                if (ImGui.Button(_GameWindow.WindowState == WindowState.Maximized ? MaterialDesign.Fullscreen_exit : MaterialDesign.Fullscreen))
                 {
                     _GameWindow.WindowState = _GameWindow.WindowState == OpenTK.Windowing.Common.WindowState.Maximized
                         ? OpenTK.Windowing.Common.WindowState.Normal
