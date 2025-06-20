@@ -161,8 +161,6 @@ namespace EmberaEngine.Engine.Core
         }
         #endregion
 
-
-
         public PBRMaterial()
         {
             base.shader = ShaderRegistry.GetShader("CLUSTERED_PBR");

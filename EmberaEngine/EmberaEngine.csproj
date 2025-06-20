@@ -7,6 +7,18 @@
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Engine\Content\Models\Portal2Chamber\**" />
     <Compile Remove="Engine\Content\Models\textures\**" />
@@ -123,6 +135,7 @@
     <None Remove="Engine\Content\Shaders\3D\Volumetrics\fogInjection.comp" />
     <None Remove="Engine\Content\Shaders\3D\Volumetrics\lightInjection.comp" />
     <None Remove="Engine\Content\Textures\Placeholders\null.png" />
+    <None Remove="Engine\Content\Textures\Placeholders\shrk.png" />
     <None Remove="Engine\Content\Textures\Skyboxes\aperture.hdr" />
     <None Remove="Engine\Content\Textures\Skyboxes\autumn.hdr" />
     <None Remove="Engine\Content\Textures\Skyboxes\Beach.hdr" />
@@ -463,6 +476,9 @@
     <Content Include="Engine\Content\Textures\Placeholders\null.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Engine\Content\Textures\Placeholders\shrk.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Engine\Content\Textures\Skyboxes\aperture.hdr">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -515,16 +531,19 @@
     <PackageReference Include="BepuPhysics" Version="2.4.0" />
     <PackageReference Include="Box2D" Version="2.3.0" />
     <PackageReference Include="ImGui.NET" Version="1.87.2" />
+    <PackageReference Include="MessagePack" Version="3.1.4" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTK" Version="4.7.5" />
     <PackageReference Include="SharpFont" Version="4.0.1" />
     <PackageReference Include="SharpFont.Dependencies" Version="2.6.0" />
     <PackageReference Include="SixLabors.Fonts" Version="2.0.4" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />
     <PackageReference Include="SkiaSharp" Version="2.88.6" />
     <PackageReference Include="SpaceWizards.SharpFont" Version="1.0.2" />
     <PackageReference Include="StbImageSharp" Version="2.30.15" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Engine\Content\Shaders\3D\ScreenShaders\" />

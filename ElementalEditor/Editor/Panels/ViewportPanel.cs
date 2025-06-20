@@ -1,14 +1,10 @@
 ﻿using ElementalEditor.Editor.Utils;
-using EmberaEngine.Engine.Components;
 using EmberaEngine.Engine.Core;
 using EmberaEngine.Engine.Rendering;
 using EmberaEngine.Engine.Utilities;
 using ImGuiNET;
 using MaterialIconFont;
-using OpenTK.Graphics;
 using OpenTK.Windowing.Desktop;
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace ElementalEditor.Editor.Panels
@@ -23,7 +19,7 @@ namespace ElementalEditor.Editor.Panels
                 r.Width == Width && r.Height == Height && r.RefreshRate == RefreshRate;
         }
 
-        const int ToolbarHeight = 48;
+        const int ToolbarHeight = 60;
         List<SupportedResolution> supportedResolutions = new();
         SupportedResolution selectedResolution;
 
@@ -42,8 +38,85 @@ namespace ElementalEditor.Editor.Panels
         bool isFirstFrame;
         bool freeAspectRatio = false;
 
+
+        List<ViewportControl> controls;
+
+
         public override void OnAttach()
         {
+            // Setting up UI
+
+            controls = new List<ViewportControl>
+            {
+                new ViewportControl(ViewportAlignment.Left, () =>
+                {
+                    if (ImGui.BeginCombo("##ResCombo", $"{selectedResolution.Width}x{selectedResolution.Height}", ImGuiComboFlags.HeightLargest))
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0f, 0f, 0f, 1f));
+                        for (int i = 0; i < supportedResolutions.Count; i++)
+                        {
+                            var res = supportedResolutions[i];
+                            bool isSelected = selectedResolution.Equals(res) && !freeAspectRatio;
+                            if (ImGui.Selectable($"{res.Width}x{res.Height}", isSelected))
+                            {
+                                selectedResolution = res;
+                                freeAspectRatio = false;
+
+                                Renderer.Resize(res.Width, res.Height);
+                                Screen.Size.X = res.Width;
+                                Screen.Size.Y = res.Height;
+                                editor.EditorCurrentScene.OnResize(res.Width, res.Height);
+
+                                DebugLogPanel.Log("RESIZED RENDERER", DebugLogPanel.DebugMessageSeverity.Information, "Viewport Change");
+                            }
+                        }
+
+                        if (ImGui.Selectable("Free Aspect", freeAspectRatio))
+                        {
+                            freeAspectRatio = true;
+                            Renderer.Resize(viewportWidth, viewportHeight);
+                            Screen.Size.X = viewportWidth;
+                            Screen.Size.Y = viewportHeight;
+                            editor.EditorCurrentScene.OnResize(viewportWidth, viewportHeight);
+                        }
+                        ImGui.PopStyleColor();
+                        ImGui.EndCombo();
+                    }
+                }, new Vector2(200f)),
+                new ViewportControl(ViewportAlignment.Center, () =>
+                {
+                    if (ImGui.Button(MaterialDesign.Play_arrow, new Vector2(40f)))
+                        Console.WriteLine("Play clicked");
+                }),
+
+                new ViewportControl(
+                    ViewportAlignment.Right,
+                    () =>
+                    {
+                        ImGui.Button("Save Scene");
+                    },
+                    new Vector2(100, 40)
+                ),
+
+                new ViewportControl(ViewportAlignment.Right, () =>
+                {
+                    if (ImGui.Button("⋮", new Vector2(40f)))
+                        ImGui.OpenPopup("OptionsPopup");
+
+                    if (ImGui.BeginPopup("OptionsPopup"))
+                    {
+                        if (ImGui.MenuItem("Option A")) Console.WriteLine("Option A clicked");
+                        if (ImGui.MenuItem("Option B")) Console.WriteLine("Option B clicked");
+                        ImGui.EndPopup();
+                    }
+                })
+            };
+
+
+
+
+
+
             compositeBuffer = Renderer3D.GetOutputFrameBuffer();
 
             InitViewportBuffer();
@@ -101,6 +174,9 @@ namespace ElementalEditor.Editor.Panels
             isMouseOverWindow = ImGui.IsWindowHovered();
             editor.EditorCamera.LockCamera = !isMouseOverWindow;
 
+            // 📌 DRAW TOOLBAR FIRST
+            DrawToolbar(); // This will now occupy vertical space in layout
+
             viewportPos = ImGui.GetCursorScreenPos();
             viewportHeight = (int)ImGui.GetContentRegionAvail().Y;
             viewportWidth = (int)ImGui.GetContentRegionMax().X;
@@ -113,15 +189,17 @@ namespace ElementalEditor.Editor.Panels
 
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
             ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, Vector2.Zero);
-            ImGui.Image((IntPtr)viewportBuffer.GetFramebufferTexture(0).GetRendererID(), new Vector2(viewportWidth, viewportHeight), new Vector2(0, 0), new Vector2(1, -1));
-            ImGui.PopStyleVar(2);
 
-            ImGui.SetItemAllowOverlap();
-            DrawToolbar();
+            ImGui.Image((IntPtr)viewportBuffer.GetFramebufferTexture(0).GetRendererID(),
+                        new Vector2(viewportWidth, viewportHeight),
+                        new Vector2(0, 0), new Vector2(1, -1));
+
+            ImGui.PopStyleVar(2);
 
             ImGui.End();
             ImGui.PopStyleVar();
         }
+
 
         void HandleViewportResize()
         {
@@ -151,7 +229,7 @@ namespace ElementalEditor.Editor.Panels
         void DrawToolbar()
         {
             // Extracted: Same as your `DrawViewportTools` but modularized — we can leave as is or optionally break down more.
-            //DrawViewportTools();
+            ViewportUtil.DrawViewportTools(ToolbarHeight, controls);
         }
 
 
@@ -218,7 +296,7 @@ namespace ElementalEditor.Editor.Panels
 
         public (int, int, int, int) CalculateScaledViewport(int viewportW, int viewportH, int targetW, int targetH)
         {
-            int usableHeight = viewportH - ToolbarHeight;
+            int usableHeight = viewportH;
             float scale = Math.Min((float)viewportW / targetW, (float)usableHeight / targetH);
             int sw = (int)(targetW * scale);
             int sh = (int)(targetH * scale);

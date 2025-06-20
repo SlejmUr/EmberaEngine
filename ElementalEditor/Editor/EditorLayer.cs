@@ -215,6 +215,7 @@ namespace ElementalEditor.Editor
             //Mesh[] meshLoaderOutput = ModelImporter.LoadModel("Engine/Content/Models/SSAO Test/sphere.obj");
 
             ModelData meshLoaderOutput = ModelImporter.LoadModel("Sponza/sponza.obj");
+            //ModelData meshLoaderOutput = ModelImporter.LoadModel("JivinModel/barrel.fbx");
 
             //ModelData meshLoaderOutput = ModelImporter.LoadModel("AmbientShadowTesting/ambient_shadow_testing.fbx");
             //ModelData meshLoaderOutput = ModelImporter.LoadModel("ShooterTest/file.fbx");

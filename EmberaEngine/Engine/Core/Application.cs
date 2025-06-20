@@ -15,9 +15,13 @@ namespace EmberaEngine.Engine.Core
         public bool forceVsync;
         public bool useImGui;
         public bool useImGuiDock;
+        public bool useFullscreen;
+
+
+
         public bool useCustomTitlebar;
         public string customTitlebarLogo;
-        public bool useFullscreen;
+        public bool darkTitlebar;
     }
 
     public class Application
@@ -36,6 +40,7 @@ namespace EmberaEngine.Engine.Core
                 Height = appSpec.Height,
                 VSync = appSpec.forceVsync,
                 customTitlebar = appSpec.useCustomTitlebar,
+                darkTitlebar = appSpec.darkTitlebar,
             };
 
             LayerHandler = new LayerHandler();

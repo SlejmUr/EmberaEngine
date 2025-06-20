@@ -11,8 +11,10 @@ namespace EmberaEngine.Engine.Core
         public string Name;
         public bool VSync;
         public int Width, Height;
-        public bool customTitlebar;
         public bool useFullscreen;
+
+        public bool customTitlebar;
+        public bool darkTitlebar;
     }
 
     public enum WindowState_
@@ -25,6 +27,7 @@ namespace EmberaEngine.Engine.Core
 
     public class Window : GameWindow
     {
+        WindowSpecification specification;
 
         public Window(WindowSpecification specification) : base(GameWindowSettings.Default, new NativeWindowSettings()
         {
@@ -35,9 +38,16 @@ namespace EmberaEngine.Engine.Core
             StartVisible = false,
         })
         {
+            this.specification = specification;
+
             base.VSync = specification.VSync ? VSyncMode.On : VSyncMode.Off;
             this.WindowBorder = specification.customTitlebar ? WindowBorder.Hidden : this.WindowBorder;
             this.CenterWindow();
+
+            unsafe
+            {
+                if (specification.darkTitlebar) WindowUtil.EnableDarkMode(WindowUtil.GetWin32Window(this));
+            }
         }
 
         public void setWindowState(WindowState_ windowState)
@@ -53,6 +63,7 @@ namespace EmberaEngine.Engine.Core
         protected override void OnLoad()
         {
             this.IsVisible = true;
+
             base.OnLoad();
         }
 

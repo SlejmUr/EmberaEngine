@@ -1,18 +1,19 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Text.Encodings;
-using Assimp;
-using OpenTK.Mathematics;
-using System.Linq;
-using SharpFont;
-using System.Text;
-using EmberaEngine.Engine.Core;
+﻿using Assimp;
 using EmberaEngine.Engine.Components;
+using EmberaEngine.Engine.Core;
 using EmberaEngine.Engine.Rendering;
 using EmberaEngine.Engine.Utilities;
+using OpenTK.Mathematics;
+using SharpFont;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Resources;
+using System.Text;
+using System.Text.Encodings;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace EmberaEngine.Engine.Utilities
 {
@@ -321,7 +322,6 @@ namespace EmberaEngine.Engine.Utilities
             var mat = new PBRMaterial();
             mat.SetDefaults();
 
-            // Directly assign the properties instead of using Set()
             mat.Albedo = new Color4(
                 assimpMat.ColorDiffuse.R,
                 assimpMat.ColorDiffuse.G,
@@ -370,6 +370,9 @@ namespace EmberaEngine.Engine.Utilities
             else
             {
                 textureRef.OnLoad += tex => SetupTexture(tex, texSlot, setTexture);
+
+                // Load null texture until texture loads.
+                SetupTexture(Helper.loadImageAsTex("Engine/Content/Textures/Placeholders/null.png"), texSlot, setTexture);
             }
         }
 

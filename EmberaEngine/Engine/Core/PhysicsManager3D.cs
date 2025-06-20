@@ -282,7 +282,7 @@ namespace EmberaEngine.Engine.Core
     out PairMaterialProperties pairMaterial)
     where TManifold : unmanaged, IContactManifold<TManifold>
         {
-            pairMaterial.FrictionCoefficient = 0.5f; // default or from user-defined data
+            pairMaterial.FrictionCoefficient = -1f; // default or from user-defined data
             pairMaterial.MaximumRecoveryVelocity = 2f;
             pairMaterial.SpringSettings = new SpringSettings(30, 1);
             return true;

@@ -25,8 +25,9 @@ namespace ElementalEditor
                 forceVsync = true,
                 useImGui = true,
                 useImGuiDock = true,
-                useCustomTitlebar = true,
-                customTitlebarLogo = "Editor/Assets/Textures/EditorBrand/DevoidLogo.png"
+                useCustomTitlebar = false,
+                customTitlebarLogo = "Editor/Assets/Textures/EditorBrand/DevoidLogo.png",
+                darkTitlebar = true
             };
 
             EditorLayer layer = new EditorLayer();
