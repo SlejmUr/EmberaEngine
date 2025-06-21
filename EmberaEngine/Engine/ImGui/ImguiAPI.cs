@@ -377,15 +377,14 @@ namespace EmberaEngine.Engine.Imgui
             io.MouseWheelH = MouseState.Scroll.X - MouseState.PreviousScroll.X;
 
 
-            foreach (OpenTK.Windowing.GraphicsLibraryFramework.Keys key in Enum.GetValues(typeof(OpenTK.Windowing.GraphicsLibraryFramework.Keys)))
+            foreach (var key in Enum.GetValues<OpenTK.Windowing.GraphicsLibraryFramework.Keys>())
             {
                 if (key == OpenTK.Windowing.GraphicsLibraryFramework.Keys.Unknown)
                     continue;
 
-                
-
                 io.KeysDown[(int)key] = KeyboardState.IsKeyDown(key);
             }
+
 
             for (int i = 0; i < pressedChars.Count; i++)
             {

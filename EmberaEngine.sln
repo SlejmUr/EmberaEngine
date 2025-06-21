@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElementalEditor", "Elementa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevoidShaderBuilder", "DevoidShaderBuilder\DevoidShaderBuilder.csproj", "{F057CA27-5431-4546-989E-744F60B71383}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmberaEngine.SourceGen", "EmberaEngine.SourceGen\EmberaEngine.SourceGen.csproj", "{5BE92980-1D77-1B97-8968-374E998784CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,14 @@ Global
 		{F057CA27-5431-4546-989E-744F60B71383}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F057CA27-5431-4546-989E-744F60B71383}.Release|x64.ActiveCfg = Release|Any CPU
 		{F057CA27-5431-4546-989E-744F60B71383}.Release|x64.Build.0 = Release|Any CPU
+		{5BE92980-1D77-1B97-8968-374E998784CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BE92980-1D77-1B97-8968-374E998784CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BE92980-1D77-1B97-8968-374E998784CC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5BE92980-1D77-1B97-8968-374E998784CC}.Debug|x64.Build.0 = Debug|Any CPU
+		{5BE92980-1D77-1B97-8968-374E998784CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BE92980-1D77-1B97-8968-374E998784CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BE92980-1D77-1B97-8968-374E998784CC}.Release|x64.ActiveCfg = Release|Any CPU
+		{5BE92980-1D77-1B97-8968-374E998784CC}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

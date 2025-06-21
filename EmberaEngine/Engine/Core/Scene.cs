@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using EmberaEngine.Engine.Components;
 using EmberaEngine.Engine.Rendering;
+using MessagePack;
 using nkast.Aether.Physics2D.Common;
 
 namespace EmberaEngine.Engine.Core
@@ -10,13 +11,20 @@ namespace EmberaEngine.Engine.Core
     {
 
         public List<GameObject> GameObjects;
+
+        [IgnoreMember]
         public List<CameraComponent3D> Cameras;
 
+        [IgnoreMember]
         public PhysicsManager2D PhysicsManager2D;
+        [IgnoreMember]
         public PhysicsManager3D PhysicsManager3D;
+
+
         public bool IsPlaying = false;
 
         public event Action<Component> OnComponentAdded = (c) => {};
+
         public event Action<Component> OnComponentRemoved = (c) => {};
 
         public Scene()

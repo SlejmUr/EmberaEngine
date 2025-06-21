@@ -1,6 +1,7 @@
 ﻿using EmberaEngine.Engine.Core;
 using EmberaEngine.Engine.Rendering;
 using EmberaEngine.Engine.Utilities;
+using MessagePack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace EmberaEngine.Engine.Components
     {
         public override string Type => nameof(MeshRenderer);
 
-        public Mesh[] meshes;
+        private Mesh[] meshes;
 
         public MeshRenderer()
         {

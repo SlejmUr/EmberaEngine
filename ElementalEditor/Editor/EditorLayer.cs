@@ -55,6 +55,8 @@ namespace ElementalEditor.Editor
 
         public override void OnAttach()
         {
+
+
             SetEditorStyling();
 
             interBoldFont = ImGui.GetIO().Fonts.AddFontFromFileTTF("Editor/Assets/Fonts/InterExtraBold.ttf", 20);

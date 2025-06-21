@@ -93,7 +93,10 @@ namespace ElementalEditor.Editor.Panels
                     ViewportAlignment.Right,
                     () =>
                     {
-                        ImGui.Button("Save Scene");
+                        if (ImGui.Button("Save Scene"))
+                        {
+                            SceneSerializer.Serialize(editor.EditorCurrentScene);
+                        }
                     },
                     new Vector2(100, 40)
                 ),

@@ -8,7 +8,7 @@ namespace EmberaEngine.Engine.Core
 {
     public class GameObject
     {
-
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string Name;
 
         public Transform transform { get; private set; }

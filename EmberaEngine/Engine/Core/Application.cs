@@ -75,6 +75,7 @@ namespace EmberaEngine.Engine.Core
             window.MouseWheel += OnMouseWheel;
 
             this.appSpec = appSpec;
+
         }
 
         private void OnMouseMove(OpenTK.Windowing.Common.MouseMoveEventArgs obj)

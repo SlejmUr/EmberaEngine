@@ -1,5 +1,6 @@
 ﻿using System;
 using EmberaEngine.Engine.Core;
+using MessagePack;
 
 namespace EmberaEngine.Engine.Components
 {
@@ -11,6 +12,7 @@ namespace EmberaEngine.Engine.Components
 
         }
 
+        [IgnoreMember]
         public GameObject gameObject;
         public virtual void OnStart() { }
         public virtual void OnUpdate(float dt) { }
