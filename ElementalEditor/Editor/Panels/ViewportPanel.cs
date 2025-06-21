@@ -1,6 +1,7 @@
 ﻿using ElementalEditor.Editor.Utils;
 using EmberaEngine.Engine.Core;
 using EmberaEngine.Engine.Rendering;
+using EmberaEngine.Engine.Serializing;
 using EmberaEngine.Engine.Utilities;
 using ImGuiNET;
 using MaterialIconFont;

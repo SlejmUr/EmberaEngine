@@ -553,9 +553,6 @@
     <Folder Include="Engine\ImGui\imnodes\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\EmberaEngine.SourceGen\EmberaEngine.SourceGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="ImGuizmo.NET">
       <HintPath>Engine\Content\Assemblies\ImGuizmo.NET.dll</HintPath>
     </Reference>

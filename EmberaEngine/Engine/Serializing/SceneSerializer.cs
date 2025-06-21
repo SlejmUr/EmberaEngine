@@ -1,11 +1,14 @@
 ﻿using EmberaEngine.Engine.Components;
 using EmberaEngine.Engine.Core;
+using EmberaEngine.Engine.Utilities;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenTK.Mathematics;
 
-namespace EmberaEngine.Engine.Utilities
+namespace EmberaEngine.Engine.Serializing
 {
     public class SceneSerializer
     {
@@ -14,7 +17,9 @@ namespace EmberaEngine.Engine.Utilities
             var resolver = CompositeResolver.Create(
                 new IMessagePackFormatter[] {
                 new GameObjectFormatter(),
-                new Vector2Formatter()
+                new Vector2Formatter(),
+                new Vector3Formatter(),
+                new Vector4Formatter()
                         },
                         new IFormatterResolver[] {
                 ContractlessStandardResolver.Instance // avoids private members!
@@ -23,7 +28,15 @@ namespace EmberaEngine.Engine.Utilities
 
             var options = MessagePackSerializerOptions.Standard.WithResolver(resolver);
 
-            Console.WriteLine(MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(scene, options)));
+
+            string sPrettyStr;
+            var item2 = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(scene, options));
+
+            Console.WriteLine(item2);
+
+            sPrettyStr = JToken.Parse(item2).ToString(Formatting.Indented);
+
+            Console.WriteLine(sPrettyStr);
         }
 
 
@@ -35,48 +48,88 @@ namespace EmberaEngine.Engine.Utilities
     {
         public void Serialize(ref MessagePackWriter writer, GameObject value, MessagePackSerializerOptions options)
         {
-            Console.WriteLine($"Serializing GameObject: {value.Name}");
-
-            writer.WriteArrayHeader(5); // Added 1 for components
+            writer.WriteArrayHeader(4);
 
             writer.Write(value.Name);
             writer.Write(value.Id.ToString());
-            writer.Write(value.parentObject?.Id.ToString());
+            writer.Write(value.parentObject?.Id.ToString() ?? ""); // Empty if root
 
-            // Serialize children (List<GameObject>)
+            // Serialize children recursively
             options.Resolver.GetFormatterWithVerify<List<GameObject>>()
                 .Serialize(ref writer, value.children, options);
 
-            // Get only the public components list
-            var components = value.GetComponents(); // List<Component>
-
-            // Serialize components list, each Component will be resolved by TypelessContractlessStandardResolver
-            // But if you want to avoid serializing private fields, use ContractlessStandardResolver instead
-            MessagePackSerializer.Serialize(ref writer, components, options);
+            // Serialize components
+            var components = value.GetComponents();
+            writer.WriteArrayHeader(components.Count);
+            foreach (var comp in components)
+            {
+                var id = ComponentRegistry.GetId(comp.GetType());
+                writer.Write(id);
+                var formatter = ComponentRegistry.GetFormatter(id);
+                formatter.Serialize(ref writer, comp, options);
+            }
         }
 
         public GameObject Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            var count = reader.ReadArrayHeader();
+            reader.ReadArrayHeader();
 
             var name = reader.ReadString();
-            var idStr = reader.ReadString();
-            var parentId = reader.ReadString();
+            var id = Guid.Parse(reader.ReadString());
+            var parentIdStr = reader.ReadString();
+            var parentId = string.IsNullOrEmpty(parentIdStr) ? (Guid?)null : Guid.Parse(parentIdStr);
+
             var children = options.Resolver.GetFormatterWithVerify<List<GameObject>>()
                 .Deserialize(ref reader, options);
-
-            var components = MessagePackSerializer.Deserialize<List<Component>>(ref reader, options);
 
             var go = new GameObject
             {
                 Name = name,
-                Id = Guid.Parse(idStr),
+                Id = id,
                 children = children
             };
+
+            // Set parent references recursively
+            foreach (var child in children)
+            {
+                child.parentObject = go;
+            }
+
+            var componentCount = reader.ReadArrayHeader();
+            for (int i = 0; i < componentCount; i++)
+            {
+                var compId = reader.ReadUInt16();
+                var formatter = ComponentRegistry.GetFormatter(compId);
+                var comp = formatter.Deserialize(ref reader, options);
+                go.AddComponent(comp);
+            }
 
             return go;
         }
     }
+
+
+
+    public class ComponentFormatter<T> : IMessagePackFormatter<T> where T : Component
+    {
+        public void Serialize(ref MessagePackWriter writer, T value, MessagePackSerializerOptions options)
+        {
+            writer.WriteArrayHeader(3);
+            writer.Write(value.Type);
+            writer.Write(ComponentRegistry.GetId(typeof(T)));
+            options.Resolver.GetFormatterWithVerify<T>().Serialize(ref writer, value, options);
+        }
+
+        public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            reader.ReadArrayHeader();
+            return options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
+        }
+    }
+
+
+
+
 
     public class Vector2Formatter : IMessagePackFormatter<Vector2>
     {
@@ -137,6 +190,27 @@ namespace EmberaEngine.Engine.Utilities
             return new Vector4(x, y, z, w);
         }
     }
+
+    public class Adapter<T> : IMessagePackFormatter<Component> where T : Component
+    {
+        private readonly IMessagePackFormatter<T> inner;
+
+        public Adapter(IMessagePackFormatter<T> inner)
+        {
+            this.inner = inner;
+        }
+
+        public void Serialize(ref MessagePackWriter writer, Component value, MessagePackSerializerOptions options)
+        {
+            inner.Serialize(ref writer, (T)value, options);
+        }
+
+        public Component Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            return inner.Deserialize(ref reader, options);
+        }
+    }
+
 
 
 }
